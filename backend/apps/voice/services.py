@@ -37,8 +37,8 @@ from django.conf import settings
 _GROQ_BASE   = "https://api.groq.com/openai/v1"
 _STT_MODEL   = "whisper-large-v3-turbo"   # 3× faster, same accuracy
 _LLM_MODEL   = "llama-3.3-70b-versatile"  # Groq's best quality model (still ~200–400ms)
-_TTS_VOICE   = "ur-PK-UzmaNeural"         # Pakistani Urdu neural voice
-_TTS_RATE    = "+15%"                      # Slightly faster speech = more natural
+_TTS_VOICE   = "en-US-AvaNeural"         # Professional American female voice
+_TTS_RATE    = "+0%"                      # Standard professional speed
 _TTS_PITCH   = "+0Hz"
 
 
@@ -70,7 +70,7 @@ def transcribe_audio_groq(file_path: str) -> str:
             data={
                 "model":           _STT_MODEL,
                 "response_format": "json",
-                "language":        "ur",
+                "language":        "en",
                 "temperature":     "0",
             },
             timeout=15,
@@ -87,7 +87,56 @@ def transcribe_audio_groq(file_path: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 2 — Intent + Entity Extraction  (Groq LLM)
 # ─────────────────────────────────────────────────────────────────────────────
-def extract_intent_llm(transcript: str, memory: dict | None = None) -> dict:
+import random
+import re
+
+THINKING_FILLERS = [
+    "Let me check that for you...",
+    "One moment please...", 
+    "Sure, looking that up...",
+]
+
+def format_for_voice(text: str) -> str:
+    """Keep response short for voice (max 2 sentences)."""
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text) if s.strip()]
+    if not sentences:
+        return text
+    short = ' '.join(sentences[:2])
+    return short
+
+def detect_emotion(transcript: str) -> str:
+    """Detect patient emotion (urgent, normal, confused) via Groq."""
+    prompt = f"""
+    Patient said: "{transcript}"
+    
+    Reply with ONE word only:
+    - urgent (if they sound worried or in pain)
+    - normal (regular appointment booking)  
+    - confused (if they seem lost or unsure)
+    """
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "temperature": 0.1,
+        "max_tokens": 10,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    try:
+        resp = requests.post(f"{_GROQ_BASE}/chat/completions", headers=_headers(), json=payload, timeout=5)
+        if resp.status_code == 200:
+            return resp.json()["choices"][0]["message"]["content"].strip().lower()
+    except Exception:
+        pass
+    return "normal"
+
+def get_tone_instruction(emotion: str) -> str:
+    tones = {
+        "urgent": "Sound caring and calm. Prioritize helping quickly.",
+        "normal": "Sound friendly and professional.",
+        "confused": "Sound patient and clear. Use simple words."
+    }
+    return tones.get(emotion, tones["normal"])
+
+def extract_intent_llm(transcript: str, memory: dict | None = None, history: list = None) -> dict:
     """
     Uses llama-3.3-70b-versatile — Groq's best model with ~300ms latency.
     Multi-turn memory injection, bilingual Urdu/English support.
@@ -95,6 +144,9 @@ def extract_intent_llm(transcript: str, memory: dict | None = None) -> dict:
     """
     t0  = time.perf_counter()
     now = datetime.now()
+
+    emotion = detect_emotion(transcript)
+    tone = get_tone_instruction(emotion)
 
     # ── Compute dynamic dates ────────────────────────────────────────────────
     from datetime import timedelta
@@ -110,59 +162,67 @@ def extract_intent_llm(transcript: str, memory: dict | None = None) -> dict:
         if memory.get("awaiting"): mem_lines.append("- Status: Awaiting user confirmation")
     memory_block = "\n".join(mem_lines) or "No previous context."
 
-    system = f"""You are Zara — a warm, intelligent, fast AI receptionist at a Pakistani hospital.
-You speak naturally in Roman Urdu / mixed Urdu-English (Hinglish). Be brief, friendly, human.
+    system = f"""You are Sana, a highly professional and welcoming receptionist at City Medical Center.
+You speak clearly in English — keep your responses concise and helpful.
+Show empathy and reassurance, especially if a patient sounds concerned.
+Use professional fillers like 'Certainly!', 'Of course, let me check that for you.', 'I'd be happy to help with that.'
+Never sound robotic. Always be polite and warm.
+Confirm collected details back to the user to ensure accuracy.
+Keep responses under 2 sentences for natural voice flow.
+If more info is needed, ask only ONE clear question.
+
+Tone: {tone}
 
 🕐 RIGHT NOW: {now.strftime("%A, %d %B %Y — %I:%M %p")}
 📅 Date references:
-  "Kal" / "Tomorrow"  = {kal}
-  "Parson"            = {parson}
-  "Is Hafte"          = this week (Mon–Sun of current week)
-  "Aglay Hafte"       = next week
-  "Agli Peer"         = next Monday
+  "Tomorrow"          = {kal}
+  "Day after tomorrow" = {parson}
+  "This week"         = current Mon-Sun
+  "Next week"         = next week's window
+  "Next Monday"       = the specific upcoming Monday
 
-💾 REMEMBERED FROM PREVIOUS TURNS (do NOT ask again):
+💾 CONTEXT FROM PREVIOUS TURNS:
 {memory_block}
 
 ══════════════════════════════════════════════════════
 CLASSIFY user intent as ONE of:
-  greeting            → hello / assalam o alaikum / hi
-  book_appointment    → wants to book/schedule
-  confirm_appointment → yes / haan / theek hai / bilkul / confirm
-  cancel_appointment  → cancel / band karo
-  check_my_schedule   → meri appointments / schedule
-  fallback            → unclear / unrelated
+  greeting            → hi / hello / good morning
+  book_appointment    → wants to schedule a visit
+  confirm_appointment → yes / sure / confirm / that's right
+  cancel_appointment  → cancel / remove my booking
+  check_my_schedule   → what are my appointments?
+  fallback            → unclear or off-topic
 
-EXTRACT entities (null if not said):
-  doctor_name     → e.g. "Ahmed", "Malik", "Hassan"
-  specialization  → e.g. "cardiologist", "heart doctor", "dil ka doctor"
-  date            → YYYY-MM-DD (resolve relative like "kal", "Friday" using dates above)
-  time            → HH:MM in 24h ("3 baje" → "15:00", "subah 9" → "09:00", "raat 8" → "20:00")
+EXTRACT entities (null if not mentioned):
+  doctor_name     → e.g. "Dr. Smith", "Jones"
+  specialization  → e.g. "cardiologist", "dermatologist"
+  date            → YYYY-MM-DD (resolve relative dates using today's date)
+  time            → HH:MM in 24h format (e.g., "3 PM" → "15:00")
   time_preference → morning | afternoon | evening
 
 DETERMINE next action:
-  ask_doctor      → if doctor_name AND specialization both missing
-  ask_date        → doctor known, date missing
-  ask_time        → doctor + date known, time missing
-  confirm_booking → all 3 collected → present summary for confirmation
-  book_now        → user confirmed → finalize the booking
-  cancel_now      → execute cancellation
-  show_schedule   → list their appointments
-  respond         → for greetings / general / fallback
+  ask_doctor      → if we don't know who they want to see
+  ask_date        → if doctor is known but date is missing
+  ask_time        → if doctor and date are known but time is missing
+  confirm_booking → when we have all 3 → summarize for the user
+  book_now        → after user confirms → finalize in the system
+  cancel_now      → execute the cancellation
+  show_schedule   → list their upcoming appointments
+  respond         → for greetings or general questions
 
-WRITE reply field:
-  - 1–2 sentences MAX
-  - Warm, natural, conversational Roman Urdu
-  - Do NOT use lists or formal language
-  - Sound like a smart, friendly human receptionist
+WRITE 'reply' field:
+  - 1–2 sentences MAX.
+  - Professional, warm, and natural English.
+  - Sound like an expert human receptionist.
+  - Avoid lists.
   
-  Good examples:
-    "Zaroor! Aap Dr. Ahmed se milna chahte hain — kaunsa din acha rahega?"
-    "Bilkul, main kal 2 baje Dr. Ahmed ke saath confirm kar leti hoon. Tayyar hain?"
-    "Mubarak ho! Appointment book ho gaya. Koi aur madad chahiye?"
+  Examples:
+    "Certainly! I'd be happy to help you with that. Which doctor would you like to see?"
+    "Great, I have Dr. Smith available tomorrow at 2 PM. Shall I go ahead and book that for you?"
+    "Your appointment is all set! Is there anything else I can assist you with today?"
 
 ══════════════════════════════════════════════════════
-OUTPUT: strict JSON only — no markdown, no extra text.
+OUTPUT JSON ONLY.
 {{
   "intent": "string",
   "entities": {{
@@ -172,20 +232,22 @@ OUTPUT: strict JSON only — no markdown, no extra text.
     "time": "HH:MM|null",
     "time_preference": "morning|afternoon|evening|null"
   }},
-  "missing": ["list of still-needed fields"],
+  "missing": ["list of needed fields"],
   "action": "string",
-  "reply": "warm Roman-Urdu reply"
+  "reply": "Professional English reply"
 }}"""
+
+    messages = [{"role": "system", "content": system}]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": f'User said: "{transcript}"'})
 
     payload = {
         "model":           _LLM_MODEL,
         "response_format": {"type": "json_object"},
-        "temperature":     0.1,
-        "max_tokens":      450,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user",   "content": f'User said: "{transcript}"'},
-        ],
+        "temperature":     0.2, # slightly higher for natural feeling
+        "max_tokens":      150, # shorter for voice
+        "messages":        messages,
     }
 
     resp = requests.post(
@@ -202,21 +264,34 @@ OUTPUT: strict JSON only — no markdown, no extra text.
     print(f"[LLM] ✓ {time.perf_counter()-t0:.2f}s")
 
     # ── Parse JSON robustly ──────────────────────────────────────────────────
+    parsed = None
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
     except json.JSONDecodeError:
         cleaned = raw.replace("```json", "").replace("```", "").strip()
         try:
-            return json.loads(cleaned)
+            parsed = json.loads(cleaned)
         except json.JSONDecodeError:
-            # Graceful fallback
-            return {
+            parsed = {
                 "intent": "fallback",
                 "entities": {},
                 "missing": [],
                 "action": "respond",
                 "reply": "Maaf kijiye, main samajh nahi saka. Kya aap dobara keh sakte hain?",
             }
+            
+    # Apply format_for_voice
+    if "reply" in parsed and parsed["reply"]:
+        formatted_reply = format_for_voice(parsed["reply"])
+        
+        # Optionally add a filler for thinking pause if action involves processing
+        if parsed.get("action") in ["book_now", "confirm_booking", "show_schedule", "cancel_now"]:
+            filler = random.choice(THINKING_FILLERS)
+            parsed["reply"] = f"{filler} ... {formatted_reply}"
+        else:
+            parsed["reply"] = formatted_reply
+
+    return parsed
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -225,16 +300,16 @@ OUTPUT: strict JSON only — no markdown, no extra text.
 def synthesize_speech(text: str) -> str:
     """
     Generates high-quality Pakistani Urdu neural speech via Edge-TTS.
-    Uses asyncio.run() in a clean way — no thread hacks needed.
     Returns absolute path to the generated MP3 file.
     """
     if not text or not text.strip():
-        text = "Maaf kijiye, kuch masla ho gaya. Kya aap dobara keh sakte hain?"
+        text = "Maaf kijiye, kuch masla ho gaya."
 
-    # Sanitize text — remove emojis/symbols that break TTS
-    import re
-    text = re.sub(r'[^\w\s\u0600-\u06FF\.,!?;\-\(\)]', ' ', text, flags=re.UNICODE)
-    text = re.sub(r'\s+', ' ', text).strip()
+    # Remove Roman Urdu fillers/dots that might confuse TTS or cause pauses
+    clean_text = text.replace("...", ". ").replace("..", ".").strip()
+    # Remove emojis and non-standard characters
+    clean_text = re.sub(r'[^\w\s\u0600-\u06FF\.,!?;\-\(\)\']', ' ', clean_text, flags=re.UNICODE)
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
 
     filename = f"tts_{uuid.uuid4().hex[:10]}.mp3"
     out_dir  = os.path.join(settings.MEDIA_ROOT, "tts_cache")
@@ -243,29 +318,28 @@ def synthesize_speech(text: str) -> str:
 
     t0 = time.perf_counter()
 
-    async def _generate():
-        communicate = edge_tts.Communicate(text, _TTS_VOICE, rate=_TTS_RATE, pitch=_TTS_PITCH)
+    async def _amain():
+        communicate = edge_tts.Communicate(clean_text, _TTS_VOICE, rate=_TTS_RATE, pitch=_TTS_PITCH)
         await communicate.save(filepath)
 
-    # Run async TTS — works both in sync Django views and doesn't conflict
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # We're inside an existing event loop (e.g., ASGI)
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(asyncio.run, _generate())
-                future.result(timeout=20)
-        else:
-            loop.run_until_complete(_generate())
-    except RuntimeError:
-        asyncio.run(_generate())
-
-    print(f"[TTS] ✓ {time.perf_counter()-t0:.2f}s | {os.path.getsize(filepath)//1024}KB")
+        # Standard approach for calling async from sync
+        asyncio.run(_amain())
+    except Exception as e:
+        print(f"[TTS SYNC ERROR] {e} - trying fallback loop")
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(_amain())
+            loop.close()
+        except Exception as e2:
+            print(f"[TTS FATAL ERROR] {e2}")
+            raise e2
 
     if not os.path.exists(filepath) or os.path.getsize(filepath) < 100:
         raise RuntimeError("TTS output file missing or empty.")
 
+    print(f"[TTS] ✓ {time.perf_counter()-t0:.2f}s | {os.path.getsize(filepath)//1024}KB")
     return filepath
 
 
@@ -273,9 +347,9 @@ def synthesize_speech(text: str) -> str:
 # Utility: Quick greeting TTS (pre-rendered, < 1s)
 # ─────────────────────────────────────────────────────────────────────────────
 _GREETINGS = [
-    "Assalam o Alaikum! Main Zara hoon. Aap kaise madad kar sakti hoon?",
-    "Aadab! Main Zara hoon, aapki AI receptionist. Kya kaam hai aaj?",
-    "Shukriya call karne ka! Mujhe batayein main kya kar sakti hoon aapke liye?",
+    "Hello! I'm Sana, your AI medical assistant. How can I help you today?",
+    "Good day! I'm Sana from City Medical Center. What can I do for you?",
+    "Welcome! I'm here to assist with your bookings and appointments. How may I help?",
 ]
 
 def get_greeting_reply() -> str:

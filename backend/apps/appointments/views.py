@@ -80,17 +80,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsPatientUser()]
         return [permissions.IsAuthenticated()]
 
-    @transaction.atomic
     def create(self, request, *args, **kwargs):
         """
         POST /api/v1/appointments/
-        Overrides standard creation to add DB-level locking 
-        for guaranteed protection against double-booking race conditions.
         """
         # ── Architecture Principle: API Idempotency ───────────────────────────
-        # When clients (like React/mobile apps) lose connection, they might
-        # retry the exact same POST. If we process it twice, we could double
-        # book. The client sends a unique UUID per intent in the header.
         idempotency_key = request.headers.get("Idempotency-Key")
         if idempotency_key:
             if IdempotencyKey.objects.filter(key=idempotency_key).exists():
@@ -102,17 +96,32 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
+        self.perform_create(serializer)
+        
+        doctor = serializer.validated_data["doctor"]
+        appt_date = serializer.validated_data["appointment_date"]
+        
+        # --- DSA: Invalidate LRU Cache after successful creation (O(1) invalidation) ---
+        FastSlotAlgorithmService().invalidate_cache(doctor.id, appt_date)
+        
+        if idempotency_key:
+            IdempotencyKey.objects.create(key=idempotency_key)
+            
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        from rest_framework.exceptions import ValidationError
+        from apps.doctors.models import Doctor
+        
         doctor = serializer.validated_data["doctor"]
         appt_date = serializer.validated_data["appointment_date"]
         start_time = serializer.validated_data["start_time"]
         
         # ── DB-Level Conflict Guard ──────────────────────────────────────────
-        # Lock the doctor record explicitly. If two concurrent requests try to
-        # book this doctor, the second one will wait here until the first finishes.
-        from apps.doctors.models import Doctor
         locked_doctor = Doctor.objects.select_for_update().get(id=doctor.id)
         
-        # Check for conflict inside the lock:
         conflict_exists = Appointment.objects.filter(
             doctor=locked_doctor,
             appointment_date=appt_date,
@@ -120,24 +129,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         ).exclude(status=Appointment.Status.CANCELLED).exists()
         
         if conflict_exists:
-            # Drop the transaction safely and return 409
-            return Response(
-                {"start_time": ["This time slot is already booked."]},
-                status=status.HTTP_409_CONFLICT
-            )
+            raise ValidationError({"detail": "Slot unavailable."})
             
-        # No conflict -> perform creation safely
-        self.perform_create(serializer)
-        
-        # --- DSA: Invalidate LRU Cache after successful creation (O(1) invalidation) ---
-        FastSlotAlgorithmService().invalidate_cache(doctor.id, appt_date)
-        
-        # Lock in the Idempotency key if one was provided to prevent immediate replays
-        if idempotency_key:
-            IdempotencyKey.objects.create(key=idempotency_key)
-            
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        serializer.save(patient=self.request.user)
 
     @action(detail=True, methods=["patch"])
     def cancel(self, request, pk=None):

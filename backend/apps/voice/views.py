@@ -2,26 +2,20 @@
 apps/voice/views.py
 ────────────────────────────────────────────────────────────────
 Rebuilt Voice Pipeline — Maximum Performance Edition
-
-Key improvements over old version:
-  ✅ Returns JSON response with (reply_text + audio_url) instead of raw MP3
-     → Frontend can show text WHILE audio plays (no waiting to display)
-  ✅ X-Transcript + X-Reply headers on ALL responses for frontend logging
-  ✅ Proper error recovery at every stage — never leaves user hanging
-  ✅ Session memory cleared on explicit reset, not silently overwritten
-  ✅ Instant greeting path bypasses LLM entirely (sub-500ms)
-  ✅ Doctor search improved: first-name + last-name matching
 """
 from __future__ import annotations
 
 import os
 import datetime
 import mimetypes
+import random
+import string
 
 from django.core.files.storage import FileSystemStorage
 from django.http import FileResponse, JsonResponse
 from rest_framework import views, status, permissions
 from rest_framework.response import Response
+from django.conf import settings
 
 from apps.accounts.models import User
 from apps.doctors.models import Doctor
@@ -44,63 +38,17 @@ class _FakeRequest:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Legacy booking view (kept for compatibility)
-# ─────────────────────────────────────────────────────────────────────────────
-class VoiceBookingView(views.APIView):
-    """POST /api/v1/voice/book/ — JSON-based appointment booking."""
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        email = request.data.get("patient_email")
-        if not email:
-            return Response({"error": "patient_email is required."}, status=400)
-        try:
-            patient = User.objects.get(email=email, role=User.Role.PATIENT)
-        except User.DoesNotExist:
-            return Response({"error": f"Patient not found: {email}"}, status=404)
-
-        data = {**request.data, "booked_via_voice": True}
-        s = AppointmentCreateSerializer(data=data, context={"request": _FakeRequest(patient)})
-        if s.is_valid():
-            s.save()
-            return Response(s.data, status=201)
-        return Response(s.errors, status=400)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Main Voice Pipeline View
 # ─────────────────────────────────────────────────────────────────────────────
 class FullVoicePipelineView(views.APIView):
-    """
-    POST /api/v1/voice/pipeline/
-
-    Accepts (multipart/form-data):
-      audio  : audio blob (webm/opus preferred)
-      email  : patient email (optional, defaults to test patient)
-
-    Returns (application/json):
-      {
-        "transcript": "what user said",
-        "reply":      "what Zara said",
-        "action":     "confirm_booking|book_now|...",
-        "intent":     "book_appointment|...",
-        "audio_url":  "/media/tts_cache/tts_xxx.mp3",
-        "session":    { current session state }
-      }
-
-    Frontend plays audio_url while showing 'reply' as text immediately.
-    This way the user sees the text response without waiting for audio to end.
-    """
     permission_classes = [permissions.AllowAny]
-
-    # ── Main handler ─────────────────────────────────────────────────────────
 
     def post(self, request, *args, **kwargs):
         audio_file = request.FILES.get("audio")
-        email      = request.data.get("email", "patient.test@gmail.com")
+        email      = request.data.get("email", "guest@example.com")
 
         if not audio_file:
-            return self._error_response("No audio file received.", "Koi audio nahi mili.")
+            return self._error_response("No audio file received.", "I didn't receive any audio.")
 
         # Save temp file
         fs        = FileSystemStorage()
@@ -111,7 +59,9 @@ class FullVoicePipelineView(views.APIView):
             return self._handle(file_path, email)
         except Exception as e:
             print(f"[PIPELINE ERROR] {e}")
-            error_text = "Maaf kijiye, ek technical masla aa gaya. Dobara try karein."
+            import traceback
+            traceback.print_exc()
+            error_text = "I'm sorry, a technical error occurred. Please try again."
             return self._error_response(str(e), error_text)
         finally:
             try:
@@ -121,72 +71,86 @@ class FullVoicePipelineView(views.APIView):
                 pass
 
     def _handle(self, file_path: str, email: str):
-        # 1. Resolve patient ──────────────────────────────────────────────────
-        try:
-            patient = User.objects.get(email__iexact=email, role=User.Role.PATIENT)
-        except User.DoesNotExist:
-            reply = f"Maaf kijiye, is email se koi account nahi mila. Pehle register karein."
-            return self._voice_response("", reply, "respond", "fallback", None)
+        # 1. Resolve patient or Guest context
+        patient = User.objects.filter(email__iexact=email, role=User.Role.PATIENT).first()
+        
+        # 2. Load / create session
+        if patient:
+            session, _ = VoiceSession.objects.get_or_create(user=patient)
+        else:
+            session = VoiceSession.objects.filter(guest_email__iexact=email).first()
+            if not session:
+                bot_user = User.objects.filter(role=User.Role.ADMIN).first()
+                session = VoiceSession.objects.create(user=bot_user, guest_email=email)
 
-        # 2. Load / create session ────────────────────────────────────────────
-        session, _ = VoiceSession.objects.get_or_create(user=patient)
         memory = {
-            "doctor":   session.doctor_name,
-            "date":     str(session.appointment_date) if session.appointment_date else None,
-            "time":     str(session.appointment_time) if session.appointment_time else None,
-            "awaiting": session.is_awaiting_confirmation,
+            "doctor":      session.doctor_name,
+            "date":        str(session.appointment_date) if session.appointment_date else None,
+            "time":        str(session.appointment_time) if session.appointment_time else None,
+            "awaiting":    session.is_awaiting_confirmation,
+            "guest_name":  session.guest_name,
+            "guest_email": session.guest_email,
         }
 
-        # 3. STT — transcribe audio ───────────────────────────────────────────
-        try:
-            transcript = transcribe_audio_groq(file_path)
-        except Exception as e:
-            print(f"[STT FAIL] {e}")
-            reply = "Mujhe audio clearly nahi mili. Please thoda aur clearly bolein."
-            return self._voice_response("", reply, "respond", "fallback", session)
-
+        # 3. STT
+        transcript = transcribe_audio_groq(file_path)
         if not transcript.strip():
-            reply = "Mujhe koi awaz nahi aayi. Kya aapne microphone on kiya tha?"
+            reply = "I didn't hear anything. Is your microphone on?"
             return self._voice_response("", reply, "respond", "fallback", session)
 
-        # ── Instant greeting bypass (saves ~400ms LLM call) ──────────────────
+        # Greeting bypass
         low = transcript.lower().strip()
-        if any(w in low for w in ["assalam", "hello", "hi ", "salam", "adaab", "aadab", "namaste"]):
+        if any(w in low for w in ["hello", "hi ", "hey", "greetings", "morning"]):
             reply = get_greeting_reply()
             return self._voice_response(transcript, reply, "respond", "greeting", session)
 
-        # 4. LLM — extract intent & entities ─────────────────────────────────
-        try:
-            result = extract_intent_llm(transcript, memory=memory)
-        except Exception as e:
-            print(f"[LLM FAIL] {e}")
-            reply = "Kuch technical masla aa gaya. Kya aap dobara keh sakte hain?"
-            return self._voice_response(transcript, reply, "respond", "fallback", session)
-
+        # 4. LLM
+        result = extract_intent_llm(transcript, memory=memory, history=session.history)
         intent  = result.get("intent",  "fallback")
         ents    = result.get("entities", {}) or {}
         action  = result.get("action",  "respond")
-        reply   = result.get("reply",   "Maaf kijiye, main samajh nahi saka.")
+        reply   = result.get("reply",   "I'm sorry, I didn't quite catch that.")
 
-        # 5. Update session with new entities ─────────────────────────────────
+        # Save history
+        history = list(session.history)
+        history.append({"role": "user", "content": transcript})
+        history.append({"role": "assistant", "content": reply})
+        session.history = history[-6:]
+
+        # 5. Update session
         if ents.get("doctor_name"):     session.doctor_name       = ents["doctor_name"]
         if ents.get("date"):            session.appointment_date  = ents["date"]
         if ents.get("time"):            session.appointment_time  = ents["time"]
-        if ents.get("time_preference"): session.time_preference   = ents["time_preference"]
+        if result.get("extracted_guest_name"):  session.guest_name  = result["extracted_guest_name"]
+        if result.get("extracted_guest_email"): session.guest_email = result["extracted_guest_email"]
+        
         session.last_intent = intent
         session.save()
 
-        # 6. Action routing ───────────────────────────────────────────────────
-        if action in {"respond", "ask_doctor", "ask_specialization", "ask_date", "ask_time"}:
-            return self._voice_response(transcript, reply, action, intent, session)
-
+        # 6. Action routing
         if action == "confirm_booking":
             session.is_awaiting_confirmation = True
             session.save()
             return self._voice_response(transcript, reply, action, intent, session)
 
         if action == "book_now" or (session.is_awaiting_confirmation and intent == "confirm_appointment"):
-            return self._do_book_appointment(transcript, patient, session)
+            target_patient = patient
+            if not target_patient:
+                g_email = session.guest_email or ents.get("email")
+                g_name = session.guest_name or ents.get("name")
+                
+                if not g_email or "@" not in g_email:
+                    reply = "I'll need your email address to book the appointment. Could you please provide it?"
+                    return self._voice_response(transcript, reply, "ask_email", "book_appointment", session)
+                
+                target_patient = User.objects.filter(email__iexact=g_email).first()
+                if not target_patient:
+                    f_name = g_name.split()[0] if g_name else "Guest"
+                    l_name = " ".join(g_name.split()[1:]) if g_name and len(g_name.split()) > 1 else "User"
+                    pw = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+                    target_patient = User.objects.create_user(email=g_email, password=pw, first_name=f_name, last_name=l_name)
+            
+            return self._do_book_appointment(transcript, target_patient, session)
 
         if action == "cancel_now" or intent == "cancel_appointment":
             return self._do_cancel_appointment(transcript, patient, session, ents)
@@ -194,186 +158,76 @@ class FullVoicePipelineView(views.APIView):
         if action == "show_schedule" or intent == "check_my_schedule":
             return self._do_show_schedule(transcript, patient, session)
 
-        # Default: trust LLM reply
         return self._voice_response(transcript, reply, action, intent, session)
 
-    # ── Booking ───────────────────────────────────────────────────────────────
-
     def _do_book_appointment(self, transcript: str, patient, session) -> JsonResponse:
-        doctor_name = session.doctor_name
-        appt_date   = session.appointment_date
-        appt_time   = str(session.appointment_time) if session.appointment_time else "10:00:00"
+        d_name = session.doctor_name
+        d_date = session.appointment_date
+        d_time = str(session.appointment_time) if session.appointment_time else "10:00:00"
 
-        if not doctor_name:
-            session.is_awaiting_confirmation = False
-            session.save()
-            reply = "Doctor ka naam nahi mila. Aap kis doctor se milna chahte hain?"
-            return self._voice_response(transcript, reply, "ask_doctor", "book_appointment", session)
+        if not d_name:
+            return self._voice_response(transcript, "I missed the doctor's name. Who would you like to see?", "ask_doctor", "book_appointment", session)
+        if not d_date:
+            return self._voice_response(transcript, "Which date would you like to book for?", "ask_date", "book_appointment", session)
 
-        if not appt_date:
-            session.is_awaiting_confirmation = False
-            session.save()
-            reply = "Appointment ki date batayein — kab aana chahte hain?"
-            return self._voice_response(transcript, reply, "ask_date", "book_appointment", session)
-
-        # Find doctor — search by last name or first name
-        doctor = (
-            Doctor.objects.filter(user__last_name__icontains=doctor_name, is_available=True).first()
-            or Doctor.objects.filter(user__first_name__icontains=doctor_name, is_available=True).first()
-        )
+        doctor = Doctor.objects.filter(user__last_name__icontains=d_name, is_available=True).first() or \
+                 Doctor.objects.filter(user__first_name__icontains=d_name, is_available=True).first()
 
         if not doctor:
-            # Try find by specialization from time_preference (stored in session)
-            spec = session.time_preference  # re-used field for specialization hint
-            alt = Doctor.objects.filter(specialization__icontains=spec, is_available=True).first() if spec else None
-            if alt:
-                reply = (
-                    f"Doctor {doctor_name} nahi mile. "
-                    f"Lekin Doctor {alt.user.last_name} available hain — woh bhi {alt.specialization} hain. "
-                    "Kya unke saath book karein?"
-                )
-            else:
-                reply = f"Maaf kijiye, Doctor {doctor_name} hamare system mein nahi hain ya available nahi."
             self._reset_session(session)
-            return self._voice_response(transcript, reply, "respond", "book_appointment", session)
+            return self._voice_response(transcript, f"I'm sorry, I couldn't find Dr. {d_name} in our system.", "respond", "book_appointment", session)
 
         data = {
-            "doctor_id":        doctor.id,
-            "appointment_date": str(appt_date),
-            "start_time":       appt_time,
-            "notes":            "Booked via Zara AI Voice Assistant",
-            "booked_via_voice": True,
+            "doctor_id": doctor.id, "appointment_date": str(d_date), "start_time": d_time,
+            "notes": "Booked via Sana AI Voice", "booked_via_voice": True
         }
-        serializer = AppointmentCreateSerializer(data=data, context={"request": _FakeRequest(patient)})
-
-        if serializer.is_valid():
-            serializer.save()
+        ser = AppointmentCreateSerializer(data=data, context={"request": _FakeRequest(patient)})
+        if ser.is_valid():
+            ser.save()
             self._reset_session(session)
-            reply = (
-                f"Mubarak ho! Aapka appointment Doctor {doctor.user.last_name} ke saath "
-                f"{appt_date} ko {appt_time[:5]} baje book ho gaya. "
-                "Aapko reminder bhej diya jayega."
-            )
-            return self._voice_response(transcript, reply, "book_now", "book_appointment", session)
-        else:
-            errors = "; ".join(str(m) for msgs in serializer.errors.values() for m in msgs)
-            self._reset_session(session)
-            reply = f"Maaf kijiye, booking nahi ho saki: {errors}"
-            return self._voice_response(transcript, reply, "respond", "book_appointment", session)
+            return self._voice_response(transcript, f"Great! Your appointment with Dr. {doctor.user.last_name} is confirmed for {d_date} at {d_time[:5]}.", "book_now", "book_appointment", session)
+        
+        errs = "; ".join(str(m) for msgs in ser.errors.values() for m in msgs)
+        self._reset_session(session)
+        return self._voice_response(transcript, f"I couldn't complete the booking: {errs}", "respond", "book_appointment", session)
 
-    # ── Cancel ────────────────────────────────────────────────────────────────
-
-    def _do_cancel_appointment(self, transcript: str, patient, session, ents: dict) -> JsonResponse:
-        filters = {"patient": patient, "status": "PENDING"}
-        doctor_hint = ents.get("doctor_name") or session.doctor_name
-        date_hint   = ents.get("date") or (str(session.appointment_date) if session.appointment_date else None)
-
-        if doctor_hint: filters["doctor__user__last_name__icontains"] = doctor_hint
-        if date_hint:   filters["appointment_date"] = date_hint
-
-        appt = Appointment.objects.filter(**filters).first()
+    def _do_cancel_appointment(self, transcript, patient, session, ents):
+        if not patient: return self._voice_response(transcript, "I can only cancel appointments for registered users.", "respond", "cancel", session)
+        appt = Appointment.objects.filter(patient=patient, status="pending").first()
         if appt:
-            appt.status = Appointment.Status.CANCELLED
+            appt.status = "cancelled"
             appt.save()
             self._reset_session(session)
-            reply = (
-                f"Theek hai. Doctor {appt.doctor.user.last_name} ke saath "
-                f"{appt.appointment_date} ki appointment cancel kar di gayi."
-            )
-        else:
-            reply = "Mujhe koi pending appointment nahi mili. Kya doctor ka naam ya date bata sakte hain?"
+            return self._voice_response(transcript, f"Your appointment with Dr. {appt.doctor.user.last_name} has been cancelled.", "cancel_now", "cancel", session)
+        return self._voice_response(transcript, "I couldn't find any pending appointments to cancel.", "respond", "cancel", session)
 
-        return self._voice_response(transcript, reply, "cancel_now", "cancel_appointment", session)
+    def _do_show_schedule(self, transcript, patient, session):
+        if not patient: return self._voice_response(transcript, "Please log in to view your schedule.", "respond", "schedule", session)
+        appts = Appointment.objects.filter(patient=patient, appointment_date__gte=datetime.date.today(), status="pending")
+        if not appts.exists(): return self._voice_response(transcript, "You have no upcoming appointments.", "respond", "schedule", session)
+        a = appts.first()
+        return self._voice_response(transcript, f"Your next appointment is with Dr. {a.doctor.user.last_name} on {a.appointment_date}.", "show_schedule", "schedule", session)
 
-    # ── Schedule ──────────────────────────────────────────────────────────────
-
-    def _do_show_schedule(self, transcript: str, patient, session) -> JsonResponse:
-        appts = Appointment.objects.filter(
-            patient=patient,
-            appointment_date__gte=datetime.date.today(),
-            status="PENDING",
-        ).order_by("appointment_date", "start_time")
-
-        if not appts.exists():
-            reply = "Abhi aapki koi upcoming appointment nahi hai. Kya main ek book karun?"
-        else:
-            count = appts.count()
-            first = appts.first()
-            reply = (
-                f"Aapki {count} appointment{'s' if count > 1 else ''} hain. "
-                f"Agli appointment Doctor {first.doctor.user.last_name} ke saath "
-                f"{first.appointment_date} ko {str(first.start_time)[:5]} baje hai."
-            )
-
-        return self._voice_response(transcript, reply, "show_schedule", "check_my_schedule", session)
-
-    # ── Core response builder ─────────────────────────────────────────────────
-
-    def _voice_response(
-        self,
-        transcript: str,
-        reply: str,
-        action: str,
-        intent: str,
-        session,
-    ) -> JsonResponse:
-        """
-        Generate TTS audio and return JSON with text + audio URL.
-        Frontend can show reply text INSTANTLY while audio loads in background.
-        """
+    def _voice_response(self, transcript, reply, action, intent, session):
+        audio_url = None
         try:
-            audio_path = synthesize_speech(reply)
-            # Build relative URL from MEDIA_ROOT
-            rel_path   = os.path.relpath(audio_path, settings.MEDIA_ROOT).replace("\\", "/")
-            audio_url  = f"{settings.MEDIA_URL}{rel_path}"
-        except Exception as e:
-            print(f"[TTS FAIL] {e}")
-            audio_url = None
+            path = synthesize_speech(reply)
+            rel = os.path.relpath(path, settings.MEDIA_ROOT).replace("\\", "/")
+            audio_url = f"{settings.MEDIA_URL}{rel}"
+        except Exception as e: print(f"[TTS FAIL] {e}")
 
-        session_state = {}
+        s_state = {}
         if session:
-            session_state = {
-                "doctor":            session.doctor_name,
-                "date":              str(session.appointment_date) if session.appointment_date else None,
-                "time":              str(session.appointment_time) if session.appointment_time else None,
-                "awaiting":          session.is_awaiting_confirmation,
-                "last_intent":       session.last_intent,
-            }
+            s_state = {"doctor": session.doctor_name, "date": str(session.appointment_date), "time": str(session.appointment_time)}
 
-        return JsonResponse({
-            "success":    True,
-            "transcript": transcript,
-            "reply":      reply,
-            "action":     action,
-            "intent":     intent,
-            "audio_url":  audio_url,
-            "session":    session_state,
-        })
+        return JsonResponse({"success":True, "transcript":transcript, "reply":reply, "action":action, "intent":intent, "audio_url":audio_url, "session":s_state})
 
-    def _error_response(self, error: str, reply_text: str) -> JsonResponse:
-        try:
-            audio_url = None
-            audio_path = synthesize_speech(reply_text)
-            rel_path   = os.path.relpath(audio_path, settings.MEDIA_ROOT).replace("\\", "/")
-            audio_url  = f"{settings.MEDIA_URL}{rel_path}"
-        except Exception:
-            pass
+    def _error_response(self, error, reply):
+        return JsonResponse({"success":False, "error":error, "reply":reply})
 
-        return JsonResponse({
-            "success":    False,
-            "transcript": "",
-            "reply":      reply_text,
-            "action":     "respond",
-            "intent":     "fallback",
-            "audio_url":  audio_url,
-            "session":    {},
-            "error":      error,
-        }, status=200)  # Return 200 so frontend still plays the audio
-
-    def _reset_session(self, session: VoiceSession):
-        session.doctor_name              = None
-        session.appointment_date         = None
-        session.appointment_time         = None
-        session.time_preference          = None
+    def _reset_session(self, session):
+        session.doctor_name = None
+        session.appointment_date = None
+        session.appointment_time = None
         session.is_awaiting_confirmation = False
         session.save()

@@ -15,11 +15,17 @@ class VoiceSession(models.Model):
     appointment_time = models.TimeField(null=True, blank=True)
     time_preference = models.CharField(max_length=50, null=True, blank=True) # morning, afternoon, evening
     
+    # Guest fields for unauthenticated users
+    guest_email = models.EmailField(null=True, blank=True)
+    guest_name = models.CharField(max_length=255, null=True, blank=True)
+    
     last_intent = models.CharField(max_length=100, null=True, blank=True)
     is_awaiting_confirmation = models.BooleanField(default=False)
     
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    history = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["-updated_at"]
