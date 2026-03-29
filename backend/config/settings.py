@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "apps.doctors",                  # Doctor profiles + CRUD
     "apps.appointments",             # Appointment booking + conflict detection
     "apps.voice",                    # AI voice pipeline (STT → LLM → TTS)
+    "rest_framework_simplejwt.token_blacklist",  # Ensures JWT tokens can be invalidated (Logout)
 ]
 
 
@@ -244,10 +245,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # a view or viewset overrides them explicitly.
 REST_FRAMEWORK = {
     # JWTAuthentication: validates the Bearer token in Authorization header.
-    # SessionAuthentication: allows admin browsable-API to work with CSRF.
+    # Removed SessionAuthentication to enforce pure statelessness.
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
     ],
 
     # IsAuthenticated: all API endpoints require a valid JWT by default.
@@ -269,6 +269,21 @@ REST_FRAMEWORK = {
     # datetime format for all serializer DateTimeField outputs.
     # ISO 8601 is the universal standard and readable by JavaScript's Date().
     "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%S",
+    
+    # ── Architecture Principle: API First Design ───────────────────────────
+    # Pagination ensures large datasets are split gracefully via ?page=x parameter
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+
+    # Rate Limiting (Throttling) prevents abusive requests, DDoS or Brute force limits
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle"
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",     # Protects endpoints accessed without JWT (e.g. login)
+        "user": "5000/day",    # Protects regular authenticated users
+    }
 }
 
 
@@ -277,10 +292,10 @@ REST_FRAMEWORK = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 SIMPLE_JWT = {
-    # Access token lifetime: 60 minutes.
-    # Short-lived tokens limit damage if a token is stolen — the attacker
-    # gets at most 60 minutes of access before needing the refresh token.
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    # Access token lifetime: 15 minutes.
+    # Architecture Principle: Short-lived access tokens reduce the exposure window
+    # if a token is compromised.
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
 
     # Refresh token lifetime: 7 days.
     # Long enough that users don't need to log in daily, short enough to
@@ -295,7 +310,7 @@ SIMPLE_JWT = {
     # BLACKLIST_AFTER_ROTATION=True: after rotating, the old refresh token is
     # added to a blacklist (stored in the DB) so it can never be reused even
     # if intercepted. Requires "rest_framework_simplejwt.token_blacklist" in INSTALLED_APPS.
-    "BLACKLIST_AFTER_ROTATION": False,  # Set True after adding token_blacklist to INSTALLED_APPS
+    "BLACKLIST_AFTER_ROTATION": True,
 
     # Algorithm: HS256 uses our SECRET_KEY. RS256 (asymmetric) is better for
     # microservices but adds key management complexity — HS256 is fine for FYP.
@@ -324,11 +339,13 @@ SIMPLE_JWT = {
 # unless the server explicitly allows them. Our React app runs on port 5173
 # and our Django API runs on port 8000 — different "origins" from the browser's POV.
 
-# Comma-separated origins from .env, split into a list.
-CORS_ALLOWED_ORIGINS = config(
-    "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:5173,http://127.0.0.1:5173"
-).split(",")
+# ── Architecture Principle: API First Design ───────────────────────────
+# Allow any origin to connect for easy local testing of the voice service.
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = config(
+#     "CORS_ALLOWED_ORIGINS",
+#     default="http://localhost:5173,http://127.0.0.1:5173"
+# ).split(",")
 
 # Allow the browser to send the Authorization header with JWT across origins.
 CORS_ALLOW_HEADERS = [

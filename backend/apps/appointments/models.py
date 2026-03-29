@@ -42,6 +42,22 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
 
+class IdempotencyKey(models.Model):
+    """
+    Architecture Principle: API Idempotency.
+    Stores UUID keys sent by the client in the `Idempotency-Key` header.
+    Prevents duplicate POST processing (e.g., if a client retries a booking due to network timeout).
+    """
+    key = models.CharField(max_length=100, unique=True, help_text="The idempotency key from the client.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    # We could store the response body/status here to replay it, but for a 
+    # simple FYP, just detecting the duplicate key is enough to return a 409.
+    
+    class Meta:
+        app_label = "appointments"
+        db_table = "hospital_idempotency_keys"
+
+
 class Appointment(models.Model):
     """
     Represents a scheduled appointment between a patient and a doctor.
