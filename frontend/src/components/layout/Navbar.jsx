@@ -1,55 +1,36 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Stethoscope, LayoutDashboard, UserPlus, LogOut, Mic } from 'lucide-react';
+import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { LogOut, User, Bell } from 'lucide-react';
+import { Button } from '../ui';
 
 export default function Navbar() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { path: '/doctors', label: 'Book Appointment', icon: <UserPlus size={20} /> },
-  ];
+  const { user, logout } = useAuth();
 
   return (
-    <nav className="navbar-glass">
-      <div className="navbar-container">
-        <Link to="/dashboard" className="navbar-brand">
-          <div className="brand-icon">
-            <Stethoscope size={28} color="#6366f1" />
+    <nav className="navbar glass-panel py-4 px-8 flex items-center justify-between sticky top-0 z-50">
+      <div className="logo flex items-center gap-2">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">N</div>
+        <span className="text-gradient font-bold text-xl tracking-tight">NovaHealth</span>
+      </div>
+
+      <div className="nav-actions flex items-center gap-6">
+        <button className="text-secondary hover:text-primary transition-colors">
+          <Bell size={20} />
+        </button>
+        
+        <div className="user-profile flex items-center gap-3">
+          <div className="text-right hidden sm:block">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{user?.role || 'Patient'}</p>
+            <p className="text-sm font-semibold">{user?.email?.split('@')[0] || 'User'}</p>
           </div>
-          <span className="brand-text">Nova<span className="text-gradient">Health</span> AI</span>
-        </Link>
-        
-        <div className="navbar-links">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
-          ))}
+          <div className="w-10 h-10 bg-surface rounded-full flex items-center justify-center border border-white/10">
+            <User size={20} />
+          </div>
         </div>
-        
-        <div className="navbar-actions">
-          <button className="btn btn-glass voice-btn" onClick={() => alert('AI Voice Assistant coming soon!')}>
-            <Mic size={20} />
-            <span>AI Assist</span>
-          </button>
-          <button className="btn btn-glass logout-btn" onClick={handleLogout}>
-            <LogOut size={20} />
-            <span>Logout</span>
-          </button>
-        </div>
+
+        <Button variant="social" onClick={logout} className="p-2 min-w-0">
+          <LogOut size={18} />
+        </Button>
       </div>
     </nav>
   );

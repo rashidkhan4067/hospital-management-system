@@ -116,9 +116,12 @@ class FirebaseLoginView(views.APIView):
         if not token:
             return Response({"error": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        decoded_user = verify_firebase_token(token)
+        decoded_user, error_msg = verify_firebase_token(token)
         if not decoded_user:
-            return Response({"error": "Invalid Firebase token"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                "error": "Invalid Firebase token",
+                "detail": error_msg or "Unknown verification error"
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
         # Get or Create user based on Firebase email or phone
         email = decoded_user.get("email")

@@ -17,11 +17,12 @@ def initialize_firebase():
             print(f"Error initializing Firebase Admin: {e}")
 
 def verify_firebase_token(id_token):
-    """Verifies a Firebase ID token and returns the decoded claims."""
+    """Verifies a Firebase ID token and returns the decoded claims or (None, error_str)."""
     initialize_firebase()
     try:
         decoded_token = auth.verify_id_token(id_token)
-        return decoded_token
+        return decoded_token, None
     except Exception as e:
-        print(f"Firebase token verification failed: {e}")
-        return None
+        error_msg = str(e)
+        print(f"Firebase token verification failed: {error_msg}")
+        return None, error_msg

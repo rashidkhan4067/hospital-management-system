@@ -1,7 +1,8 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 /**
- * Common Button component with glassmorphic and glow properties
+ * Common Button component with glassmorphic, glow and motion properties
  */
 export const Button = ({ 
   children, 
@@ -18,7 +19,13 @@ export const Button = ({
   const combinedClass = `${baseClass} ${variantClass} ${glowClass} ${className}`.trim();
 
   return (
-    <button className={combinedClass} disabled={loading} {...props}>
+    <motion.button 
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={combinedClass} 
+      disabled={loading} 
+      {...props}
+    >
       {loading ? (
         <div className="loading-spinner"></div>
       ) : (
@@ -27,7 +34,7 @@ export const Button = ({
           {children}
         </>
       )}
-    </button>
+    </motion.button>
   );
 };
 

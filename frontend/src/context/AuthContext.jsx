@@ -1,52 +1,58 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
+import { 
+  setAuthSession, 
+  clearAuthSession, 
+  getAccessToken, 
+  getStoredUser 
+} from '../utils/authUtils';
+import { ROLES } from '../constants';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('accessToken'));
-  const [role, setRole] = useState(localStorage.getItem('userRole'));
+  const [user, setUser] = useState(getStoredUser());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real application, you would decode the JWT 
-    // or fetch /users/me/ to get full user details here.
-    if (token) {
-      // Basic assignment based on local storage
-      setUser({ role: role || 'patient', token });
+    const token = getAccessToken();
+    const storedUser = getStoredUser();
+    
+    if (token && storedUser) {
+      setUser(storedUser);
     } else {
       setUser(null);
+      clearAuthSession();
     }
     setLoading(false);
-  }, [token, role]);
+  }, []);
 
-  const login = (accessToken, userData) => {
-    const userRole = userData?.role || 'patient';
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('userRole', userRole);
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    setToken(accessToken);
-    setRole(userRole);
+  const login = (accessToken, refreshToken, userData) => {
+    setAuthSession(accessToken, refreshToken, userData);
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('user');
-    setToken(null);
-    setRole(null);
+    clearAuthSession();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, role, isAuthenticated: !!token, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      role: user?.role || ROLES.PATIENT, 
+      isAuthenticated: !!user, 
+      loading 
+    }}>
       {!loading && children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
+};
+
