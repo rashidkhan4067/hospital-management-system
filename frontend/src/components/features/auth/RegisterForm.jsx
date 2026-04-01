@@ -1,12 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Shield, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Shield, CheckCircle2, ChevronRight, Activity } from 'lucide-react';
 import { register as registerService } from '../../../services/authService';
 import { useForm } from '../../../hooks';
 import { Input, Button, Alert } from '../../ui';
 import SocialLogin from './SocialLogin';
 
-export default function RegisterForm() {
+/**
+ * 📝 RegisterForm - Clinical Admission Hub
+ * Redesigned for High-Fidelity UI matching Landing Page.
+ */
+export default function RegisterForm({ setError: setParentError }) {
   const { formData, error, setError, loading, setLoading, handleChange } = useForm({ 
     first_name: '', 
     last_name: '', 
@@ -17,27 +21,32 @@ export default function RegisterForm() {
   });
   const navigate = useNavigate();
 
+  const handleLocalError = (err) => {
+    setError(err);
+    if (setParentError) setParentError(err);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    handleLocalError('');
     
     if (formData.password !== formData.confirm_password) {
-      setError('Passwords do not match.');
+      handleLocalError('Primary Key Mismatch: Passwords do not match');
       return;
     }
 
     setLoading(true);
     try {
       await registerService(formData);
-      navigate('/login');
+      navigate('/verify-email');
     } catch (err) {
       console.error('Registration error:', err);
       const errorData = err.response?.data;
       if (errorData) {
         const firstError = Object.values(errorData)[0];
-        setError(Array.isArray(firstError) ? firstError[0] : (typeof firstError === 'string' ? firstError : 'Registration failed'));
+        handleLocalError(Array.isArray(firstError) ? firstError[0] : (typeof firstError === 'string' ? firstError : 'Admission Protocol Failed'));
       } else {
-        setError('Registration failed. Please check your details.');
+        handleLocalError('Network Rejection: Registration failed');
       }
     } finally {
       setLoading(false);
@@ -45,96 +54,93 @@ export default function RegisterForm() {
   };
 
   return (
-    <>
-      {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+    <div className="space-y-12">
+      <form onSubmit={handleSubmit} className="space-y-10 group/form">
+        <div className="space-y-8">
+            <div className="grid grid-cols-2 gap-6">
+                <Input 
+                    label="First Entry"
+                    type="text" 
+                    name="first_name" 
+                    placeholder="Ahmed" 
+                    value={formData.first_name} 
+                    onChange={handleChange} 
+                    icon={User}
+                    required 
+                />
+                <Input 
+                    label="Last Entry"
+                    type="text" 
+                    name="last_name" 
+                    placeholder="Khan" 
+                    value={formData.last_name} 
+                    onChange={handleChange} 
+                    icon={User}
+                    required 
+                />
+            </div>
 
-      <form onSubmit={handleSubmit} className="auth-form">
-        <div className="grid grid-cols-2 gap-4">
-          <Input 
-            label="First Name"
-            type="text" 
-            name="first_name" 
-            placeholder="John" 
-            value={formData.first_name} 
-            onChange={handleChange} 
-            icon={User}
-            required 
-          />
-          <Input 
-            label="Last Name"
-            type="text" 
-            name="last_name" 
-            placeholder="Doe" 
-            value={formData.last_name} 
-            onChange={handleChange} 
-            icon={User}
-            required 
-          />
-        </div>
-
-        <Input 
-          label="Email Address"
-          type="email" 
-          name="email" 
-          placeholder="john@example.com" 
-          value={formData.email} 
-          onChange={handleChange} 
-          icon={Mail}
-          required 
-        />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <Input 
-            label="Password"
-            type="password" 
-            name="password" 
-            placeholder="••••••••" 
-            value={formData.password} 
-            onChange={handleChange} 
-            icon={Lock}
-            required 
-          />
-          <Input 
-            label="Confirm"
-            type="password" 
-            name="confirm_password" 
-            placeholder="••••••••" 
-            value={formData.confirm_password} 
-            onChange={handleChange} 
-            icon={Lock}
-            required 
-          />
-        </div>
-
-        <div className="input-container">
-          <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Account Type</label>
-          <div className="input-wrapper mt-2">
-            <Shield className="input-icon" size={18} />
-            <select 
-              name="role" 
-              className="input-glass" 
-              value={formData.role} 
-              onChange={handleChange}
-              style={{ appearance: 'none' }}
-            >
-              <option value="patient">Patient (Booking Portal)</option>
-              <option value="doctor">Doctor (Medical Staff)</option>
-            </select>
-          </div>
+            <Input 
+                id="register-email"
+                label="Clinical ID (Email)"
+                type="email" 
+                name="email" 
+                placeholder="patient@clinical.com" 
+                value={formData.email} 
+                onChange={handleChange} 
+                icon={Mail}
+                required 
+            />
+            
+            <div className="grid grid-cols-2 gap-6">
+                <Input 
+                    label="Secure Key"
+                    type="password" 
+                    name="password" 
+                    placeholder="••••••••" 
+                    value={formData.password} 
+                    onChange={handleChange} 
+                    icon={Lock}
+                    required 
+                />
+                <Input 
+                    label="Verify Key"
+                    type="password" 
+                    name="confirm_password" 
+                    placeholder="••••••••" 
+                    value={formData.confirm_password} 
+                    onChange={handleChange} 
+                    icon={Shield}
+                    required 
+                />
+            </div>
         </div>
 
         <Button 
           type="submit" 
-          variant="primary"
-          loading={loading} 
-          icon={CheckCircle2} 
-          className="w-full btn-glow mt-4"
+          disabled={loading}
+          className="w-full h-20 rounded-[32px] bg-[#007aff] text-white font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 group/btn"
         >
-          CREATE ACCOUNT
+          {loading ? (
+             <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.4s]"></div>
+             </div>
+          ) : (
+            <>
+              Confirm Admission <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+            </>
+          )}
         </Button>
       </form>
-      
+
+      <div className="relative">
+         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-50"></div></div>
+         <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.6em] text-[#86868b] bg-white px-8 mx-auto w-fit">Clinical Federation sign-up</div>
+      </div>
+
       <SocialLogin />
-    </>
+    </div>
   );
 }

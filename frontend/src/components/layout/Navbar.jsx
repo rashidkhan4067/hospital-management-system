@@ -8,10 +8,12 @@ export default function Navbar() {
 
   return (
     <nav className="navbar glass-panel py-4 px-8 flex items-center justify-between sticky top-0 z-50">
-      <div className="logo flex items-center gap-2">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">N</div>
-        <span className="text-gradient font-bold text-xl tracking-tight">NovaHealth</span>
-      </div>
+      <Link to="/" className="logo flex items-center gap-2">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white uppercase shadow-lg shadow-blue-500/20">
+           <Heart size={16} fill="white" className="text-white" />
+        </div>
+        <span className="text-gradient font-black text-xl tracking-tighter uppercase">Al Shifaa</span>
+      </Link>
 
       <div className="nav-actions flex items-center gap-6">
         <button className="text-secondary hover:text-primary transition-colors">

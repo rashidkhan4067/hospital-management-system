@@ -62,11 +62,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",       # Server-side session management
     "django.contrib.messages",       # One-time flash messages
     "django.contrib.staticfiles",    # Static file serving (CSS, JS, images)
+    "django.contrib.sites",          # Required by allauth
 
     # ── Third-party packages ──────────────────────────────────────────────────
     "rest_framework",                # Django REST Framework — our API backbone
+    "rest_framework.authtoken",      # Required by dj-rest-auth
     "rest_framework_simplejwt",      # JWT authentication for stateless API access
     "corsheaders",                   # CORS headers for React frontend on a different port
+    
+    # ── dj-rest-auth and allauth ──────────────────────────────────────────────
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    # "allauth.mfa", # Optional: for MFA and Magic links (v61+)
 
     # ── Our custom apps (under the apps/ directory) ───────────────────────────
     "apps.accounts",                 # Custom User model + auth endpoints
@@ -92,6 +103,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",            # CSRF protection for browser-based forms
     "django.contrib.auth.middleware.AuthenticationMiddleware",  # Attach user to request.user
     "django.contrib.messages.middleware.MessageMiddleware", # Flash messages (used by admin)
+    "allauth.account.middleware.AccountMiddleware",         # Required by allauth
     "django.middleware.clickjacking.XFrameOptionsMiddleware",   # Prevent embedding in <iframe>
 ]
 
@@ -113,7 +125,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],                          # No custom template directories needed
+        "DIRS": [BASE_DIR / "templates"],    # Search for templates in the root /templates/ folder
         "APP_DIRS": True,                    # Search `templates/` folder inside each app
         "OPTIONS": {
             "context_processors": [
@@ -174,6 +186,20 @@ DATABASES = {
 # This MUST be set before running the first migration — changing it later
 # requires a full database rebuild.
 AUTH_USER_MODEL = "accounts.User"
+
+# SITE_ID is required by django.contrib.sites
+SITE_ID = 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9.5 AUTHENTICATION BACKENDS
+# ─────────────────────────────────────────────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+
+    # `allauth` specific authentication methods, such as login by email
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -432,3 +458,46 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 21. ALLAUTH SETTINGS
+# ─────────────────────────────────────────────────────────────────────────────
+ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Requires verification before login (Prevents fake accounts)
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[NovaHealth] "
+ACCOUNT_PRESERVE_CONFIRMATION_AS_NEW = True
+
+# ✅ Social Login Behavior: Auto-link accounts with same email
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# Password Reset (Forgot Password)
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
+
+# Social Account (Google)
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": False,
+    }
+}
+
+# REST AUTH SETTINGS
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "auth-token",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh-token",
+    "JWT_AUTH_HTTPONLY": False, # Local storage usage in frontend
+    "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserSerializer",
+}

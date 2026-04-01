@@ -4,10 +4,9 @@ apps/accounts/views.py
 Views for authentication and user management.
 """
 from django.contrib.auth import get_user_model
-from rest_framework import generics, views, status
+from rest_framework import generics, views, status, serializers
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
 try:
     from rest_framework_simplejwt.views import TokenObtainPairView
     from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -20,7 +19,7 @@ from .serializers import (
     UserSerializer,
     ChangePasswordSerializer,
 )
-from .firebase_services import verify_firebase_token
+from .email_services import send_welcome_email, send_login_alert_email
 
 User = get_user_model()
 
@@ -32,6 +31,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     def validate(self, attrs):
         data = super().validate(attrs)
+        
+        # Check if email is verified (only if required by settings)
+        from allauth.account.models import EmailAddress
+        from django.conf import settings
+        
+        if getattr(settings, 'ACCOUNT_EMAIL_VERIFICATION', 'none') == 'mandatory':
+            user_email = EmailAddress.objects.filter(user=self.user, verified=True).exists()
+            if not user_email:
+                raise serializers.ValidationError({
+                    "detail": "Email verification is mandatory. Please check your inbox and verify your email before logging in."
+                })
+        
         # Add user info to response body
         data.update({
             "user": {
@@ -51,6 +62,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     """
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            # Successfully logged in — send industry-standard security alert
+            # We fetch user via email since they just authenticated
+            user = User.objects.get(email=request.data.get('email'))
+            send_login_alert_email(user, request)
+        return response
+
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -60,6 +80,26 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        
+        # 1. Add user to allauth EmailAddress list (required for verification links)
+        from allauth.account.models import EmailAddress
+        from allauth.account.utils import send_email_confirmation
+        
+        EmailAddress.objects.create(
+            user=user, 
+            email=user.email, 
+            primary=True, 
+            verified=False
+        )
+        
+        # 2. Trigger the allauth confirmation email (More secure)
+        send_email_confirmation(self.request, user, signup=True)
+        
+        # 3. Also send our custom welcome email (optional)
+        send_welcome_email(user)
 
 
 class UserProfileView(generics.RetrieveAPIView):
@@ -103,56 +143,5 @@ class LogoutView(views.APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class FirebaseLoginView(views.APIView):
-    """
-    POST /api/v1/auth/firebase/
-    Verifies a Firebase ID token (Google, Phone, or Email) and creates/logs in 
-    a Django user, returning local JWTs.
-    """
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        token = request.data.get("token")
-        if not token:
-            return Response({"error": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        decoded_user, error_msg = verify_firebase_token(token)
-        if not decoded_user:
-            return Response({
-                "error": "Invalid Firebase token",
-                "detail": error_msg or "Unknown verification error"
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Get or Create user based on Firebase email or phone
-        email = decoded_user.get("email")
-        phone = decoded_user.get("phone_number")
-        uid = decoded_user.get("uid")
-
-        if not email and not phone:
-            return Response({"error": "Firebase user lacks email or phone"}, status=status.HTTP_400_BAD_REQUEST)
-
-        user, created = User.objects.get_or_create(
-            email=email or f"{uid}@firebase.com",
-            defaults={
-                "username": uid,
-                "first_name": decoded_user.get("name", "").split(" ")[0],
-                "last_name": " ".join(decoded_user.get("name", "").split(" ")[1:]),
-                "role": User.Role.PATIENT,  # Default role for social logins
-                "is_active": True
-            }
-        )
-
-        # Generate local JWT tokens
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "full_name": user.full_name,
-                "role": user.role,
-            }
-        })
 
 

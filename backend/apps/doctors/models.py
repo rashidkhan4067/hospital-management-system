@@ -59,6 +59,7 @@ class Doctor(models.Model):
         RADIOLOGY        = "radiology",         _("Radiology")
         EMERGENCY        = "emergency",         _("Emergency Medicine")
         INTERNAL         = "internal",          _("Internal Medicine")
+        DENTISTRY        = "dentistry",         _("Dentistry")
 
     # ── Link to User ──────────────────────────────────────────────────────────
 
@@ -164,6 +165,24 @@ class Doctor(models.Model):
         blank=True,
         default="",
         help_text=_("Short professional biography displayed to patients."),
+    )
+
+    # Education credentials (degree, university).
+    education = models.CharField(
+        _("education"),
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_("Medical degree and institution (e.g. MBBS, King Edward Medical University)."),
+    )
+
+    # Physical clinic location.
+    clinic_address = models.CharField(
+        _("clinic address"),
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_("Physical address of the clinic or hospital wing."),
     )
 
     # ── Timestamps ────────────────────────────────────────────────────────────

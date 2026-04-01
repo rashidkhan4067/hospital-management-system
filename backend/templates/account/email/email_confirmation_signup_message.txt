@@ -1,0 +1,12 @@
+{% load account %}
+Hello {% user_display user %},
+
+Thank you for choosing Al Shifaa Clinic. To complete your registration and secure your account, please verify your email address.
+
+Confirm your email by visiting:
+{{ activate_url }}
+
+Confirming your email ensures you receive important health alerts and appointment reminders correctly.
+
+Best regards,
+The Al Shifaa Clinic Team

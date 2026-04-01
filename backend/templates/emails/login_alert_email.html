@@ -1,0 +1,27 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<p>Hello <strong>{{ user.first_name }}</strong>,</p>
+
+<p>This is a security notification from <strong>Al Shifaa Clinic</strong>.</p>
+
+<div class="alert">
+    <strong>Login Detected:</strong> A new login successful signal was received for your account.
+</div>
+
+<p><strong>Details:</strong></p>
+<ul>
+    <li><strong>Time:</strong> {{ login_time }} (Pakistan Standard Time)</li>
+    <li><strong>IP Address:</strong> {{ ip_address }}</li>
+    <li><strong>Device/Browser:</strong> {{ user_agent }}</li>
+</ul>
+
+<p>If this was you, you can safely ignore this email. We're just keeping your account secure.</p>
+
+<p><strong>Not you?</strong> Please change your password immediately and contact our support team at <a href="mailto:alshifaaclinic99@gmail.com">alshifaaclinic99@gmail.com</a>.</p>
+
+<a href="{{ site_url }}/change-password" class="btn">Secure Your Account</a>
+
+<p>Stay safe,<br>
+The Al Shifaa Clinic Team</p>
+{% endblock %}

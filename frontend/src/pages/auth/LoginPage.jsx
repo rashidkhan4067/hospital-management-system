@@ -1,101 +1,92 @@
-import React, { useEffect, useState } from 'react';
-import { Sparkles, Terminal } from 'lucide-react';
-import { Card, Badge, Alert } from '../../components/ui';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ShieldCheck, Heart, Activity, Globe, Zap, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import LoginForm from '../../components/features/auth/LoginForm';
-import { Link, useNavigate } from 'react-router-dom';
-import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
-import { auth } from '../../services/firebase';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../services/apiClient';
 
+/**
+ * 🔓 LoginPage - Sleek Horizontal Split Hub (V6)
+ * Design: Wider horizontal profile (1100px) and decreased vertical height for a premium 'Letterbox' look.
+ * Theme: Inspired by highnd Enterprise Portals – Al Shifaa Elite.
+ */
 export default function LoginPage() {
-  const [verifyingLink, setVerifyingLink] = useState(false);
   const [error, setError] = useState(null);
-  const { login: contextLogin } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleMagicLink = async () => {
-      // Check if the URL is a sign-in link
-      if (isSignInWithEmailLink(auth, window.location.href)) {
-        let email = window.localStorage.getItem('emailForSignIn');
-        
-        // If email is missing (e.g. user opened link in different device/browser), prompt them
-        if (!email) {
-          email = window.prompt('Please provide your email for verification:');
-        }
-
-        if (email) {
-          setVerifyingLink(true);
-          try {
-            const result = await signInWithEmailLink(auth, email, window.location.href);
-            window.localStorage.removeItem('emailForSignIn');
-            
-            // Exchange Firebase token for backend JWT
-            const idToken = await result.user.getIdToken();
-            const response = await api.post('auth/firebase/', { token: idToken });
-            
-            if (response.data.access) {
-              contextLogin(response.data.access, response.data.refresh, response.data.user);
-              navigate(response.data.user?.role === 'admin' ? '/admin' : '/dashboard');
-            }
-          } catch (err) {
-            console.error('Magic link verification error:', err);
-            setError('Verification failed or link expired. Please try again.');
-          } finally {
-            setVerifyingLink(false);
-          }
-        }
-      }
-    };
-
-    handleMagicLink();
-  }, [contextLogin, navigate]);
-
-  if (verifyingLink) {
-    return (
-      <div className="auth-page flex items-center justify-center p-8">
-         <Card className="max-w-md w-full glass-panel p-12 text-center space-y-8 shadow-2xl">
-            <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto animate-spin-slow">
-               <Terminal size={40} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter">Validating Link</h2>
-              <p className="text-gray-400 text-sm font-medium">Securing your session with encrypted credentials...</p>
-            </div>
-            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-               <div className="h-full bg-blue-500 animate-progress w-full" />
-            </div>
-         </Card>
-      </div>
-    );
-  }
 
   return (
-    <div className="auth-page animate-enter">
-      <div className="auth-blob blob-1"></div>
-      <div className="auth-blob blob-2"></div>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 lg:p-10 bg-[#f8f9fc] selection:bg-[#007aff] selection:text-white">
+      {/* 🏛️ Letterbox Split Monolith */}
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-[1150px] lg:h-[680px] bg-white rounded-[40px] shadow-[0_80px_160px_-40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row border border-slate-50/50"
+      >
+          {/* 🏔️ Sidebar - Clinical Identity (Sleek Section) */}
+          <div className="lg:w-[40%] flex flex-col bg-[#007aff] text-white overflow-hidden">
+              <div className="h-[45%] lg:h-[50%] w-full relative overflow-hidden group">
+                  <img 
+                    src="/assets/images/auth-sidebar.png" 
+                    alt="Clinical Specialist"
+                    className="w-full h-full object-cover grayscale-[10%] contrast-[1.05] group-hover:scale-110 transition-transform duration-[3s]"
+                  />
+                  <div className="absolute inset-0 bg-blue-600/10 mix-blend-overlay"></div>
+              </div>
 
-      <Card className="auth-card glass-panel">
-        <div className="auth-header">
-          <Badge icon={Sparkles} className="badge-glow mb-4">
-            Security Enhanced
-          </Badge>
-          <h1 className="text-gradient font-extrabold tracking-tighter">Identity Control</h1>
-          <p className="subtitle">Enterprise Portal Access</p>
-        </div>
+              <div className="flex-1 p-8 lg:p-12 flex flex-col justify-center relative">
+                   {/* Brand Pulse */}
+                   <div className="absolute top-[-20px] left-[-20px] w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+                   
+                   <div className="flex items-center gap-3 mb-6 lg:mb-10">
+                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-xl">
+                         <Heart size={16} fill="white" className="text-white" />
+                      </div>
+                      <span className="text-[10px] font-black tracking-[0.4em] uppercase">Al Shifaa</span>
+                   </div>
 
-        {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+                   <div className="space-y-4 relative z-10">
+                      <h2 className="text-3xl lg:text-[2.6rem] font-black tracking-tighter leading-[0.9] italic uppercase">
+                         Welcome <br /> <span className="opacity-40">Clinical Unit.</span>
+                      </h2>
+                      <div className="w-12 h-1 bg-white/20"></div>
+                      <p className="text-xs font-medium leading-relaxed opacity-70 max-w-[200px]">
+                         Establishing high-integrity clinical connection to the specialist network.
+                      </p>
+                   </div>
+              </div>
+          </div>
 
-        <LoginForm />
-        
-        <div className="auth-footer mt-6 pt-4 border-t border-white/5">
-          <p className="text-xs text-gray-500 uppercase font-bold tracking-[0.2em] text-center">
-            New to systems? <Link to="/register" className="text-blue-400 hover:text-white transition-colors">Create Node</Link>
-          </p>
-        </div>
-      </Card>
+          {/* 📄 Auth Section - Highnd Form Hub */}
+          <div className="lg:w-[60%] bg-white p-8 lg:p-14 lg:pt-24 lg:pb-16 flex flex-col overflow-y-auto no-scrollbar">
+              <div className="w-full max-w-[420px] mx-auto space-y-10">
+                  <header className="space-y-3">
+                      <div className="flex items-center gap-2 mb-1">
+                         <div className="p-1 bg-[#007aff]/5 text-[#007aff] rounded-lg">
+                            <ShieldCheck size={16} />
+                         </div>
+                         <span className="text-[8px] font-black uppercase tracking-[0.5em] text-[#007aff]">Secure Unit 01</span>
+                      </div>
+                  </header>
+
+                  {error && (
+                    <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-1 duration-500">
+                        <Activity size={14} className="text-red-500" />
+                        <p className="text-[9px] font-black uppercase tracking-widest text-red-600 leading-none">{error}</p>
+                    </div>
+                  )}
+
+                  <LoginForm setError={setError} />
+
+                  <footer className="pt-8 border-t border-slate-50">
+                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#86868b] flex items-center justify-between">
+                        New Patient? 
+                        <Link to="/register" className="text-[#007aff] hover:opacity-70 transition-opacity">
+                            Create ID <ArrowRight size={12} className="inline ml-1" />
+                        </Link>
+                     </p>
+                  </footer>
+              </div>
+          </div>
+      </motion.div>
     </div>
   );
 }
-

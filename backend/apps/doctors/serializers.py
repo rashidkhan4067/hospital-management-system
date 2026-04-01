@@ -68,6 +68,8 @@ class DoctorSerializer(serializers.ModelSerializer):
             "slot_duration_minutes",
             "is_available",
             "bio",
+            "education",
+            "clinic_address",
             "created_at",
             "updated_at",
         ]
@@ -159,6 +161,9 @@ class DoctorListSerializer(serializers.ModelSerializer):
             "consultation_start_time",
             "consultation_end_time",
             "is_available",
+            "bio",
+            "education",
+            "clinic_address",
         ]
 
     def get_specialization_display(self, obj) -> str:
@@ -205,6 +210,8 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
             "slot_duration_minutes",
             "is_available",
             "bio",
+            "education",
+            "clinic_address",
         ]
         read_only_fields = ["id"]
 
