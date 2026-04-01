@@ -27,13 +27,36 @@ export default function SocialLogin() {
     if (token) verifyMagicLink(token);
   }, [location]);
 
+  const handleAuthRedirect = (user) => {
+    // 🚀 CLINICAL REDIRECTION PROTOCOL
+    // If the backend indicates a new profile was created/missing (onboarding)
+    // Or if this is a first-time clinical registration
+    if (user.is_new_user || user.onboarding_required) {
+        // Option to move to a specialized profile setup page if exists
+        // Currently moving to dashboard as primary hub
+        navigate('/dashboard');
+    } else {
+        // Advanced role-based dispatch
+        switch (user.role) {
+            case 'admin':
+                navigate('/admin');
+                break;
+            case 'doctor':
+                navigate('/dashboard'); // Use unified dashboard or specialized route if added later
+                break;
+            default:
+                navigate('/dashboard');
+        }
+    }
+  };
+
   const verifyMagicLink = async (token) => {
     setLoading(true);
     try {
         const response = await api.post('auth/magic-link/verify/', { token });
         if (response.data.access) {
             contextLogin(response.data.access, response.data.refresh, response.data.user);
-            navigate(response.data.user?.role === 'admin' ? '/admin' : '/dashboard');
+            handleAuthRedirect(response.data.user);
         }
     } catch (err) {
         setError(err.response?.data?.error || 'Security Token Invalid');
@@ -50,7 +73,7 @@ export default function SocialLogin() {
         const response = await api.post('auth/google/', { access_token: tokenResponse.access_token });
         if (response.data.access) {
           contextLogin(response.data.access, response.data.refresh, response.data.user);
-          navigate(response.data.user?.role === 'admin' ? '/admin' : '/dashboard');
+          handleAuthRedirect(response.data.user);
         }
       } catch (err) {
         setError('Federation Handshake Failed');
