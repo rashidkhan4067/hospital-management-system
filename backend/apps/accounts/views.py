@@ -26,24 +26,44 @@ User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
-    Customize the JWT response to include basic user details
-    along with the access and refresh tokens.
+    Customize the JWT response to provide industry-standard, distinct error messages
+    for identity verification (User not found vs Incorrect Password).
     """
     def validate(self, attrs):
-        data = super().validate(attrs)
+        email = attrs.get('email')
+        password = attrs.get('password')
         
-        # Check if email is verified (only if required by settings)
+        # 🛡️ Step 1: Pre-check User existence (Enhanced UX/DX)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            raise serializers.ValidationError({
+                "detail": f"Account verification failed: User with identity '{email}' does not exist in our systems."
+            })
+        
+        # 🛡️ Step 2: Proceed with Standard Auth
+        try:
+            # Re-map 'email' to 'username' for the base serializer which expects 'username' key
+            # unless configured otherwise, but we'll use the user instance if possible.
+            attrs['username'] = email 
+            data = super().validate(attrs)
+        except Exception as e:
+            # If we are here, the user exists but the password/credentials are wrong
+            raise serializers.ValidationError({
+                "detail": "Identity authentication failed: The security key (password) provided is incorrect."
+            })
+        
+        # 🛡️ Step 3: Check Email Verification Status
         from allauth.account.models import EmailAddress
         from django.conf import settings
         
         if getattr(settings, 'ACCOUNT_EMAIL_VERIFICATION', 'none') == 'mandatory':
-            user_email = EmailAddress.objects.filter(user=self.user, verified=True).exists()
-            if not user_email:
+            user_verified = EmailAddress.objects.filter(user=self.user, verified=True).exists()
+            if not user_verified:
                 raise serializers.ValidationError({
-                    "detail": "Email verification is mandatory. Please check your inbox and verify your email before logging in."
+                    "detail": "Clinical access blocked: Primary email verification is mandatory. Please verify your identity via the link sent to your inbox."
                 })
         
-        # Add user info to response body
+        # 🏆 Success: Extend response with Premium User Profile context
         data.update({
             "user": {
                 "id": self.user.id,

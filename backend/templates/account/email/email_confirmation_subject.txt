@@ -1,0 +1,2 @@
+{% load account %}
+[Al Shifaa Clinic] Verify your clinical identity

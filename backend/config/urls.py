@@ -36,6 +36,12 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     
     path('api/v1/doctors/', include('apps.doctors.urls', namespace='doctors')),
+    path('api/v1/patients/', include('apps.patients.urls', namespace='patients')),
+    path('api/v1/pharmacy/', include('apps.pharmacy.urls', namespace='pharmacy')),
+    path('api/v1/lab/', include('apps.lab.urls', namespace='lab')),
+    path('api/v1/finance/', include('apps.finance.urls', namespace='finance')),
+    path('api/v1/stats/', include('apps.dashboard.urls', namespace='dashboard')),
+    path('api/v1/analytics/', include('apps.analytics.urls', namespace='analytics')),
     path('api/v1/appointments/', include('apps.appointments.urls', namespace='appointments')),
     path('api/v1/voice/', include('apps.voice.urls', namespace='voice')),
 ]

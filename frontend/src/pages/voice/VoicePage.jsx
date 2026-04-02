@@ -10,8 +10,8 @@ export default function VoicePage() {
     <div className="page-container flex flex-col h-[calc(100vh-140px)]">
       <div className="flex items-center justify-between mb-12">
         <PageHeader 
-          title="Sana AI Assistant"
-          subtitle="Book appointments and get medical info with voice"
+          title="Sana Digital Clinic"
+          subtitle="Conversational voice accessibility for seamless clinical booking in Urdu & English"
         />
         <div className="flex gap-4">
           <Badge icon={Sparkles} className="bg-blue-600/10 text-blue-400 border-blue-600/20 px-6 py-2 rounded-full font-bold">GPT-4o Enhanced</Badge>

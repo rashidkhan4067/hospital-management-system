@@ -1,19 +1,27 @@
 import api from './apiClient';
+import { BaseClinicalService } from './BaseService';
 
-export const getDoctors = async (params) => {
-  // params can be used for search, filtering by specialty, etc.
-  const response = await api.get('doctors/', { params });
-  return response.data;
-};
+/**
+ * 🩺 Doctor Operation Service
+ * Extends BaseClinicalService (OOPS Inheritance) to inherit CRUD
+ * while adding doctor-specific slot management.
+ */
+class DoctorService extends BaseClinicalService {
+  constructor() {
+    super('doctors/');
+  }
 
-export const getDoctorById = async (id) => {
-  const response = await api.get(`doctors/${id}/`);
-  return response.data;
-};
+  // Doctors specialty slots (Specialized Method)
+  async getSlots(doctorId, date) {
+    try {
+      const response = await api.get(`${this.endpoint}${doctorId}/slots/`, {
+        params: { date }
+      });
+      return response.data;
+    } catch (error) {
+      this._handleError(error, 'getSlots');
+    }
+  }
+}
 
-export const getSlots = async (doctorId, date) => {
-  const response = await api.get(`doctors/${doctorId}/slots/`, {
-    params: { date }
-  });
-  return response.data;
-};
+export const doctorService = new DoctorService();

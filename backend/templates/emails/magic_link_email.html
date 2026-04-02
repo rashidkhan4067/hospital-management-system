@@ -1,0 +1,27 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>Secure Sign-In Link</h2>
+<p>Hello <strong>Valued Member</strong>,</p>
+
+<p>You requested a magic link to sign in to your <strong>Al Shifaa Clinic</strong> account. Click the button below to log in securely. This link is only valid for a limited time.</p>
+
+<div class="alert-box">
+    <div class="alert-title">Security Reminder</div>
+    <div class="alert-content">
+        If you didn't request this link, you can safely ignore this email. Your account remains secure.
+    </div>
+</div>
+
+<div style="text-align: center;">
+    <a href="{{ magic_link }}" class="btn">Sign In to Dashboard</a>
+</div>
+
+<p style="margin-top: 32px; font-size: 14px; color: #6b7280;">
+    If the button above doesn't work, copy and paste this URL into your browser:<br>
+    <a href="{{ magic_link }}" style="color: #3b82f6; word-break: break-all;">{{ magic_link }}</a>
+</p>
+
+<p style="margin-top: 32px;">Stay safe,<br>
+<span style="color: #111827; font-weight: 600;">The Al Shifaa Clinic Team</span></p>
+{% endblock %}

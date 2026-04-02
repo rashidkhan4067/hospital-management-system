@@ -1,22 +1,33 @@
 {% extends "emails/base_email.html" %}
 
 {% block content %}
+<h2>Welcome to Al Shifaa Clinic</h2>
 <p>Hello <strong>{{ user.first_name }}</strong>,</p>
 
-<p>Welcome to <strong>Al Shifaa Clinic</strong>! We're excited to have you join our healthcare platform.</p>
+<p>We're thrilled to have you join our healthcare community! Your account has been successfully created, and you're now ready to experience a more personalized approach to your health.</p>
 
-<p>Your account has been successfully created. You can now log in to:</p>
-<ul>
-    <li>Book medical appointments with top specialists</li>
-    <li>Access your health records securely</li>
-    <li>Receive real-time updates and notifications</li>
-</ul>
+<div class="details-grid">
+    <h3 style="margin-top: 0; font-size: 16px;">What you can do now:</h3>
+    <div class="detail-item">
+        <div class="detail-value">📅 Book appointments with top specialists</div>
+    </div>
+    <div class="detail-item">
+        <div class="detail-value">🔒 Access your health records securely</div>
+    </div>
+    <div class="detail-item">
+        <div class="detail-value">🔔 Receive real-time health updates</div>
+    </div>
+</div>
 
-<p>To get started, please log in to your dashboard:</p>
-<a href="{{ site_url }}/login" class="btn">Access Dashboard</a>
+<p>Click the button below to sign in and complete your profile:</p>
 
-<p>If you have any questions, feel free to reply to this email.</p>
+<div style="text-align: center;">
+    <a href="{{ site_url }}/login" class="btn">Access Dashboard</a>
+</div>
+
+<p style="margin-top: 32px;">If you have any questions, our support team is always here to help. Just reply to this email!</p>
 
 <p>Stay healthy,<br>
-The Al Shifaa Clinic Team</p>
+<span style="color: #111827; font-weight: 600;">The Al Shifaa Clinic Team</span></p>
 {% endblock %}
+

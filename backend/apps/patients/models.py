@@ -1,0 +1,86 @@
+from django.db import models
+from django.conf import settings
+from django.utils.translation import gettext_lazy as _
+
+class PatientProfile(models.Model):
+    """
+    🏥 Clinical Profile Shard
+    Extends the User model with specific clinical metadata tracking.
+    """
+    BLOOD_GROUPS = [
+        ('A+', 'A+'), ('A-', 'A-'),
+        ('B+', 'B+'), ('B-', 'B-'),
+        ('O+', 'O+'), ('O-', 'O-'),
+        ('AB+', 'AB+'), ('AB-', 'AB-'),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="patient_profile",
+        help_text=_("Associated user account for login."),
+    )
+
+    blood_group = models.CharField(
+        _("blood group"),
+        max_length=5,
+        choices=BLOOD_GROUPS,
+        blank=True,
+    )
+
+    date_of_birth = models.DateField(_("date of birth"), null=True, blank=True)
+    gender = models.CharField(_("gender"), max_length=20, blank=True)
+    address = models.TextField(_("physical address"), blank=True)
+    
+    emergency_contact_name = models.CharField(_("emergency contact"), max_length=100, blank=True)
+    emergency_contact_phone = models.CharField(_("emergency contact phone"), max_length=20, blank=True)
+
+    allergies = models.TextField(_("known allergies"), blank=True, help_text=_("List of drug/food allergies."))
+    medical_history = models.TextField(_("chronic conditions"), blank=True, help_text=_("Diabetes, Hypertension, etc."))
+    
+    is_admitted = models.BooleanField(_("currently admitted"), default=False)
+    room_number = models.CharField(_("room number"), max_length=10, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "hospital_patient_profiles"
+        verbose_name = _("patient profile")
+
+    def __str__(self):
+        return f"{self.user.full_name} ({self.blood_group})"
+
+
+class ClinicalRecord(models.Model):
+    """
+    📑 Immutable Log of Clinical Events
+    Tracks notes, vitals, and diagnoses over time.
+    """
+    patient = models.ForeignKey(
+        PatientProfile, 
+        on_delete=models.CASCADE, 
+        related_name="records"
+    )
+    doctor = models.ForeignKey(
+        "doctors.Doctor", 
+        on_delete=models.PROTECT, 
+        related_name="clinical_observations"
+    )
+    
+    observation_date = models.DateTimeField(auto_now_add=True)
+    diagnosis = models.CharField(_("primary diagnosis"), max_length=255)
+    clinical_notes = models.TextField(_("clinical summary"))
+    prescription_summary = models.TextField(_("prescription summary"), blank=True)
+    
+    # Simple Vitals Node
+    blood_pressure = models.CharField(max_length=20, blank=True)
+    temperature = models.CharField(max_length=20, blank=True)
+    heart_rate = models.CharField(max_length=20, blank=True)
+
+    class Meta:
+        db_table = "hospital_clinical_records"
+        ordering = ["-observation_date"]
+
+    def __str__(self):
+        return f"{self.patient.user.full_name} - {self.diagnosis} ({self.observation_date.date()})"

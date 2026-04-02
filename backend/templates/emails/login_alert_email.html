@@ -1,27 +1,46 @@
 {% extends "emails/base_email.html" %}
 
 {% block content %}
+<h2>New Login Detected</h2>
 <p>Hello <strong>{{ user.first_name }}</strong>,</p>
 
-<p>This is a security notification from <strong>Al Shifaa Clinic</strong>.</p>
+<p>We noticed a successful login to your <strong>Al Shifaa Clinic</strong> account. If this was you, you can safely disregard this message.</p>
 
-<div class="alert">
-    <strong>Login Detected:</strong> A new login successful signal was received for your account.
+<div class="alert-box">
+    <div class="alert-title">Security Notice</div>
+    <div class="alert-content">
+        A new login signal was received for your account. We're sending this email to ensure your account remains secure.
+    </div>
 </div>
 
-<p><strong>Details:</strong></p>
-<ul>
-    <li><strong>Time:</strong> {{ login_time }} (Pakistan Standard Time)</li>
-    <li><strong>IP Address:</strong> {{ ip_address }}</li>
-    <li><strong>Device/Browser:</strong> {{ user_agent }}</li>
-</ul>
+<h3>Login Details</h3>
+<div class="details-grid">
+    <div class="detail-item">
+        <div class="detail-label">Time</div>
+        <div class="detail-value">{{ login_time }} (Pakistan Standard Time)</div>
+    </div>
+    <div class="detail-item">
+        <div class="detail-label">IP Address</div>
+        <div class="detail-value">{{ ip_address }}</div>
+    </div>
+    <div class="detail-item">
+        <div class="detail-label">Device & Browser</div>
+        <div class="detail-value">{{ user_agent }}</div>
+    </div>
+</div>
 
-<p>If this was you, you can safely ignore this email. We're just keeping your account secure.</p>
+<div class="alert-box danger">
+    <div class="alert-title">Wasn't you?</div>
+    <div class="alert-content">
+        If you don't recognized this activity, please <strong>change your password immediately</strong> and contact our support team at <a href="mailto:alshifaaclinic99@gmail.com" style="color: #dc2626; font-weight: 600;">alshifaaclinic99@gmail.com</a>.
+    </div>
+</div>
 
-<p><strong>Not you?</strong> Please change your password immediately and contact our support team at <a href="mailto:alshifaaclinic99@gmail.com">alshifaaclinic99@gmail.com</a>.</p>
+<div style="text-align: center;">
+    <a href="{{ site_url }}/change-password" class="btn">Secure Your Account</a>
+</div>
 
-<a href="{{ site_url }}/change-password" class="btn">Secure Your Account</a>
-
-<p>Stay safe,<br>
-The Al Shifaa Clinic Team</p>
+<p style="margin-top: 32px;">Stay safe,<br>
+<span style="color: #111827; font-weight: 600;">The Al Shifaa Clinic Team</span></p>
 {% endblock %}
+

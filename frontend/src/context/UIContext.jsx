@@ -1,24 +1,45 @@
-/**
- * @file context/UIContext.jsx
- * @description Global context for UI states like Sana AI activity.
- */
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const UIContext = createContext(null);
 
 export const UIProvider = ({ children }) => {
   const [isSanaActive, setIsSanaActive] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  
+  // Persist Sidebar State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebar_collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
+  // Save Sidebar State
+  useEffect(() => {
+    localStorage.setItem('sidebar_collapsed', JSON.stringify(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
+
+  // Responsive Listeners (Reactive Window Width)
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth < 1280 && window.innerWidth >= 1024) setIsSidebarCollapsed(true);
+      else if (window.innerWidth >= 1280) setIsSidebarCollapsed(false);
+      if (window.innerWidth >= 1024) setIsMobileMenuOpen(false); 
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const toggleSana = () => setIsSanaActive(prev => !prev);
-  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+  const toggleSidebarCollapse = () => setIsSidebarCollapsed(prev => !prev);
+  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
   
   const addNotification = (message, type = 'info') => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, message, type }]);
-    
-    // Auto remove after 5 seconds
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);
@@ -33,9 +54,13 @@ export const UIProvider = ({ children }) => {
       isSanaActive, 
       setIsSanaActive, 
       toggleSana,
-      isSidebarOpen, 
-      setIsSidebarOpen,
-      toggleSidebar,
+      windowWidth,
+      isSidebarCollapsed,
+      setIsSidebarCollapsed,
+      toggleSidebarCollapse,
+      isMobileMenuOpen,
+      setIsMobileMenuOpen,
+      toggleMobileMenu,
       notifications,
       addNotification,
       removeNotification

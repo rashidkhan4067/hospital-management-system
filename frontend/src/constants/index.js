@@ -3,7 +3,7 @@
  * @description Centralized app constants for roles, routes, and UI defaults.
  */
 
-export const APPLICATION_NAME = "NovaHealth AI Portal";
+export const APPLICATION_NAME = "Al Shifaa Clinic";
 
 export const ROLES = {
   ADMIN: 'admin',

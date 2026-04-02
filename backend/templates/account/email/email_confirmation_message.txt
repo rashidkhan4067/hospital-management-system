@@ -1,0 +1,12 @@
+{% load account %}
+Hello {% user_display user %},
+
+Your email address has been provided to register or update an account at Al Shifaa Clinic.
+
+To confirm this and activate your clinical profile, please visit the following link:
+{{ activate_url }}
+
+If you did not initiate this request, you can safely ignore this email.
+
+Best regards,
+The Al Shifaa Clinic Team

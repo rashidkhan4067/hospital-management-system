@@ -1,6 +1,6 @@
 /**
  * @file constants/theme.js
- * @description Design tokens for the NovaHealth UI.
+ * @description Design tokens for the Al Shifaa Clinic UI.
  */
 
 export const COLORS = {

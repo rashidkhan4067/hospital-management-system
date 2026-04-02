@@ -12,7 +12,7 @@ export default function AppointmentList({ appointments, loading }) {
     );
   }
 
-  if (!appointments || appointments.length === 0) {
+  if (!Array.isArray(appointments) || appointments.length === 0) {
     return (
       <div className="empty-state py-12 text-center text-gray-400">
         <Calendar size={48} className="mx-auto mb-4 opacity-20" />
@@ -23,44 +23,46 @@ export default function AppointmentList({ appointments, loading }) {
   }
 
   return (
-    <Card className="p-0 overflow-hidden glass-panel border-white/5">
+    <Card className="p-0 overflow-hidden bg-white border border-bg-offset shadow-soft rounded-3xl">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-white/5 text-[10px] uppercase tracking-widest font-bold text-gray-400">
-            <th className="px-6 py-4">Date</th>
-            <th className="px-6 py-4">Time</th>
-            <th className="px-6 py-4">Status</th>
-            <th className="px-6 py-4">Channel</th>
+          <tr className="bg-bg-offset/50 text-[10px] uppercase tracking-[0.2em] font-black text-text-secondary border-b border-bg-offset">
+            <th className="px-8 py-5">Scheduled Date</th>
+            <th className="px-8 py-5">Time Slot</th>
+            <th className="px-8 py-5">Status</th>
+            <th className="px-8 py-5 text-right">Method</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-bg-offset/40">
           {appointments.map((apt) => (
-            <tr key={apt.id} className="hover:bg-white/5 transition-colors group">
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
-                    <Calendar size={14} />
+            <tr key={apt.id} className="hover:bg-bg-offset/30 transition-all group cursor-pointer">
+              <td className="px-8 py-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                    <Calendar size={16} />
                   </div>
-                  <span className="font-medium text-sm">{apt.appointment_date}</span>
+                  <span className="font-bold text-sm text-text-primary">{apt.appointment_date}</span>
                 </div>
               </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
-                    <Clock size={14} />
+              <td className="px-8 py-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                    <Clock size={16} />
                   </div>
-                  <span className="font-medium text-sm">
+                  <span className="font-bold text-sm text-text-primary tracking-tight">
                     {apt.start_time.substring(0, 5)} - {apt.end_time.substring(0, 5)}
                   </span>
                 </div>
               </td>
-              <td className="px-6 py-4">
-                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider status-${apt.status}`}>
+              <td className="px-8 py-6">
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest status-${apt.status} shadow-sm`}>
                   {apt.status}
                 </span>
               </td>
-              <td className="px-6 py-4 text-xs font-semibold text-gray-400">
-                {apt.booked_via_voice ? '🎙️ Sana AI' : '💻 Web Portal'}
+              <td className="px-8 py-6 text-right">
+                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest px-3 py-1 bg-bg-offset rounded-lg group-hover:bg-white transition-colors">
+                  {apt.booked_via_voice ? '🎙️ Sana AI' : '💻 Web Portal'}
+                </span>
               </td>
             </tr>
           ))}

@@ -16,13 +16,10 @@ export const ProtectedRoute = ({ requireAdmin = false }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Auth passed, render child routes packed inside the Navbar layout
+  // Auth passed, render child routes. The layout is handled by PageWrapper.
   return (
-    <>
-      <Navbar />
-      <div className="page-container">
-        <Outlet />
-      </div>
-    </>
+    <div className="page-container">
+      <Outlet />
+    </div>
   );
 };

@@ -38,7 +38,15 @@ export default function LoginForm({ setError: setParentError }) {
       navigate(nextPath);
     } catch (err) {
       console.error('Login error:', err);
-      handleLocalError(err.response?.data?.detail || 'Identity Verification Failed');
+      // Enhanced Identity Verification Error Parsing
+      const errorData = err.response?.data;
+      let errorMsg = 'Identity Verification Failed';
+      
+      if (typeof errorData === 'object') {
+        errorMsg = errorData.detail || Object.values(errorData)[0] || errorMsg;
+      }
+      
+      handleLocalError(errorMsg);
     } finally {
       setLoading(false);
     }

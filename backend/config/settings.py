@@ -47,6 +47,14 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # We split the comma-separated string from .env into a Python list.
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
 
+# ─────────────────────────────────────────────────────────────────────────────
+# 2.5 POPUP AUTH SETTINGS
+# ─────────────────────────────────────────────────────────────────────────────
+# Essential for @react-oauth/google popups when COOP headers are set.
+# 'same-origin-allow-popups' allows the login popup to communicate back.
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. INSTALLED APPS
@@ -82,6 +90,12 @@ INSTALLED_APPS = [
     # ── Our custom apps (under the apps/ directory) ───────────────────────────
     "apps.accounts",                 # Custom User model + auth endpoints
     "apps.doctors",                  # Doctor profiles + CRUD
+    "apps.patients",                 # Clinical profiles + medical history
+    "apps.pharmacy",                 # Inventory + medicine orders
+    "apps.lab",                      # Diagnostic results + test management
+    "apps.finance",                  # Clinical billing + insurance shards
+    "apps.dashboard",                # High-level stats + global analytics
+    "apps.analytics",                # Predictive metrics + trend propagation
     "apps.appointments",             # Appointment booking + conflict detection
     "apps.voice",                    # AI voice pipeline (STT → LLM → TTS)
     "rest_framework_simplejwt.token_blacklist",  # Ensures JWT tokens can be invalidated (Logout)
@@ -462,13 +476,15 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 # ─────────────────────────────────────────────────────────────────────────────
 # 21. ALLAUTH SETTINGS
 # ─────────────────────────────────────────────────────────────────────────────
+# Allauth Core Identity Settings
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Requires verification before login (Prevents fake accounts)
+ACCOUNT_AUTHENTICATION_METHOD = "email"  # Critical: Use email to login
+ACCOUNT_EMAIL_VERIFICATION = "none"         # None for development speed, set to 'mandatory' for production
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-ACCOUNT_EMAIL_SUBJECT_PREFIX = "[NovaHealth] "
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Al Shifaa Clinic] "
 ACCOUNT_PRESERVE_CONFIRMATION_AS_NEW = True
 
 # ✅ Social Login Behavior: Auto-link accounts with same email

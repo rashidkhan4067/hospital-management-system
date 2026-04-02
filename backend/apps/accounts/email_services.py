@@ -23,8 +23,8 @@ def send_magic_link_email(email, magic_link):
         'site_url': SITE_URL
     }
     
-    # We'll use welcome_email as a base for magic link for now
-    html_content = render_to_string('emails/welcome_email.html', context)
+    # Use the dedicated magic link template
+    html_content = render_to_string('emails/magic_link_email.html', context)
     text_content = strip_tags(html_content)
 
     try:
