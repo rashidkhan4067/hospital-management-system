@@ -97,7 +97,9 @@ INSTALLED_APPS = [
     "apps.dashboard",                # High-level stats + global analytics
     "apps.analytics",                # Predictive metrics + trend propagation
     "apps.appointments",             # Appointment booking + conflict detection
-    "apps.voice",                    # AI voice pipeline (STT → LLM → TTS)
+    "apps.inventory",                # Global Resource Allocation Control
+    "apps.system",                   # Global System Control & Operational Shards
+    "apps.ai",                       # AI Configuration & Log Shards
     "rest_framework_simplejwt.token_blacklist",  # Ensures JWT tokens can be invalidated (Logout)
 ]
 
@@ -479,10 +481,10 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 # Allauth Core Identity Settings
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
+# ✅ Modern Allauth Identity Protocols
+ACCOUNT_LOGIN_METHODS = {"email"}           # Previously ACCOUNT_AUTHENTICATION_METHOD
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"  # Critical: Use email to login
-ACCOUNT_EMAIL_VERIFICATION = "none"         # None for development speed, set to 'mandatory' for production
+ACCOUNT_EMAIL_VERIFICATION = "none"         # Set to 'mandatory' for production
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Al Shifaa Clinic] "
 ACCOUNT_PRESERVE_CONFIRMATION_AS_NEW = True

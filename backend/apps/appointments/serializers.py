@@ -13,6 +13,7 @@ import datetime
 from rest_framework import serializers
 from django.utils import timezone
 
+from apps.accounts.models import User
 from apps.doctors.models import Doctor
 from apps.doctors.serializers import DoctorListSerializer
 from apps.accounts.serializers import UserSerializer
@@ -176,6 +177,36 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         """
         return AppointmentSerializer(instance, context=self.context).data
 
+class AdminAppointmentCreateSerializer(serializers.ModelSerializer):
+    """
+    🏢 Admin-only Appointment Creation
+    Specialized serializer for provisioning visit shards via the administrative hub.
+    Allows selecting both the patient and the doctor.
+    """
+    doctor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Doctor.objects.all(),
+        source="doctor",
+        write_only=True
+    )
+    patient_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role='patient'),
+        source="patient",
+        write_only=True
+    )
+
+    class Meta:
+        model = Appointment
+        fields = [
+            "id", "doctor_id", "patient_id", 
+            "appointment_date", "start_time", "notes"
+        ]
+        read_only_fields = ["id"]
+
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+        return AppointmentSerializer(instance, context=self.context).data
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. AppointmentSerializer

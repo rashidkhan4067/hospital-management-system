@@ -8,6 +8,7 @@ import api from './apiClient';
 export class BaseClinicalService {
   constructor(endpoint) {
     this.endpoint = endpoint;
+    this.api = api;
   }
 
   async getAll(params = {}) {
@@ -54,6 +55,34 @@ export class BaseClinicalService {
       return true;
     } catch (error) {
       this._handleError(error, 'delete');
+    }
+  }
+
+  // 🛰️ Low-level Matrix Operations
+  async get(url, params = {}) {
+    try {
+      const response = await api.get(url, { params });
+      return response.data;
+    } catch (error) {
+      this._handleError(error, 'get');
+    }
+  }
+
+  async post(url, data) {
+    try {
+      const response = await api.post(url, data);
+      return response.data;
+    } catch (error) {
+      this._handleError(error, 'post');
+    }
+  }
+
+  async patch(url, data) {
+    try {
+      const response = await api.patch(url, data);
+      return response.data;
+    } catch (error) {
+      this._handleError(error, 'patch');
     }
   }
 

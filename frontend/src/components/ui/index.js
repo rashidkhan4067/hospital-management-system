@@ -9,4 +9,5 @@ export { default as Modal } from './Modal';
 export { default as Skeleton } from './Skeleton';
 export { default as EmptyState } from './EmptyState';
 export { default as StatsCard } from './StatsCard';
+export { default as TransactionModal } from './TransactionModal';
 

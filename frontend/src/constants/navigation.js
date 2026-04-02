@@ -37,7 +37,7 @@ export const PATIENT_NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/doctors', label: 'Our Doctors', icon: Users },
   { to: '/my-appointments', label: 'My Visits', icon: Calendar },
-  { to: '/voice', label: 'Sana AI', icon: Mic },
+  { to: '/sana-ai', label: 'Sana AI', icon: Bot },
 ];
 
 export const DOCTOR_NAV = [
@@ -95,11 +95,11 @@ export const ADMIN_NAV = [
     ]
   },
   {
-    category: 'AI Command',
+    category: 'Neural Intelligence',
     items: [
-      { to: '/admin/ai/logs', label: 'Neural Logs', icon: Mic },
-      { to: '/admin/ai/config', label: 'Neural Settings', icon: Bot },
-      { to: '/admin/ai/chats', label: 'Intent Chats', icon: MessageSquare },
+      { to: '/admin/ai/chats', label: 'Neural Hub', icon: Bot },
+      { to: '/admin/ai/logs', label: 'Propagation Logs', icon: History },
+      { to: '/admin/ai/config', label: 'Neural Configuration', icon: Settings },
     ]
   },
   {

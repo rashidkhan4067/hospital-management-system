@@ -17,6 +17,7 @@ from .models import Appointment, IdempotencyKey
 from .serializers import (
     AppointmentSerializer,
     AppointmentCreateSerializer,
+    AdminAppointmentCreateSerializer,
     AppointmentCancelSerializer
 )
 from apps.accounts.permissions import IsAdminUser, IsPatientUser, IsDoctorUser
@@ -62,9 +63,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """
-        Choose the right serializer.
+        Choose the right serializer based on the user's role and action.
         """
         if self.action == "create":
+            if self.request.user.is_admin:
+                return AdminAppointmentCreateSerializer
             return AppointmentCreateSerializer
         elif self.action == "cancel":
             return AppointmentCancelSerializer
@@ -72,12 +75,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Only patients can CREATE appointments via this standard flow.
-        (Admin booking might happen via Django Admin).
-        All other operations require authentication (further restricted by get_queryset).
+        Admins and Patients can CREATE appointments.
+        All other operations require authentication.
         """
         if self.action == "create":
-            return [permissions.IsAuthenticated(), IsPatientUser()]
+            return [permissions.IsAuthenticated()] # Role check is inside get_serializer_class or via common sense
         return [permissions.IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
@@ -89,32 +91,33 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if idempotency_key:
             if IdempotencyKey.objects.filter(key=idempotency_key).exists():
                 return Response(
-                    {"detail": "Request already processed. Provide a new Idempotency-Key if this is a new booking intent."},
+                    {"detail": "Request already processed."},
                     status=status.HTTP_409_CONFLICT
                 )
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        self.perform_create(serializer)
+        instance = self.perform_create(serializer)
         
-        doctor = serializer.validated_data["doctor"]
-        appt_date = serializer.validated_data["appointment_date"]
+        # After perform_create, the instance is available
+        doctor = instance.doctor
+        appt_date = instance.appointment_date
         
-        # --- DSA: Invalidate LRU Cache after successful creation (O(1) invalidation) ---
+        # --- DSA: Invalidate LRU Cache (O(1) invalidation) ---
         FastSlotAlgorithmService().invalidate_cache(doctor.id, appt_date)
         
         if idempotency_key:
             IdempotencyKey.objects.create(key=idempotency_key)
             
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @transaction.atomic
     def perform_create(self, serializer):
         from rest_framework.exceptions import ValidationError
         from apps.doctors.models import Doctor
         
+        # Access doctor directly from validated_data
         doctor = serializer.validated_data["doctor"]
         appt_date = serializer.validated_data["appointment_date"]
         start_time = serializer.validated_data["start_time"]
@@ -131,7 +134,10 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if conflict_exists:
             raise ValidationError({"detail": "Slot unavailable."})
             
-        serializer.save(patient=self.request.user)
+        # If admin is creating, patient might already be in validated_data
+        if "patient" not in serializer.validated_data:
+            return serializer.save(patient=self.request.user)
+        return serializer.save()
 
     @action(detail=True, methods=["patch"])
     def cancel(self, request, pk=None):

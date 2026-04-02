@@ -16,34 +16,34 @@ import AuthLayout from './components/layout/AuthLayout';
 
 // --- LAZY-LOADED PAGES ---
 const DashboardDispatcher = lazy(() => import('./pages/DashboardDispatcher'));
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
-const AdminUsers = lazy(() => import('./pages/admin/Users'));
-const AdminAddUser = lazy(() => import('./pages/admin/AddUser'));
-const AdminPatients = lazy(() => import('./pages/admin/Patients'));
-const AdminAddPatient = lazy(() => import('./pages/admin/AddPatient'));
-const AdminPatientRecord = lazy(() => import('./pages/admin/PatientRecord'));
-const AdminAppointments = lazy(() => import('./pages/admin/Appointments'));
-const AdminFinances = lazy(() => import('./pages/admin/Finances'));
-const AdminInventory = lazy(() => import('./pages/admin/Inventory'));
-const AdminStaff = lazy(() => import('./pages/admin/Staff'));
-const AdminDoctors = lazy(() => import('./pages/admin/Doctors'));
-const AdminAddDoctor = lazy(() => import('./pages/admin/AddDoctor'));
-const AdminDoctorSchedule = lazy(() => import('./pages/admin/DoctorSchedule'));
-const AdminSpecializations = lazy(() => import('./pages/admin/Specializations'));
-const AdminLab = lazy(() => import('./pages/admin/Lab'));
-const AdminPharmacy = lazy(() => import('./pages/admin/Pharmacy'));
-const AdminAILogs = lazy(() => import('./pages/admin/AILogs'));
-const AdminAIChats = lazy(() => import('./pages/admin/AIChats'));
-const AdminChat = lazy(() => import('./pages/admin/AdminChat'));
-const AdminAIConfig = lazy(() => import('./pages/admin/AIConfig'));
-const AdminRoles = lazy(() => import('./pages/admin/RoleArchitecture'));
-const AdminDepartments = lazy(() => import('./pages/admin/Departments'));
-const AdminAnalytics = lazy(() => import('./pages/admin/ProtocolAnalytics'));
-const AdminGlobalAlerts = lazy(() => import('./pages/admin/GlobalAlerts'));
-const AdminSecurityAudit = lazy(() => import('./pages/admin/SecurityAudit'));
-const AdminSystemProtocol = lazy(() => import('./pages/admin/SystemProtocol'));
-const AdminSettings = lazy(() => import('./pages/admin/SystemTopology'));
-const AdminProfile = lazy(() => import('./pages/admin/Profile'));
+const AdminDashboard = lazy(() => import('./pages/admin/operational/Dashboard'));
+const AdminUsers = lazy(() => import('./pages/admin/identity/Users'));
+const AdminAddUser = lazy(() => import('./pages/admin/identity/AddUser'));
+const AdminPatients = lazy(() => import('./pages/admin/clinical/Patients'));
+const AdminAddPatient = lazy(() => import('./pages/admin/clinical/AddPatient'));
+const AdminPatientRecord = lazy(() => import('./pages/admin/clinical/PatientRecord'));
+const AdminAppointments = lazy(() => import('./pages/admin/clinical/Appointments'));
+const AdminFinances = lazy(() => import('./pages/admin/operational/Finances'));
+const AdminInventory = lazy(() => import('./pages/admin/diagnostic/Inventory'));
+const AdminStaff = lazy(() => import('./pages/admin/identity/Staff'));
+const AdminDoctors = lazy(() => import('./pages/admin/faculty/Doctors'));
+const AdminAddDoctor = lazy(() => import('./pages/admin/faculty/AddDoctor'));
+const AdminDoctorSchedule = lazy(() => import('./pages/admin/faculty/DoctorSchedule'));
+const AdminSpecializations = lazy(() => import('./pages/admin/faculty/Specializations'));
+const AdminLab = lazy(() => import('./pages/admin/diagnostic/Lab'));
+const AdminPharmacy = lazy(() => import('./pages/admin/diagnostic/Pharmacy'));
+const AdminAILogs = lazy(() => import('./pages/admin/ai/AILogs'));
+const AdminAIChats = lazy(() => import('./pages/admin/ai/AIChats'));
+const AdminChat = lazy(() => import('./pages/admin/operational/AdminChat'));
+const AdminAIConfig = lazy(() => import('./pages/admin/ai/AIConfig'));
+const AdminRoles = lazy(() => import('./pages/admin/identity/RoleArchitecture'));
+const AdminDepartments = lazy(() => import('./pages/admin/system/Departments'));
+const AdminAnalytics = lazy(() => import('./pages/admin/operational/ProtocolAnalytics'));
+const AdminGlobalAlerts = lazy(() => import('./pages/admin/system/GlobalAlerts'));
+const AdminSecurityAudit = lazy(() => import('./pages/admin/system/SecurityAudit'));
+const AdminSystemProtocol = lazy(() => import('./pages/admin/system/SystemProtocol'));
+const AdminSettings = lazy(() => import('./pages/admin/system/SystemTopology'));
+const AdminProfile = lazy(() => import('./pages/admin/profile/Profile'));
 const LandingPage = lazy(() => import('./pages/public/LandingPage'));
 const DoctorsPage = lazy(() => import('./pages/public/DoctorsPage'));
 const ClinicalTechPage = lazy(() => import('./pages/public/ClinicalTechPage'));
@@ -56,7 +56,7 @@ const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
 const ConfirmEmailPage = lazy(() => import('./pages/auth/ConfirmEmailPage'));
 const AppointmentsPage = lazy(() => import('./pages/appointments/AppointmentsPage'));
-const VoicePage = lazy(() => import('./pages/voice/VoicePage'));
+const SanaAIPage = lazy(() => import('./pages/ai/SanaAIPage'));
 
 // --- ROUTE WRAPPERS ---
 const PublicRoute = ({ children }) => {
@@ -100,7 +100,7 @@ export default function App() {
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<DashboardDispatcher />} />
                   <Route path="/my-appointments" element={<AppointmentsPage />} />
-                  <Route path="/voice" element={<VoicePage />} />
+                  <Route path="/sana-ai" element={<SanaAIPage />} />
                   <Route path="/book" element={<Navigate to="/doctors" replace />} /> 
 
                   {/* ADMIN-ONLY SUB-SECTION */}

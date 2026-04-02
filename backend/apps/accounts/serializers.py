@@ -143,6 +143,47 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+class UserAdminCreateSerializer(serializers.ModelSerializer):
+    """
+    🏢 Admin-only User Creation
+    Specialized serializer for provisioning identities via the administrative hub.
+    Allows creating any role, including specialized faculty and administrative staff.
+    """
+    password = serializers.CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'email', 'first_name', 'last_name', 
+            'phone_number', 'role', 'password', 'confirm_password'
+        ]
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+        return attrs
+
+    def create(self, validated_data):
+        from apps.doctors.models import Doctor
+        from apps.patients.models import Patient
+        
+        validated_data.pop('confirm_password')
+        user = User.objects.create_user(**validated_data)
+        
+        # 🧪 Automatic Profile Provisioning
+        if user.role == User.Role.DOCTOR:
+            # Generate temporary license number to avoid DB constraint failures
+            import uuid
+            Doctor.objects.create(
+                user=user, 
+                license_number=f"TEMP-{uuid.uuid4().hex[:8].upper()}",
+                specialization=Doctor.Specialization.GENERAL
+            )
+        elif user.role == User.Role.PATIENT:
+            Patient.objects.create(user=user)
+            
+        return user
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. UserSerializer

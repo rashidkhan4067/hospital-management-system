@@ -43,7 +43,9 @@ urlpatterns = [
     path('api/v1/stats/', include('apps.dashboard.urls', namespace='dashboard')),
     path('api/v1/analytics/', include('apps.analytics.urls', namespace='analytics')),
     path('api/v1/appointments/', include('apps.appointments.urls', namespace='appointments')),
-    path('api/v1/voice/', include('apps.voice.urls', namespace='voice')),
+    path('api/v1/inventory/', include('apps.inventory.urls', namespace='inventory')),
+    path('api/v1/system/', include('apps.system.urls')),
+    path('api/v1/ai/', include('apps.ai.urls')),
 ]
 
 if settings.DEBUG:

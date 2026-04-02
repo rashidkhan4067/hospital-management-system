@@ -27,6 +27,23 @@ const AnalyticsService = {
     getGlobalPulse: async () => {
         const response = await api.get('/analytics/pulse/');
         return response.data;
+    },
+
+    /**
+     * 🛰️ High-Performance Executive Summary Shard
+     * Aggregates key counts for patients, doctors, and revenue.
+     */
+    getExecutiveSummary: async () => {
+        const response = await api.get('/analytics/pulse/');
+        return response.data;
+    },
+
+    /**
+     * Retrieves recent clinical system audit shards.
+     */
+    getSystemAudit: async () => {
+        const response = await api.get('/ai/logs/');
+        return response.data;
     }
 };
 

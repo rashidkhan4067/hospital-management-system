@@ -14,6 +14,9 @@ try:
 except ImportError:
     pass
 
+from rest_framework import viewsets, filters as rest_filters
+from apps.accounts.permissions import IsAdminUser
+
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
@@ -165,3 +168,20 @@ class LogoutView(views.APIView):
 
 
 
+class UserManagementViewSet(viewsets.ModelViewSet):
+    """
+    🏢 User Cluster registry
+    Protected administrative gateway for global identity orchestration.
+    """
+    queryset = User.objects.all().order_by('-id')
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    
+    filter_backends = [rest_filters.SearchFilter, rest_filters.OrderingFilter]
+    search_fields = ['first_name', 'last_name', 'email', 'role']
+    ordering_fields = ['id', 'date_joined']
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return UserAdminCreateSerializer
+        return UserSerializer
