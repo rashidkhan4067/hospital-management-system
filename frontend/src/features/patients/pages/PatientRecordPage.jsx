@@ -14,7 +14,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
 import { motion } from 'framer-motion';
-import UserService from '@/features/identity/api/userService';
+import patientService from '@/features/patients/api/patientService';
 import { useNotifications } from '@/shared/hooks/useNotifications';
 
 /**
@@ -32,17 +32,17 @@ export default function PatientRecord() {
   useEffect(() => {
     const fetchPatient = async () => {
       try {
-        const data = await UserService.getOne(id);
+        const data = await patientService.getPatientDetail(id);
         setPatient({
             ...data,
-            name: data.full_name || 'Anonymous Patient',
+            name: data.user?.full_name || data.full_name || 'Anonymous Patient',
             // Fallbacks for demo if backend fields are missing
             age: data.age || 35,
             gender: data.gender || 'N/A',
             bloodType: data.blood_group || 'O+',
             status: data.is_admitted ? 'Admitted' : 'Outpatient',
-            email: data.email || 'no-email@hospital.com',
-            phone: data.phone || 'No Contact',
+            email: data.user?.email || data.email || 'no-email@hospital.com',
+            phone: data.phone || data.user?.phone || 'No Contact',
             lastVitals: {
               bpm: '72',
               bp: '120/80',
@@ -57,7 +57,18 @@ export default function PatientRecord() {
         });
       } catch (err) {
         addNotification('Error', 'Failed to load patient record.', 'error');
-        navigate('/admin/patients');
+        console.error("Fetch patient error:", err);
+        setPatient({
+            name: 'Record Not Found',
+            age: '--',
+            gender: '--',
+            bloodType: '--',
+            status: 'Unknown',
+            email: '--',
+            phone: '--',
+            lastVitals: { bpm: '--', bp: '--', temp: '--', oxygen: '--' },
+            history: []
+        });
       } finally {
         setLoading(false);
       }

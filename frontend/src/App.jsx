@@ -48,6 +48,7 @@ const UserAppointmentsPage  = lazy(() => import('@/features/appointments/pages/U
 
 // ─── Feature: Doctors ────────────────────────────────────────────────────────
 const DoctorsPage         = lazy(() => import('@/features/doctors/pages/DoctorsPage'));
+const DoctorRecordPage     = lazy(() => import('@/features/doctors/pages/DoctorRecordPage'));
 const DoctorSchedulePage  = lazy(() => import('@/features/doctors/pages/DoctorSchedulePage'));
 const SpecializationsPage = lazy(() => import('@/features/doctors/pages/SpecializationsPage'));
 
@@ -55,9 +56,10 @@ const SpecializationsPage = lazy(() => import('@/features/doctors/pages/Speciali
 const FinancesPage = lazy(() => import('@/features/finance/pages/FinancesPage'));
 
 // ─── Feature: Analytics ──────────────────────────────────────────────────────
-const InventoryPage = lazy(() => import('@/features/analytics/pages/InventoryPage'));
-const LabPage       = lazy(() => import('@/features/analytics/pages/LabPage'));
-const PharmacyPage  = lazy(() => import('@/features/analytics/pages/PharmacyPage'));
+const InventoryPage      = lazy(() => import('@/features/analytics/pages/InventoryPage'));
+const MedicineRecordPage = lazy(() => import('@/features/analytics/pages/MedicineRecordPage'));
+const LabPage            = lazy(() => import('@/features/analytics/pages/LabPage'));
+const PharmacyPage       = lazy(() => import('@/features/analytics/pages/PharmacyPage'));
 
 // ─── Feature: AI ─────────────────────────────────────────────────────────────
 const SanaAIPage   = lazy(() => import('@/features/ai/pages/SanaAIPage'));
@@ -152,6 +154,7 @@ export default function App() {
                       {/* Doctors */}
                       <Route path="/admin/doctors"           element={<DoctorsPage />} />
                       <Route path="/admin/doctors/add"       element={<DoctorsPage autoOpenAdd={true} />} />
+                      <Route path="/admin/doctors/:id"       element={<DoctorRecordPage />} />
                       <Route path="/admin/doctors/schedule"  element={<DoctorSchedulePage />} />
                       <Route path="/admin/doctors/specialty" element={<SpecializationsPage />} />
 
@@ -161,6 +164,7 @@ export default function App() {
                       {/* Analytics */}
                       <Route path="/admin/inventory"     element={<InventoryPage />} />
                       <Route path="/admin/inventory/add" element={<InventoryPage autoOpenAdd={true} />} />
+                      <Route path="/admin/inventory/:id" element={<MedicineRecordPage />} />
                       <Route path="/admin/lab"           element={<LabPage />} />
                       <Route path="/admin/pharmacy"      element={<PharmacyPage />} />
 

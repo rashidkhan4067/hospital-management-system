@@ -66,7 +66,7 @@ export default function AdminDoctors({ autoOpenAdd = false }) {
   };
 
   const filteredDoctors = doctors.filter(d => 
-    (d.user_full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || d.specialization?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (d.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || d.specialization?.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (activeTab === 'ALL' || (d.is_available ? 'AVAILABLE' : 'OFFLINE') === activeTab)
   );
 
@@ -74,12 +74,18 @@ export default function AdminDoctors({ autoOpenAdd = false }) {
     { 
         header: 'Doctor Name', 
         cell: (d) => (
-            <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 text-accent-primary flex items-center justify-center font-black">
-                    {(d.user_full_name || '??').split(' ').map(n => n[0]).join('')}
+            <div 
+                className="flex items-center gap-4 cursor-pointer group" 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/admin/doctors/${d.id}`);
+                }}
+            >
+                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 text-accent-primary flex items-center justify-center font-black group-hover:scale-110 transition-all">
+                    {(d.full_name || '??').split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex flex-col">
-                    <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none">{d.user_full_name}</p>
+                    <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none group-hover:text-accent-primary transition-colors">{d.full_name || 'Staff'}</p>
                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 tabular-nums">ID: {d.id} • {d.experience_years}Y EXP</p>
                 </div>
             </div>
@@ -168,7 +174,7 @@ export default function AdminDoctors({ autoOpenAdd = false }) {
             columns={columns} 
             data={filteredDoctors} 
             isLoading={loading}
-            onRowClick={(d) => navigate(`/admin/doctors/edit/${d.id}`)}
+            onRowClick={(d) => navigate(`/admin/doctors/${d.id}`)}
         />
       </div>
 

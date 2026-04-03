@@ -17,6 +17,7 @@ import AdminTable from '@/shared/components/ui/AdminTable';
 import FilterBar from '@/shared/components/ui/FilterBar';
 import ProvisionSupplyShardModal from '@/features/analytics/components/ProvisionSupplyShardModal';
 import AdminPage from '@/shared/components/layout/AdminPage';
+import { useNavigate } from 'react-router-dom';
 
 import { useAdminInventory } from '@/features/analytics/hooks/useInventory';
 import { useUI } from '@/core/ui/UIContext';
@@ -26,6 +27,7 @@ import { inventoryService } from '@/features/analytics/api/inventoryService';
  * 📦 Medicine & Stock Management
  */
 export default function AdminInventory({ autoOpenAdd = false }) {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +74,10 @@ export default function AdminInventory({ autoOpenAdd = false }) {
     { 
         header: 'Medicine Name', 
         cell: (a) => (
-            <div className="flex items-center gap-4 group">
+            <div 
+                className="flex items-center gap-4 group cursor-pointer" 
+                onClick={() => navigate(`/admin/inventory/${a.id}`)}
+            >
                 <div className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all group-hover:scale-110 ${
                     a.status === 'low' || a.status === 'critical' 
                     ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' 
@@ -81,7 +86,7 @@ export default function AdminInventory({ autoOpenAdd = false }) {
                     {a.status === 'low' || a.status === 'critical' ? <AlertTriangle size={16} /> : <Box size={16} />}
                 </div>
                 <div className="flex flex-col">
-                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase leading-none">{a.name}</p>
+                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase leading-none group-hover:text-accent-primary transition-colors">{a.name}</p>
                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic tabular-nums">SKU: {a.sku}</p>
                 </div>
             </div>

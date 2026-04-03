@@ -323,8 +323,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle"
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/day",     # Protects endpoints accessed without JWT (e.g. login)
-        "user": "5000/day",    # Protects regular authenticated users
+        "anon": "10000/day",     # Increased to prevent dev lockouts (e.g. login)
+        "user": "50000/day",     # Protects regular authenticated users
     }
 }
 

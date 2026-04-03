@@ -9,7 +9,7 @@ class PatientViewSet(viewsets.ModelViewSet):
     🏢 Universal Patient Registry HUB
     All clinical profile management protocols centralize here.
     """
-    queryset = PatientProfile.objects.select_related("user").prefetch_related("records").all()
+    queryset = PatientProfile.objects.select_related("user").prefetch_related("records").all().order_by("-created_at")
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
     filterset_fields = ["blood_group", "is_admitted"]
