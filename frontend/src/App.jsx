@@ -16,33 +16,33 @@ import AuthLayout from './components/layout/AuthLayout';
 
 // --- LAZY-LOADED PAGES ---
 const DashboardDispatcher = lazy(() => import('./pages/DashboardDispatcher'));
-const AdminDashboard = lazy(() => import('./pages/admin/operational/Dashboard'));
-const AdminUsers = lazy(() => import('./pages/admin/identity/Users'));
-const AdminAddUser = lazy(() => import('./pages/admin/identity/AddUser'));
-const AdminPatients = lazy(() => import('./pages/admin/clinical/Patients'));
-const AdminAddPatient = lazy(() => import('./pages/admin/clinical/AddPatient'));
-const AdminPatientRecord = lazy(() => import('./pages/admin/clinical/PatientRecord'));
-const AdminAppointments = lazy(() => import('./pages/admin/clinical/Appointments'));
-const AdminFinances = lazy(() => import('./pages/admin/operational/Finances'));
-const AdminInventory = lazy(() => import('./pages/admin/diagnostic/Inventory'));
-const AdminStaff = lazy(() => import('./pages/admin/identity/Staff'));
-const AdminDoctors = lazy(() => import('./pages/admin/faculty/Doctors'));
-const AdminAddDoctor = lazy(() => import('./pages/admin/faculty/AddDoctor'));
-const AdminDoctorSchedule = lazy(() => import('./pages/admin/faculty/DoctorSchedule'));
-const AdminSpecializations = lazy(() => import('./pages/admin/faculty/Specializations'));
-const AdminLab = lazy(() => import('./pages/admin/diagnostic/Lab'));
-const AdminPharmacy = lazy(() => import('./pages/admin/diagnostic/Pharmacy'));
-const AdminAILogs = lazy(() => import('./pages/admin/ai/AILogs'));
-const AdminAIChats = lazy(() => import('./pages/admin/ai/AIChats'));
-const AdminChat = lazy(() => import('./pages/admin/operational/AdminChat'));
-const AdminAIConfig = lazy(() => import('./pages/admin/ai/AIConfig'));
-const AdminRoles = lazy(() => import('./pages/admin/identity/RoleArchitecture'));
-const AdminDepartments = lazy(() => import('./pages/admin/system/Departments'));
-const AdminAnalytics = lazy(() => import('./pages/admin/operational/ProtocolAnalytics'));
-const AdminGlobalAlerts = lazy(() => import('./pages/admin/system/GlobalAlerts'));
-const AdminSecurityAudit = lazy(() => import('./pages/admin/system/SecurityAudit'));
-const AdminSystemProtocol = lazy(() => import('./pages/admin/system/SystemProtocol'));
-const AdminSettings = lazy(() => import('./pages/admin/system/SystemTopology'));
+const AdminDashboard = lazy(() => import('./pages/admin/dashboard/Dashboard'));
+const AdminUsers = lazy(() => import('./pages/admin/users/Users'));
+const AdminAddUser = lazy(() => import('./pages/admin/users/AddUser'));
+const AdminPatients = lazy(() => import('./pages/admin/patients/Patients'));
+const AdminAddPatient = lazy(() => import('./pages/admin/patients/AddPatient'));
+const AdminPatientRecord = lazy(() => import('./pages/admin/patients/PatientRecord'));
+const AdminAppointments = lazy(() => import('./pages/admin/patients/Appointments'));
+const AdminFinances = lazy(() => import('./pages/admin/dashboard/Finances'));
+const AdminInventory = lazy(() => import('./pages/admin/analytics/Inventory'));
+const AdminStaff = lazy(() => import('./pages/admin/users/Staff'));
+const AdminDoctors = lazy(() => import('./pages/admin/doctors/Doctors'));
+const AdminAddDoctor = lazy(() => import('./pages/admin/doctors/AddDoctor'));
+const AdminDoctorSchedule = lazy(() => import('./pages/admin/doctors/DoctorSchedule'));
+const AdminSpecializations = lazy(() => import('./pages/admin/doctors/Specializations'));
+const AdminLab = lazy(() => import('./pages/admin/analytics/Lab'));
+const AdminPharmacy = lazy(() => import('./pages/admin/analytics/Pharmacy'));
+const AdminAILogs = lazy(() => import('./pages/admin/ai-agent/AILogs'));
+const AdminAIChats = lazy(() => import('./pages/admin/ai-agent/AIChats'));
+const AdminChat = lazy(() => import('./pages/admin/dashboard/AdminChat'));
+const AdminAIConfig = lazy(() => import('./pages/admin/ai-agent/AIConfig'));
+const AdminRoles = lazy(() => import('./pages/admin/users/Roles'));
+const AdminDepartments = lazy(() => import('./pages/admin/management/Departments'));
+const AdminAnalytics = lazy(() => import('./pages/admin/dashboard/Stats'));
+const AdminAlerts = lazy(() => import('./pages/admin/management/Alerts'));
+const AdminAudit = lazy(() => import('./pages/admin/management/Audit'));
+const AdminRules = lazy(() => import('./pages/admin/management/Rules'));
+const AdminSettings = lazy(() => import('./pages/admin/management/Structure'));
 const AdminProfile = lazy(() => import('./pages/admin/profile/Profile'));
 const LandingPage = lazy(() => import('./pages/public/LandingPage'));
 const DoctorsPage = lazy(() => import('./pages/public/DoctorsPage'));
@@ -122,15 +122,15 @@ export default function App() {
                     <Route path="/admin/doctors/specialty" element={<AdminSpecializations />} />
                     <Route path="/admin/lab" element={<AdminLab />} />
                     <Route path="/admin/pharmacy" element={<AdminPharmacy />} />
-                    <Route path="/admin/ai/logs" element={<AdminAILogs />} />
-                    <Route path="/admin/ai/config" element={<AdminAIConfig />} />
-                    <Route path="/admin/ai/chats" element={<AdminAIChats />} />
+                    <Route path="/admin/ai-agent/logs" element={<AdminAILogs />} />
+                    <Route path="/admin/ai-agent/config" element={<AdminAIConfig />} />
+                    <Route path="/admin/ai-agent/chats" element={<AdminAIChats />} />
                     <Route path="/admin/roles" element={<AdminRoles />} />
                     <Route path="/admin/departments" element={<AdminDepartments />} />
                     <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                    <Route path="/admin/notifs/send" element={<AdminGlobalAlerts />} />
-                    <Route path="/admin/security/audit" element={<AdminSecurityAudit />} />
-                    <Route path="/admin/settings/general" element={<AdminSystemProtocol />} />
+                    <Route path="/admin/notifs/send" element={<AdminAlerts />} />
+                    <Route path="/admin/security/audit" element={<AdminAudit />} />
+                    <Route path="/admin/settings/general" element={<AdminRules />} />
                     <Route path="/admin/settings" element={<AdminSettings />} />
                     <Route path="/admin/profile" element={<AdminProfile />} />
                   </Route>
@@ -146,3 +146,4 @@ export default function App() {
     </GoogleOAuthProvider>
   );
 }
+

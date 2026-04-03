@@ -6,12 +6,13 @@ import {
   ShieldCheck,
   ToggleRight
 } from 'lucide-react';
-import { Button, Modal } from '../../ui';
-import { useAdminDoctors } from '../../../hooks/admin/useAdminDoctors';
+import { Button, Modal } from '../../../ui';
+import { useAdminDoctors } from '../../../../hooks/admin/useAdminDoctors';
 
 /**
  * 🧛 Physician Protocol Adjustment Modal
  * High-fidelity interface for modifying clinical shift shards and availability.
+ * Re-mapped to the Global Clinical Modal Registry.
  */
 export default function AdjustShiftModal({ isOpen, onClose, onAction, isSubmitting, selectedDoctor = null }) {
   const { doctors } = useAdminDoctors();
@@ -126,7 +127,7 @@ export default function AdjustShiftModal({ isOpen, onClose, onAction, isSubmitti
             >
               <option value="">Select Resident...</option>
               {doctors.map(d => (
-                <option key={d.id} value={d.id}>Dr. {d.user_full_name} ({d.specialization})</option>
+                <option key={d.id} value={d.id}>Dr. {d.user_full_name} ({d.specialization_display || d.specialization})</option>
               ))}
             </select>
             <Stethoscope size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary opacity-40 group-focus-within:text-accent-primary transition-colors" />

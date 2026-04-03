@@ -1,29 +1,27 @@
 import React, { useState } from 'react';
 import { 
   Stethoscope, 
-  Search, 
-  Calendar, 
-  UserPlus, 
   Activity, 
   Award, 
   ShieldCheck,
-  MoreHorizontal,
-  Plus
+  Plus,
+  Eye,
+  Calendar,
+  Settings
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard } from '../../../components/ui';
+import { Badge, Button, PageHeader, StatsCard, TableActions } from '../../../components/ui';
+import { useNavigate } from 'react-router-dom';
 import AdminTable from '../../../components/features/admin/AdminTable';
 import FilterBar from '../../../components/features/admin/FilterBar';
-
-import AddUserModal from '../../../components/features/admin/AddUserModal';
+import AdjustShiftModal from '../../../components/modals/admin/clinical/AdjustShiftModal';
+import AddUserModal from '../../../components/modals/admin/identity/AddUserModal';
 import UserService from '../../../services/admin/UserService';
 import { useUI } from '../../../context/UIContext';
-
 import { useAdminDoctors } from '../../../hooks/admin/useAdminDoctors';
-import { useNavigate } from 'react-router-dom';
+import AdminPage from '../../../components/layout/AdminPage';
 
 /**
  * 🧛 Specialist Physician Hub (Doctor Management)
- * Managing medical credentials, specialized cohorts, and scheduling availability.
  */
 export default function AdminDoctors() {
   const navigate = useNavigate();
@@ -31,6 +29,8 @@ export default function AdminDoctors() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { doctors, loading, refresh } = useAdminDoctors();
@@ -39,13 +39,27 @@ export default function AdminDoctors() {
     setIsSubmitting(true);
     try {
         await UserService.create(formData);
-        addNotification('Specialist Authorized', 'New physician shard successfully committed to the clinical faculty registry.', 'success');
+        addNotification('Doctor Authorized', 'New physician credentials committed to system node.', 'success');
         setIsModalOpen(false);
         refresh(); 
         resetForm();
     } catch (err) {
-        addNotification('Registry Failure', 'Could not propagate physician shard to systems.', 'error');
-        console.error(err);
+        addNotification('Error', 'Clinical shard propagation failed.', 'error');
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  const handleAdjustShift = async (id, data, callback) => {
+    setIsSubmitting(true);
+    try {
+        await UserService.update(id, data);
+        addNotification('Clinical protocol updated.', 'Physician shift shards re-aligned.', 'success');
+        setIsShiftModalOpen(false);
+        refresh();
+        callback();
+    } catch (err) {
+        addNotification('Matrix Sync Error', 'Could not re-align physician node.', 'error');
     } finally {
         setIsSubmitting(false);
     }
@@ -58,94 +72,105 @@ export default function AdminDoctors() {
 
   const columns = [
     { 
-        header: 'Specialist Identity', 
+        header: 'Clinical Lead', 
         cell: (d) => (
             <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-accent-primary/10 text-accent-primary flex items-center justify-center font-black">
                     {(d.user_full_name || '??').split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex flex-col">
-                    <p className="text-[12px] font-black text-text-primary dark:text-white uppercase leading-none">{d.user_full_name}</p>
-                    <p className="text-[8px] font-bold text-text-secondary dark:text-white/20 uppercase tracking-widest mt-1.5">DR-{d.id} • {d.experience_years} YRS EXP</p>
+                    <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none">{d.user_full_name}</p>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 tabular-nums">ID: {d.id} • {d.experience_years}Y EXP</p>
                 </div>
             </div>
         )
     },
     { 
-        header: 'Specialization Matrix',
+        header: 'Specialization Shard',
         cell: (d) => (
-            <Badge className="bg-bg-base dark:bg-white/5 text-accent-primary border-none text-[8px] font-black uppercase px-4">
+            <Badge className="bg-slate-50 dark:bg-white/5 text-accent-primary border-none text-[8px] font-black uppercase px-4 py-1">
                 {d.specialization_display || d.specialization}
             </Badge>
         )
     },
     { 
-        header: 'Operational Status',
+        header: 'Availability Node',
         cell: (d) => (
             <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${d.is_available ? 'bg-emerald-500 shadow-emerald-500' : 'bg-amber-500 shadow-amber-500'}`} />
-                <span className="text-[10px] font-black uppercase tracking-tight">{d.is_available ? 'Available' : 'Away'}</span>
+                <div className={`w-1.5 h-1.5 rounded-full ${d.is_available ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-widest ${d.is_available ? 'text-emerald-500' : 'text-amber-500'}`}>{d.is_available ? 'Active' : 'Offline'}</span>
             </div>
         )
     },
     { 
-        header: 'Shift Yield', 
-        cell: (d) => <div className="flex items-center gap-1.5"><Activity size={12} className="text-blue-500" /> <span className="text-[11px] font-black italic">{d.consultation_fee} USD</span></div>
+        header: 'Fee Matrix', 
+        cell: (d) => <span className="text-[11px] font-black italic tabular-nums text-slate-900 dark:text-white">Rs. {d.consultation_fee}</span>
     },
     { 
-        header: 'Actions', 
-        cell: () => (
-            <button className="p-3 rounded-xl bg-bg-base dark:bg-slate-800/40 text-text-secondary hover:text-accent-primary transition-all">
-                <MoreHorizontal size={14} />
-            </button>
+        header: 'Protocol', 
+        cell: (d) => (
+            <TableActions 
+                row={d}
+                actions={[
+                    { label: 'Adjust Protocols', icon: Settings, onClick: (row) => {
+                        setSelectedDoctor(row);
+                        setIsShiftModalOpen(true);
+                    }},
+                    { label: 'View Schedule', icon: Calendar, onClick: (row) => navigate(`/admin/doctors/schedule`) },
+                ]}
+            />
         )
     },
   ];
 
   const stats = [
-    { title: "Authorized MDs", value: loading ? "..." : doctors.length, icon: Stethoscope, trend: "Sync'd", color: "var(--accent-primary)" },
-    { title: "Active Specialties", value: [...new Set(doctors.map(d => d.specialization))].length, icon: Award, trend: "Stable", color: "#10b981" },
-    { title: "Clinical Capacity", value: "98.2%", icon: Activity, trend: "Optimal", color: "#6366f1" },
-    { title: "Security Protocols", value: "Level 9", icon: ShieldCheck, trend: "Hardened", color: "#f43f5e" },
+    { title: "Total Physicians", value: loading ? "..." : doctors.length, icon: Stethoscope, trend: "Sync'd" },
+    { title: "Active Specialties", value: [...new Set(doctors.map(d => d.specialization))].length, icon: Award, trend: "Stable" },
+    { title: "Availability Node", value: "98.2%", icon: Activity, trend: "High" },
+    { title: "Credential Sync", value: "Verified", icon: ShieldCheck, trend: "Secure" },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
-      
+    <AdminPage>
       <PageHeader 
-        title="Specialist Physician Hub" 
-        subtitle="Global Medical Faculty Registry"
+        title="Physician Matrix" 
+        subtitle="Manage Hospital Specialist Credentials"
         actions={
             <Button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-accent-primary text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/20 flex items-center gap-2 border-none"
+                onClick={() => {
+                    setIsModalOpen(true);
+                }}
+                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-2 border-none hover:scale-105 transition-all"
             >
-                <Plus size={14} /> Authorize Specialist
+                <Plus size={16} /> Authorize Doctor
             </Button>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
       </div>
 
-      <FilterBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={[
-            { id: 'ALL', label: 'Global Faculty' },
-            { id: 'AVAILABLE', label: 'Available Shards' },
-            { id: 'OFFLINE', label: 'Away / Shift-End' }
-        ]}
-      />
+      <div className="space-y-10 mt-10">
+        <FilterBar 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            tabs={[
+                { id: 'ALL', label: 'All Specialists' },
+                { id: 'AVAILABLE', label: 'Online Shards' },
+                { id: 'OFFLINE', label: 'Offline Shards' }
+            ]}
+        />
 
-      <AdminTable 
-        columns={columns} 
-        data={filteredDoctors} 
-        isLoading={loading}
-      />
+        <AdminTable 
+            columns={columns} 
+            data={filteredDoctors} 
+            isLoading={loading}
+            onRowClick={(d) => navigate(`/admin/doctors/edit/${d.id}`)}
+        />
+      </div>
 
       <AddUserModal 
         isOpen={isModalOpen}
@@ -154,6 +179,14 @@ export default function AdminDoctors() {
         isSubmitting={isSubmitting}
         initialRole="doctor"
       />
-    </div>
+
+      <AdjustShiftModal
+        isOpen={isShiftModalOpen}
+        onClose={() => setIsShiftModalOpen(false)}
+        onAction={handleAdjustShift}
+        isSubmitting={isSubmitting}
+        selectedDoctor={selectedDoctor}
+      />
+    </AdminPage>
   );
 }

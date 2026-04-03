@@ -37,9 +37,9 @@ export const UIProvider = ({ children }) => {
   const toggleSidebarCollapse = () => setIsSidebarCollapsed(prev => !prev);
   const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
   
-  const addNotification = (message, type = 'info') => {
+  const addNotification = (title, message = '', type = 'info') => {
     const id = Date.now();
-    setNotifications(prev => [...prev, { id, message, type }]);
+    setNotifications(prev => [...prev, { id, title, message, type }]);
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);

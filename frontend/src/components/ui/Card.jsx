@@ -17,14 +17,16 @@ const cardVariants = {
  * Common Card component with glassmorphism and motion support
  */
 export const Card = ({ children, className = '', variants, ...props }) => {
+  const isMatrix = className.includes('matrix-card');
+  
   return (
     <motion.div 
       variants={variants || cardVariants}
       initial="hidden"
       whileInView="show"
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      whileHover={!isMatrix ? { y: -5, transition: { duration: 0.2 } } : undefined}
       viewport={{ once: true, margin: "-50px" }}
-      className={`glass-panel ${className}`.trim()} 
+      className={`${!isMatrix ? "glass-panel" : ""} ${className}`.trim()} 
       {...props}
     >
       {children}

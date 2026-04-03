@@ -48,7 +48,7 @@ export default function AdminNavbar() {
   const searchResults = useMemo(() => [
     { id: 1, title: 'Patient Registry', category: 'Registry', icon: User, path: '/admin/patients' },
     { id: 2, title: 'Operation Flux', category: 'Flow', icon: Calendar, path: '/admin/appointments' },
-    { id: 3, title: 'AI Shard Diagnostics', category: 'Intelligence', icon: Activity, path: '/admin/diagnostics' },
+    { id: 3, title: 'AI Shard Diagnostics', category: 'Intelligence', icon: Activity, path: '/admin/analyticss' },
     { id: 4, title: 'Medical Unit Kernel', category: 'Infrastructure', icon: ShieldCheck, path: '/admin/doctors' },
   ].filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase())), [searchQuery]);
 
@@ -212,3 +212,4 @@ const CompactNavBtn = memo(({ icon: Icon, badge, onClick, active }) => {
     </button>
   );
 });
+

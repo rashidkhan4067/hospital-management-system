@@ -6,12 +6,12 @@ import {
     Briefcase,
     Users
 } from 'lucide-react';
-import { Button, Modal } from '../../ui';
+import { Button, Modal } from '../../../ui';
 
 /**
  * 🧛 Onboard User Modal Shard
  * Compact, high-fidelity portal for provisioning clinical and civilian identities.
- * Used for "Provision Identity" and "Onboarding Personnel".
+ * Consolidated into the Global Identity Shard Registry.
  */
 export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, initialRole = 'patient' }) {
     const [formData, setFormData] = useState({
@@ -45,16 +45,16 @@ export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, 
                 </div>
                 <div>
                     <p className="text-[14px] font-black text-text-primary dark:text-white truncate">
-                        {formData.first_name || formData.last_name ? `${formData.first_name} ${formData.last_name}` : 'New Identity'}
+                        {formData.first_name || formData.last_name ? `${formData.first_name} ${formData.last_name}` : 'New User'}
                     </p>
-                    <p className="text-[8px] font-bold text-text-secondary uppercase mt-1 tracking-widest">{formData.role} node</p>
+                    <p className="text-[8px] font-bold text-text-secondary uppercase mt-1 tracking-widest">{formData.role}</p>
                 </div>
             </div>
 
             <div className="space-y-4 px-2">
                 <div className="flex justify-between items-center">
-                    <span className="text-[8px] font-bold text-text-secondary uppercase tracking-widest">Protocol</span>
-                    <span className="text-[10px] font-black text-text-primary dark:text-white uppercase">Onboarding</span>
+                    <span className="text-[8px] font-bold text-text-secondary uppercase tracking-widest">Process</span>
+                    <span className="text-[10px] font-black text-text-primary dark:text-white uppercase">Adding User</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-white/5 pt-4">
                     <span className="text-[8px] font-bold text-text-secondary uppercase tracking-widest">Status</span>
@@ -74,8 +74,8 @@ export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, 
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Onboard Personnel"
-            subtitle="Identity Provisioning Protocol"
+            title="Add New User"
+            subtitle="Create Hospital Account"
             icon={UserPlus}
             sidebar={sidebar}
             maxWidth="max-w-2xl"
@@ -105,7 +105,7 @@ export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, 
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Identity Gateway (Email)</label>
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Email Address</label>
                     <div className="relative">
                         <input
                             required
@@ -130,24 +130,24 @@ export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, 
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Operational Role</label>
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Role</label>
                         <select
                             required
                             className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[11px] font-black uppercase outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none"
                             value={formData.role}
                             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                         >
-                            <option value="patient">Civilian Patient</option>
-                            <option value="doctor">Clinical Specialist</option>
-                            <option value="staff">Operational Staff</option>
-                            <option value="admin">System Administrator</option>
+                            <option value="patient">Patient</option>
+                            <option value="doctor">Doctor</option>
+                            <option value="staff">Staff</option>
+                            <option value="admin">Admin</option>
                         </select>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Security Key (Password)</label>
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Password</label>
                         <input
                             required
                             type="password"
@@ -158,7 +158,7 @@ export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, 
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Confirm Security Key</label>
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Confirm Password</label>
                         <input
                             required
                             type="password"
@@ -175,7 +175,7 @@ export default function AddUserModal({ isOpen, onClose, onAction, isSubmitting, 
                     disabled={isSubmitting}
                     className="w-full bg-accent-primary text-white p-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-accent-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 mt-6 border-none"
                 >
-                    {isSubmitting ? 'Syncing Identity Node...' : 'Authorize Global Identity'}
+                    {isSubmitting ? 'Saving...' : 'Create User'}
                 </Button>
             </form>
         </Modal>

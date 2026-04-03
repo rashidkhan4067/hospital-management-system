@@ -1,46 +1,43 @@
-// 🚀 SCALEABLE ADMIN PAGE MATRIX
-// Organized by Sidebar Categories for Elite Architectural Density
+// Dashboard Components
+export { default as AdminDashboard } from './dashboard/Dashboard';
+export { default as AdminFinances } from './dashboard/Finances';
+export { default as AdminStats } from './dashboard/Stats';
+export { default as AdminChat } from './dashboard/AdminChat';
 
-// Operational Command Shard
-export { default as AdminDashboard } from './operational/Dashboard';
-export { default as AdminFinances } from './operational/Finances';
-export { default as AdminProtocolAnalytics } from './operational/ProtocolAnalytics';
-export { default as AdminChat } from './operational/AdminChat';
+// User Management Hub
+export { default as AdminUsers } from './users/Users';
+export { default as AdminAddUser } from './users/AddUser';
+export { default as AdminStaff } from './users/Staff';
+export { default as AdminRoles } from './users/Roles';
 
-// Identity Matrix Hub
-export { default as AdminUsers } from './identity/Users';
-export { default as AdminAddUser } from './identity/AddUser';
-export { default as AdminStaff } from './identity/Staff';
-export { default as AdminRoleArchitecture } from './identity/RoleArchitecture';
+// Patient Management Node
+export { default as AdminPatients } from './patients/Patients';
+export { default as AdminPatientRecord } from './patients/PatientRecord';
+export { default as AdminAddPatient } from './patients/AddPatient';
+export { default as AdminAppointments } from './patients/Appointments';
 
-// Clinical Registry Node
-export { default as AdminPatients } from './clinical/Patients';
-export { default as AdminPatientRecord } from './clinical/PatientRecord';
-export { default as AdminAddPatient } from './clinical/AddPatient';
-export { default as AdminAppointments } from './clinical/Appointments';
+// Doctor Hub Control
+export { default as AdminDoctors } from './doctors/Doctors';
+export { default as AdminAddDoctor } from './doctors/AddDoctor';
+export { default as AdminDoctorSchedule } from './doctors/DoctorSchedule';
+export { default as AdminSpecializations } from './doctors/Specializations';
 
-// Faculty Hub Control
-export { default as AdminDoctors } from './faculty/Doctors';
-export { default as AdminAddDoctor } from './faculty/AddDoctor';
-export { default as AdminDoctorSchedule } from './faculty/DoctorSchedule';
-export { default as AdminSpecializations } from './faculty/Specializations';
+// Analytics & Reports
+export { default as AdminLab } from './analytics/Lab';
+export { default as AdminPharmacy } from './analytics/Pharmacy';
+export { default as AdminInventory } from './analytics/Inventory';
 
-// Diagnostic & Asset Shards
-export { default as AdminLab } from './diagnostic/Lab';
-export { default as AdminPharmacy } from './diagnostic/Pharmacy';
-export { default as AdminInventory } from './diagnostic/Inventory';
+// AI Agent Command
+export { default as AdminAILogs } from './ai-agent/AILogs';
+export { default as AdminAIConfig } from './ai-agent/AIConfig';
+export { default as AdminAIChats } from './ai-agent/AIChats';
 
-// AI Intelligence Command
-export { default as AdminAILogs } from './ai/AILogs';
-export { default as AdminAIConfig } from './ai/AIConfig';
-export { default as AdminAIChats } from './ai/AIChats';
-
-// System Console Controllers
-export { default as AdminDepartments } from './system/Departments';
-export { default as AdminGlobalAlerts } from './system/GlobalAlerts';
-export { default as AdminSecurityAudit } from './system/SecurityAudit';
-export { default as AdminSystemProtocol } from './system/SystemProtocol';
-export { default as AdminSystemTopology } from './system/SystemTopology';
+// Management Console Controllers
+export { default as AdminDepartments } from './management/Departments';
+export { default as AdminAlerts } from './management/Alerts';
+export { default as AdminAudit } from './management/Audit';
+export { default as AdminRules } from './management/Rules';
+export { default as AdminStructure } from './management/Structure';
 
 // User Account Node
 export { default as AdminProfile } from './profile/Profile';

@@ -5,7 +5,7 @@ import api from '../apiClient';
  * Specialized handler for global personnel provisioning and account orchestration.
  */
 class UserService {
-    endpoint = '/accounts/users/';
+    endpoint = '/auth/users/';
 
     /**
      * getAll - Retrieve the global identity matrix

@@ -1,16 +1,15 @@
 import React from 'react';
-import { LayoutGrid, MoreHorizontal, Bed, UserCircle, Microscope, Activity, Calendar, ShieldAlert, Database } from 'lucide-react';
-import { Card, Badge, Button } from '../../../components/ui';
-import { motion } from 'framer-motion';
+import { LayoutGrid, MoreHorizontal, UserCircle, Activity, ShieldAlert, Database, Calendar } from 'lucide-react';
+import { Card, Badge, Button, PageHeader, StatsCard } from '../../../components/ui';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminSystem } from '../../../hooks/admin/useAdminSystem';
 import { useUI } from '../../../context/UIContext';
-import PageLoader from '../../../components/common/Loading';
-import DepartmentModal from '../../../components/features/admin/DepartmentModal';
+import DepartmentModal from '../../../components/modals/admin/management/DepartmentModal';
 import FilterBar from '../../../components/features/admin/FilterBar';
+import AdminPage from '../../../components/layout/AdminPage'; // ✨ THE BASE FILE
 
 /**
  * 🏥 Clinical Unit Shard Matrix
- * Enterprise control hub for medical departments and operational nodes.
  */
 export default function DepartmentMatrix() {
   const { departments, loading, refresh, createDepartment, updateDepartment } = useAdminSystem();
@@ -22,8 +21,6 @@ export default function DepartmentMatrix() {
   const [selectedDept, setSelectedDept] = React.useState(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  if (loading) return <PageLoader />;
-
   const handleOpenModal = (dept = null) => {
     setSelectedDept(dept);
     setIsModalOpen(true);
@@ -34,30 +31,18 @@ export default function DepartmentMatrix() {
     try {
       if (selectedDept) {
         await updateDepartment(selectedDept.id, data);
-        addNotification('Clinical Unit Reconfigured', 'Shard propagation synchronized successfully.', 'success');
+        addNotification('Clinical Unit Reconfigured', 'Shard propagation synchronized.', 'success');
       } else {
         await createDepartment(data);
-        addNotification('Clinical Node Deployed', 'New departmental shard initialized in the matrix.', 'success');
+        addNotification('Clinical Node Deployed', 'New departmental shard initialized.', 'success');
       }
       setIsModalOpen(false);
       refresh();
     } catch (error) {
-      addNotification('Propagation Failure', 'Node could not be initialized in the clinical grid.', 'error');
+      addNotification('Propagation Failure', 'Node could not be initialized.', 'error');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getDynamicColor = (name) => {
-    const colors = ['rose', 'accent', 'indigo', 'emerald', 'amber'];
-    const charSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[charSum % colors.length];
-  };
-
-  const getDynamicIcon = (name) => {
-    const icons = [<Activity />, <Microscope />, <LayoutGrid />, <UserCircle />, <Bed />];
-    const charSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return icons[charSum % icons.length];
   };
 
   const filteredDepts = departments.filter(d => 
@@ -65,143 +50,146 @@ export default function DepartmentMatrix() {
     (activeTab === 'ALL' || (activeTab === 'ACTIVE' ? d.is_active : !d.is_active))
   );
 
-  return (
-    <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
-      
-      <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 px-2">
-         <div className="space-y-1">
-            <div className="flex items-center gap-3">
-               <div className="w-1.5 h-6 bg-accent-primary rounded-full shadow-lg shadow-accent-primary/20" />
-               <h1 className="text-xl md:text-2xl font-black text-text-primary dark:text-white tracking-tight uppercase italic font-display">Department Matrix</h1>
-            </div>
-            <p className="text-[9px] font-bold text-text-secondary dark:text-white/30 uppercase tracking-[0.3em] ml-5 opacity-60">Clinical Unit Shards</p>
-         </div>
+  const stats = [
+    { title: "Total Shards", value: loading ? "..." : departments.length, icon: Database, trend: "Sync'd" },
+    { title: "Active Nodes", value: loading ? "..." : departments.filter(d => d.is_active).length, icon: Activity, trend: "Operational" },
+    { title: "Offline Shards", value: loading ? "..." : departments.filter(d => !d.is_active).length, icon: ShieldAlert, trend: "Watch" },
+    { title: "Global Personnel", value: loading ? "..." : departments.reduce((acc, d) => acc + (d.doctor_count || 0), 0), icon: UserCircle, trend: "Authorized" },
+  ];
 
-         <div className="flex items-center gap-3 bg-bg-offset dark:bg-slate-800/40 p-2 rounded-2xl border border-white/5 shadow-sm">
+  return (
+    <AdminPage>
+      <PageHeader 
+        title="Clinical Matrix" 
+        subtitle="Control Global Hospital Departmental Shards"
+        actions={
             <Button 
                 onClick={() => handleOpenModal()}
-                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/20 flex items-center gap-2 border-none"
+                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
             >
-               <LayoutGrid size={16} /> Deploy New Matrix
+               <LayoutGrid size={18} /> Deploy New Matrix
             </Button>
-         </div>
-      </header>
-
-      {/* 📊 Matrix Topology Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsOverview title="Total Shards" value={departments.length} icon={<Database size={18}/>} color="var(--accent-primary)" />
-          <StatsOverview title="Active Nodes" value={departments.filter(d => d.is_active).length} icon={<Activity size={18}/>} color="#10b981" />
-          <StatsOverview title="Offline Matrix" value={departments.filter(d => !d.is_active).length} icon={<ShieldAlert size={18}/>} color="#f43f5e" />
-          <StatsOverview title="Total Personnel" value={departments.reduce((acc, d) => acc + (d.doctor_count || 0), 0)} icon={<UserCircle size={18}/>} color="#6366f1" />
-      </div>
-
-      {/* 🔍 Propagation Filters */}
-      <FilterBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={[
-            { id: 'ALL', label: 'Global Matrix' },
-            { id: 'ACTIVE', label: 'Operational Nodes' },
-            { id: 'OFFLINE', label: 'Offline Shards' }
-        ]}
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* 🏥 Active Clinical Shards */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          {filteredDepts.length === 0 ? (
-            <div className="p-20 flex flex-col items-center justify-center text-center space-y-4 opacity-40">
-                <LayoutGrid size={48} className="text-slate-300" />
-                <p className="text-[10px] font-black uppercase tracking-widest">No matching clinical shards found in the grid</p>
-            </div>
-          ) : filteredDepts.map((dept, i) => (
-            <motion.div
-              key={dept.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Card className="p-6 bg-bg-offset dark:bg-slate-800/40 border border-white/5 rounded-[32px] flex items-center gap-8 relative overflow-hidden group hover:bg-bg-base dark:hover:bg-white/5 transition-all">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center bg-${getDynamicColor(dept.name)}-500/10 text-${getDynamicColor(dept.name)}-500 shadow-inner group-hover:rotate-6 transition-transform flex-shrink-0`}>
-                  {getDynamicIcon(dept.name) && React.cloneElement(getDynamicIcon(dept.name), { size: 28 })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
+      </div>
+
+      <div className="space-y-10">
+        <FilterBar 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            tabs={[
+                { id: 'ALL', label: 'Global Matrix' },
+                { id: 'ACTIVE', label: 'Operational Nodes' },
+                { id: 'OFFLINE', label: 'Offline Shards' }
+            ]}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 min-h-[500px]">
+          <div className="lg:col-span-8 flex flex-col gap-8">
+            <AnimatePresence mode="popLayout">
+              {filteredDepts.length === 0 ? (
+                <div className="p-20 flex flex-col items-center justify-center text-center space-y-6 opacity-30 bg-slate-50 dark:bg-black/10 rounded-[48px] border-2 border-dashed border-slate-200 dark:border-white/5">
+                    <LayoutGrid size={64} strokeWidth={1} />
+                    <p className="text-[12px] font-black uppercase tracking-[0.4em]">No clinical shards detected in current grid resonance</p>
+                </div>
+              ) : filteredDepts.map((dept, i) => (
+                <motion.div
+                  key={dept.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <Card className="matrix-card p-8 border-none flex items-center gap-10 group hover:translate-x-2 transition-all duration-500">
+                    <div className="w-16 h-16 rounded-[22px] flex items-center justify-center bg-accent-primary/5 text-accent-primary border border-accent-primary/10 shadow-inner group-hover:rotate-6 transition-transform relative">
+                      <LayoutGrid size={32} strokeWidth={2.5} />
+                      {dept.is_active && <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />}
+                    </div>
+                    
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-4">
+                         <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">{dept.name}</h3>
+                         <Badge className="bg-slate-100 dark:bg-white/5 text-[9px] font-black text-slate-400 border-none px-4 py-1 tracking-widest">{dept.code}</Badge>
+                      </div>
+                      <div className="flex items-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+                        <span className="flex items-center gap-2"><UserCircle size={14} className="text-accent-primary" /> {dept.doctor_count || 0} Specialists</span>
+                        <span className="flex items-center gap-2"><Database size={14} className="text-accent-primary" /> Shard Verified</span>
+                      </div>
+                    </div>
+
+                    <div className="hidden xl:flex flex-col items-center px-10 border-x border-slate-100 dark:border-white/5 min-w-[200px]">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3 italic">Node Pulse</p>
+                      <Badge className={`px-5 py-1.5 rounded-full text-[9px] font-black uppercase text-white shadow-xl transition-all ${
+                        !dept.is_active ? 'bg-rose-500 shadow-rose-500/30' : 'bg-emerald-500 shadow-emerald-500/30 group-hover:scale-110'
+                      }`}>
+                        {dept.is_active ? 'Active Node' : 'Offline Shard'}
+                      </Badge>
+                    </div>
+
+                    <div className="hidden md:flex flex-col gap-3 w-40">
+                       <div className="flex justify-between items-center text-[10px] font-black uppercase italic tracking-widest text-slate-400">
+                          <span>Throughput</span>
+                          <span className="tabular-nums">{dept.capacity || '0%'}</span>
+                       </div>
+                       <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-accent-primary rounded-full transition-all duration-[1.5s]" style={{ width: dept.capacity || '0%' }} />
+                       </div>
+                    </div>
+
+                    <button 
+                      onClick={() => handleOpenModal(dept)}
+                      className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 text-slate-400 hover:text-accent-primary shadow-inner hover:scale-110 transition-all"
+                    >
+                      <MoreHorizontal size={20} />
+                    </button>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          <div className="lg:col-span-4 flex flex-col gap-10">
+             <Card className="matrix-card p-10 bg-accent-primary text-white border-none shadow-[0_32px_64px_-12px_rgba(20,184,166,0.3)] space-y-10 group overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] rounded-full group-hover:scale-150 transition-transform duration-[2s]" />
+                <div className="space-y-4 relative z-10">
+                   <h2 className="text-3xl font-black uppercase italic tracking-tighter leading-none pr-10">Clinical Network Efficiency</h2>
+                   <p className="text-[11px] font-bold opacity-60 uppercase tracking-widest leading-loose">Global Cross-Department Shard Efficiency and Resource Propagation Level 122.a</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                   <div className="p-8 rounded-[32px] bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl group-hover:-translate-y-2 transition-all">
+                      <p className="text-[10px] font-black uppercase opacity-60 mb-3 tracking-[0.2em]">Avg Wait</p>
+                      <p className="text-2xl font-black italic tabular-nums">12.4m</p>
+                   </div>
+                   <div className="p-8 rounded-[32px] bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl group-hover:-translate-y-2 transition-all delay-75">
+                      <p className="text-[10px] font-black uppercase opacity-60 mb-3 tracking-[0.2em]">Matrix Load</p>
+                      <p className="text-2xl font-black italic tabular-nums">92%</p>
+                   </div>
                 </div>
                 
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-3">
-                     <h3 className="text-lg font-black text-text-primary dark:text-white uppercase italic tracking-tight">{dept.name}</h3>
-                     <Badge className="bg-bg-base dark:bg-white/5 text-[8px] font-black text-slate-400 border-none px-3">{dept.code}</Badge>
-                  </div>
-                  <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60 flex items-center gap-3">
-                    <UserCircle size={12} /> {dept.doctor_count || 0} Authorized Personnel
-                  </p>
+                <Button className="w-full bg-white text-accent-primary py-5 rounded-[22px] text-[11px] font-black uppercase tracking-[0.5em] shadow-2xl relative z-10 group-hover:scale-x-105 transition-all border-none">
+                   <Calendar size={18} /> Schedule Sync
+                </Button>
+             </Card>
+
+             <div className="p-10 bg-white dark:bg-slate-900 shadow-xl border border-slate-100 dark:border-white/5 rounded-[48px] flex flex-col items-center justify-center text-center gap-8 group hover:border-accent-primary/20 transition-all border-none">
+                <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-300 dark:text-slate-600 group-hover:scale-110 group-hover:rotate-12 transition-all duration-700">
+                   <LayoutGrid size={40} />
                 </div>
-
-                <div className="hidden lg:flex flex-col items-center px-10 border-x border-white/5">
-                  <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-2 opacity-40">Load Pulse</p>
-                  <Badge className={`px-4 py-1 rounded-full text-[8px] font-black uppercase text-white shadow-lg ${
-                    !dept.is_active ? 'bg-rose-500 shadow-rose-500/20' : 'bg-emerald-500 shadow-emerald-500/20'
-                  }`}>
-                    {dept.is_active ? 'Active Node' : 'Offline Shard'}
-                  </Badge>
+                <div className="space-y-3">
+                   <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 italic">Topology Matrix</p>
+                   <p className="text-sm font-bold text-slate-500 px-6 leading-relaxed">Configure additional departmental shards for the clinical grid network mapping.</p>
                 </div>
-
-                <div className="space-y-2 w-32">
-                   <div className="flex justify-between items-center text-[9px] font-black uppercase opacity-60 italic">
-                      <span>Occupancy</span>
-                      <span>{dept.capacity || '0%'}</span>
-                   </div>
-                   <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden shadow-inner">
-                      <div className={`h-full bg-accent-primary rounded-full transition-all duration-1000`} style={{ width: dept.capacity || '0%' }} />
-                   </div>
-                </div>
-
-                <button 
-                  onClick={() => handleOpenModal(dept)}
-                  className="p-3 rounded-xl bg-bg-base dark:bg-slate-800 border border-white/5 text-text-secondary hover:text-accent-primary shadow-inner"
-                >
-                  <MoreHorizontal size={18} />
-                </button>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* 🧬 Matrix Sidebar Insights */}
-        <div className="lg:col-span-4 space-y-8">
-           <Card className="p-8 bg-accent-primary text-white rounded-[48px] shadow-2xl shadow-accent-primary/20 space-y-8 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 blur-[60px] rounded-full group-hover:scale-125 transition-transform" />
-              <div className="space-y-4 relative z-10">
-                 <h2 className="text-2xl font-black uppercase italic tracking-tight leading-none">Matrix Analytics</h2>
-                 <p className="text-xs font-bold opacity-60 uppercase tracking-widest leading-relaxed">Global Cross-Department Shard Efficiency and Resource Propagation Level 122.a</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 relative z-10 pt-4">
-                 <div className="p-6 rounded-[32px] bg-white/10 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/10">
-                    <p className="text-[9px] font-black uppercase opacity-60 mb-2">Wait Time</p>
-                    <p className="text-xl font-black italic">12.4m</p>
-                 </div>
-                 <div className="p-6 rounded-[32px] bg-white/10 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/10">
-                    <p className="text-[9px] font-black uppercase opacity-60 mb-2">ER Load</p>
-                    <p className="text-xl font-black italic">92%</p>
-                 </div>
-              </div>
-              
-              <Button className="w-full bg-white text-accent-primary py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl relative z-10 group-hover:scale-[1.02] transition-transform border-none">
-                 <Calendar size={16} /> Schedule Sync
-              </Button>
-           </Card>
-
-           <div className="p-8 bg-bg-offset dark:bg-slate-800/40 border-2 border-dashed border-white/5 rounded-[40px] flex flex-col items-center justify-center text-center gap-6 group">
-              <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
-                 <LayoutGrid size={32} />
-              </div>
-              <div className="space-y-2">
-                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-text-secondary">Topology Matrix</p>
-                 <p className="text-sm font-medium text-text-secondary px-6">Configure additional departmental shards for the clinical grid network.</p>
-              </div>
-           </div>
+                <Button className="px-8 py-3 rounded-full border border-slate-200 dark:border-white/10 text-slate-400 text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                    Access Grid Docs
+                </Button>
+             </div>
+          </div>
         </div>
       </div>
 
@@ -212,20 +200,6 @@ export default function DepartmentMatrix() {
         department={selectedDept}
         loading={isSubmitting}
       />
-    </div>
+    </AdminPage>
   );
-}
-
-function StatsOverview({ title, value, icon, color }) {
-    return (
-        <Card className="p-8 bg-bg-offset dark:bg-slate-900/40 border border-white/5 rounded-[40px] flex items-center gap-6 group hover:-translate-y-1 transition-all">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 text-[22px] group-hover:scale-110 transition-transform" style={{ color }}>
-                {icon}
-            </div>
-            <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 opacity-60">{title}</p>
-                <h4 className="text-2xl font-black dark:text-white leading-none italic">{value}</h4>
-            </div>
-        </Card>
-    )
 }

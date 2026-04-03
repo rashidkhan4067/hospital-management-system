@@ -10,7 +10,7 @@ import {
 import { Badge, Button, PageHeader, StatsCard } from '../../../components/ui';
 import AdminTable from '../../../components/features/admin/AdminTable';
 import FilterBar from '../../../components/features/admin/FilterBar';
-import RegisterMedicationModal from '../../../components/features/admin/RegisterMedicationModal';
+import RegisterMedicationModal from '../../../components/modals/admin/clinical/RegisterMedicationModal';
 
 import { useAdminPharmacy } from '../../../hooks/admin/useAdminPharmacy';
 import { useUI } from '../../../context/UIContext';
@@ -34,12 +34,12 @@ export default function AdminPharmacy() {
     setIsSubmitting(true);
     try {
         await PharmacyService.createMedicine(formData);
-        addNotification('Medication Initialized', 'Asset successfully committed to global inventory.', 'success');
+        addNotification('Medicine Added', 'New medicine has been added to the store.', 'success');
         setIsModalOpen(false);
         refresh(); // Refresh inventory
         resetForm(); // Clear the modal's internal form
     } catch (err) {
-        addNotification('Sync Failure', 'Could not propagate medication shard to database.', 'error');
+        addNotification('Error', 'Could not add medicine to the database.', 'error');
         console.error(err);
     } finally {
         setIsSubmitting(false);
@@ -53,7 +53,7 @@ export default function AdminPharmacy() {
 
   const columns = [
     { 
-        header: 'Asset Identity', 
+        header: 'Medicine Name', 
         cell: (m) => (
             <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-accent-primary/5 border border-accent-primary/10 flex items-center justify-center text-accent-primary shadow-inner">
@@ -67,7 +67,7 @@ export default function AdminPharmacy() {
         )
     },
     { 
-        header: 'Clinical Category', 
+        header: 'Category', 
         cell: (m) => (
             <div className="flex items-center gap-2">
                 <Badge className="bg-bg-base dark:bg-slate-800/40 text-accent-primary text-[9px] font-black uppercase tracking-widest border-none">
@@ -77,7 +77,7 @@ export default function AdminPharmacy() {
         )
     },
     { 
-        header: 'Stock Quantum', 
+        header: 'Stock Level', 
         cell: (m) => (
             <div className="flex flex-col">
                 <span className={`text-[12px] font-extrabold ${m.stock_quantity <= m.reorder_level ? 'text-rose-500' : 'text-text-primary dark:text-white'}`}>
@@ -93,11 +93,11 @@ export default function AdminPharmacy() {
         )
     },
     { 
-        header: 'Unit Valuation', 
-        cell: (m) => <span className="text-[11px] font-black text-text-primary dark:text-white tracking-widest uppercase italic">${m.unit_price}</span>
+        header: 'Price (Rs)', 
+        cell: (m) => <span className="text-[11px] font-black text-text-primary dark:text-white tracking-widest uppercase italic">Rs. {m.unit_price}</span>
     },
     { 
-        header: 'Expiry Protocol',
+        header: 'Expiry Date',
         cell: (m) => (
             <div className="flex items-center gap-2">
                 <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${new Date(m.expiry_date) < new Date() ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
@@ -116,24 +116,24 @@ export default function AdminPharmacy() {
   ];
 
   const stats = [
-    { title: "Total Shards", value: loading ? "..." : inventory.length, icon: Archive, trend: "Sync'd", color: "var(--accent-primary)" },
-    { title: "Active Inventory", value: loading ? "..." : inventory.reduce((acc, m) => acc + m.stock_quantity, 0).toLocaleString(), icon: Droplets, trend: "Live", color: "#10b981" },
-    { title: "Critical Alerts", value: loading ? "..." : criticalItems.length, icon: AlertTriangle, trend: "Immediate", color: "#f43f5e" },
-    { title: "Security Protocols", value: "Level 9", icon: ShieldCheck, trend: "Hardened", color: "#6366f1" },
+    { title: "Total Medicines", value: loading ? "..." : inventory.length, icon: Archive, trend: "Sync'd", color: "var(--accent-primary)" },
+    { title: "Total Stock", value: loading ? "..." : inventory.reduce((acc, m) => acc + m.stock_quantity, 0).toLocaleString(), icon: Droplets, trend: "Live", color: "#10b981" },
+    { title: "Low Stock", value: loading ? "..." : criticalItems.length, icon: AlertTriangle, trend: "Immediate", color: "#f43f5e" },
+    { title: "Pharmacy Status", value: "Verified", icon: ShieldCheck, trend: "Secure", color: "#6366f1" },
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
       
       <PageHeader 
-        title="Pharmacy Shard Matrix" 
-        subtitle="Global Pharmaceutical Fulfillment Console"
+        title="Pharmacy" 
+        subtitle="Medicine & Prescription Management"
         actions={
             <Button 
                 onClick={() => setIsModalOpen(true)}
                 className="bg-accent-primary text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/20 flex items-center gap-2 border-none"
             >
-                <Plus size={14} /> Register Medication
+                <Plus size={14} /> Add Medicine
             </Button>
         }
       />
@@ -148,7 +148,7 @@ export default function AdminPharmacy() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         tabs={[
-            { id: 'ALL', label: 'Global Shards' },
+            { id: 'ALL', label: 'All Medicines' },
             { id: 'ANTIBIOTICS', label: 'Antibiotics' },
             { id: 'ANALGESICS', label: 'Analgesics' },
             { id: 'CARDIAC', label: 'Cardiac Care' }

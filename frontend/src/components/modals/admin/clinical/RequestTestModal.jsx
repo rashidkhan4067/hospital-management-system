@@ -5,12 +5,13 @@ import {
   User,
   Stethoscope
 } from 'lucide-react';
-import { Button, Modal } from '../../ui';
-import { useAdminPatients } from '../../../hooks/admin/useAdminPatients';
+import { Button, Modal } from '../../../ui';
+import { useAdminPatients } from '../../../../hooks/admin/useAdminPatients';
 
 /**
  * 🧪 Request Test Modal Shard
  * Compact, high-fidelity portal for initiating clinical diagnostics.
+ * Re-mapped to the Global Clinical Modal Registry.
  */
 export default function RequestTestModal({ isOpen, onClose, onAction, isSubmitting, tests = [] }) {
   const { patients } = useAdminPatients();
@@ -78,7 +79,7 @@ export default function RequestTestModal({ isOpen, onClose, onAction, isSubmitti
           <div className="relative">
             <select 
               required
-              className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none"
+              className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none h-14"
               value={formData.patient}
               onChange={(e) => setFormData({...formData, patient: e.target.value})}
             >
@@ -96,7 +97,7 @@ export default function RequestTestModal({ isOpen, onClose, onAction, isSubmitti
           <div className="relative">
             <select 
               required
-              className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none"
+              className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none h-14"
               value={formData.test}
               onChange={(e) => setFormData({...formData, test: e.target.value})}
             >
@@ -112,7 +113,7 @@ export default function RequestTestModal({ isOpen, onClose, onAction, isSubmitti
         <div className="space-y-2">
           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Initial Status</label>
           <select 
-            className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[11px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white"
+            className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[11px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white h-14"
             value={formData.status}
             onChange={(e) => setFormData({...formData, status: e.target.value})}
           >
@@ -124,7 +125,7 @@ export default function RequestTestModal({ isOpen, onClose, onAction, isSubmitti
         <Button 
           type="submit" 
           disabled={isSubmitting}
-          className="w-full bg-emerald-500 text-white p-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-emerald-500/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 mt-4 border-none"
+          className="w-full bg-emerald-500 text-white p-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-emerald-500/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 mt-4 border-none h-16"
         >
           {isSubmitting ? 'Calibrating Shard...' : 'Initialize Diagnostic Node'}
         </Button>

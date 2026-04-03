@@ -52,63 +52,63 @@ export const DOCTOR_NAV = [
  */
 export const ADMIN_NAV = [
   {
-    category: 'Operational Command',
+    category: 'Management',
     items: [
-      { to: '/admin', label: 'Command Dashboard', icon: LayoutDashboard, end: true },
-      { to: '/admin/finances', label: 'Financial Hub', icon: CreditCard },
-      { to: '/admin/analytics', label: 'Protocol Analytics', icon: BarChart3 },
-      { to: '/admin/chats', label: 'Clinical Comms', icon: MessageSquare },
+      { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+      { to: '/admin/finances', label: 'Finances & Fees', icon: CreditCard },
+      { to: '/admin/analytics', label: 'Reports', icon: BarChart3 },
+      { to: '/admin/chats', label: 'Messages', icon: MessageSquare },
     ]
   },
   {
-    category: 'Identity Matrix',
+    category: 'Users & Staff',
     items: [
-      { to: '/admin/users', label: 'User Registry', icon: Users },
-      { to: '/admin/users/add', label: 'Provision Identity', icon: UserPlus },
-      { to: '/admin/staff', label: 'Staff Matrix', icon: UserCog },
-      { to: '/admin/roles', label: 'Role Architecture', icon: ShieldCheck },
+      { to: '/admin/users', label: 'All Users', icon: Users },
+      { to: '/admin/users/add', label: 'Add New User', icon: UserPlus },
+      { to: '/admin/staff', label: 'Hospital Staff', icon: UserCog },
+      { to: '/admin/roles', label: 'User Roles', icon: ShieldCheck },
     ]
   },
   {
-    category: 'Clinical Registry',
+    category: 'Patients',
     items: [
-      { to: '/admin/patients', label: 'Patient Index', icon: HeartPulse },
-      { to: '/admin/patients/add', label: 'Intake Protocol', icon: UserPlus },
-      { to: '/admin/appointments', label: 'Appointment Matrix', icon: ClipboardList },
+      { to: '/admin/patients', label: 'Find Patient', icon: HeartPulse },
+      { to: '/admin/patients/add', label: 'Add Patient', icon: UserPlus },
+      { to: '/admin/appointments', label: 'Appointments', icon: ClipboardList },
     ]
   },
   {
-    category: 'Faculty Hub',
+    category: 'Doctors Control',
     items: [
-      { to: '/admin/doctors', label: 'Authorized MDs', icon: Stethoscope },
-      { to: '/admin/doctors/add', label: 'Authorize Specialist', icon: UserPlus },
-      { to: '/admin/doctors/schedule', label: 'Specialist Schedule', icon: CalendarCheck },
-      { to: '/admin/doctors/specialty', label: 'Clinical Specializations', icon: Database },
+      { to: '/admin/doctors', label: 'All Doctors', icon: Stethoscope },
+      { to: '/admin/doctors/add', label: 'Add Doctor', icon: UserPlus },
+      { to: '/admin/doctors/schedule', label: 'Doctor Rota', icon: CalendarCheck },
+      { to: '/admin/doctors/specialty', label: 'Specialties', icon: Database },
     ]
   },
   {
-    category: 'Diagnostic & Assets',
+    category: 'Store & Lab',
     items: [
-      { to: '/admin/lab', label: 'Lab Matrix', icon: FlaskConical },
-      { to: '/admin/pharmacy', label: 'Pharmacy Shard', icon: Droplets },
-      { to: '/admin/inventory', label: 'Supply Matrix', icon: Database },
+      { to: '/admin/lab', label: 'Laboratory', icon: FlaskConical },
+      { to: '/admin/pharmacy', label: 'Pharmacy', icon: Droplets },
+      { to: '/admin/inventory', label: 'Medicine & Stock', icon: Database },
     ]
   },
   {
-    category: 'Neural Intelligence',
+    category: 'AI Assistant',
     items: [
-      { to: '/admin/ai/chats', label: 'Neural Hub', icon: Bot },
-      { to: '/admin/ai/logs', label: 'Propagation Logs', icon: History },
-      { to: '/admin/ai/config', label: 'Neural Configuration', icon: Settings },
+      { to: '/admin/ai-agent/chats', label: 'AI Chats', icon: Bot },
+      { to: '/admin/ai-agent/logs', label: 'System Logs', icon: History },
+      { to: '/admin/ai-agent/config', label: 'AI Settings', icon: Settings },
     ]
   },
   {
-    category: 'System Control',
+    category: 'Settings',
     items: [
-      { to: '/admin/departments', label: 'Clinical Units', icon: Building2 },
-      { to: '/admin/notifs/send', label: 'Global Alerts', icon: Bell },
-      { to: '/admin/security/audit', label: 'Security Audit', icon: History },
-      { to: '/admin/settings/general', label: 'System Protocol', icon: Settings },
+      { to: '/admin/departments', label: 'Departments', icon: Building2 },
+      { to: '/admin/notifs/send', label: 'Group Alerts', icon: Bell },
+      { to: '/admin/security/audit', label: 'Security Log', icon: History },
+      { to: '/admin/settings/general', label: 'General Settings', icon: Settings },
     ]
   },
 ];
@@ -129,3 +129,4 @@ export const getNavigationByRole = (role) => {
     default: return { primary: [] };
   }
 };
+

@@ -24,7 +24,7 @@ import PageLoader from '../../../components/common/Loading';
  * 📡 Global Alert Propagation Shard
  * Multi-channel clinical notification system (SMS, Email, Push).
  */
-export default function GlobalAlerts() {
+export default function Alerts() {
   const navigate = useNavigate();
   const { alerts, createAlert, loading: systemLoading, refresh } = useAdminSystem();
   const { addNotification } = useUI();
@@ -282,3 +282,4 @@ function ConfigMatrix({ label, options, value, onChange }) {
     </div>
   );
 }
+

@@ -7,60 +7,77 @@ import { Card } from '../../../ui';
  * 💹 Revenue Flux Diagnostic Shard
  * Strictly follows the Theme Accent color via CSS variables.
  */
-const RevenueFlux = ({ data = [{ name: 'Feb', revenue: 12400 }, { name: 'Mar', revenue: 15800 }, { name: 'Apr', revenue: 18200 }] }) => {
+import { motion } from 'framer-motion';
+
+const RevenueChart = ({ data, onViewFinances }) => {
     return (
-        <Card className="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-white/5 rounded-2xl p-8 h-[350px] relative overflow-hidden group shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-500
-            lg:shadow-[6px_6px_12px_#e2e8f0,-6px_-6px_12px_#ffffff] dark:lg:shadow-none">
+        <Card 
+            onClick={onViewFinances}
+            className="relative bg-white/70 dark:bg-slate-900/40 backdrop-blur-3xl border border-white/40 dark:border-white/5 rounded-[2.5rem] p-8 h-[350px] overflow-hidden group shadow-2xl transition-all duration-700 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+        >
             
-            <div className="flex items-center justify-between mb-10">
-                <div className="space-y-1">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] italic text-slate-500 dark:text-slate-400 leading-none">Revenue Flux</h4>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest opacity-40">Monthly Shard Analysis</p>
+            {/* 🌌 Atmospheric Glows */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-accent-primary/5 blur-[100px] rounded-full -mr-32 -mt-32 group-hover:bg-accent-primary/10 transition-colors duration-1000" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent-primary/5 blur-[80px] rounded-full -ml-24 -mb-24" />
+
+            <div className="relative z-10 flex flex-col h-full">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
+                            <h4 className="text-sm font-black uppercase tracking-[0.2em] italic text-slate-500 dark:text-slate-400">Financial Pulse</h4>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-40">Monthly Revenue Stream</p>
+                    </div>
+                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-white/5 flex items-center justify-center text-accent-primary group-hover:rotate-6 transition-transform duration-500">
+                        <BarChart3 size={24} />
+                    </div>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary">
-                    <BarChart3 size={18} />
+
+                <div className="flex-1 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                          <defs>
+                              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="var(--color-accent-primary)" stopOpacity={1} />
+                                  <stop offset="100%" stopColor="var(--color-accent-primary)" stopOpacity={0.3} />
+                              </linearGradient>
+                          </defs>
+                          <Bar 
+                            dataKey="revenue" 
+                            fill="url(#barGradient)"
+                            radius={[12, 12, 4, 4]} 
+                            animationDuration={1500}
+                            className="drop-shadow-[0_0_15px_rgba(var(--color-accent-primary),0.4)]"
+                          />
+                          <XAxis 
+                            dataKey="name" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8', textTransform: 'uppercase' }} 
+                            dy={15}
+                          />
+                          <Tooltip 
+                            cursor={{ fill: 'var(--color-accent-primary)', opacity: 0.05 }}
+                            contentStyle={{ 
+                                borderRadius: '20px', 
+                                border: '1px solid rgba(255,255,255,0.1)', 
+                                background: 'rgba(15, 23, 42, 0.9)', 
+                                backdropFilter: 'blur(10px)',
+                                boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                                fontSize: '11px',
+                                fontWeight: 900,
+                                color: '#fff',
+                                padding: '15px'
+                            }}
+                            formatter={(value) => [`Rs. ${value.toLocaleString()}`, "Revenue"]}
+                          />
+                      </BarChart>
+                  </ResponsiveContainer>
                 </div>
             </div>
-
-            <div className="flex-1 w-full relative z-10 pr-4">
-              <ResponsiveContainer width="100%" height="200">
-                  <BarChart data={data}>
-                      {/* 🎨 Using CSS variable for strict theme adherence */}
-                      <Bar 
-                        dataKey="revenue" 
-                        fill="var(--color-accent-primary)" 
-                        radius={[8, 8, 4, 4]} 
-                        animationDuration={1500}
-                        opacity={0.8}
-                        onMouseEnter={(data, index) => {}}
-                        className="transition-all hover:opacity-100"
-                      />
-                      <XAxis 
-                        dataKey="name" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fontSize: 9, fontWeight: 800, fill: '#94a3b8' }} 
-                        dy={10}
-                      />
-                      <Tooltip 
-                        cursor={{ fill: 'var(--color-accent-primary)', opacity: 0.03 }}
-                        contentStyle={{ 
-                            borderRadius: '12px', 
-                            border: 'none', 
-                            background: '#0F172A', 
-                            boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-                            fontSize: '9px',
-                            fontWeight: 900,
-                            color: '#fff'
-                        }}
-                      />
-                  </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-accent-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
         </Card>
     );
 };
 
-export default RevenueFlux;
+export default RevenueChart;

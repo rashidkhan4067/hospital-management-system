@@ -8,12 +8,13 @@ import {
   Type,
   FileText
 } from 'lucide-react';
-import { Button, Badge, Modal } from '../../ui';
-import { useUI } from '../../../context/UIContext';
+import { Button, Badge, Modal } from '../../../ui';
+import { useUI } from '../../../../context/UIContext';
 
 /**
  * 🏥 Define Specialization Node
  * High-fidelity transaction shard for provisioning new clinical hierarchy units.
+ * Re-mapped to the Global Management Modal Registry.
  */
 export default function DefineSpecialtyModal({ isOpen, onClose }) {
   const { addNotification } = useUI();

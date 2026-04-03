@@ -5,24 +5,24 @@ import {
   Activity,
   Stethoscope,
   Briefcase,
-  MoreHorizontal
+  Eye,
+  ShieldAlert,
+  Edit2,
+  Trash2
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard } from '../../../components/ui';
-import { useNavigate } from 'react-router-dom';
+import { Badge, Button, PageHeader, StatsCard, TableActions } from '../../../components/ui';
 import AdminTable from '../../../components/features/admin/AdminTable';
 import FilterBar from '../../../components/features/admin/FilterBar';
-
-import AddUserModal from '../../../components/features/admin/AddUserModal';
+import AddUserModal from '../../../components/modals/admin/identity/AddUserModal';
 import UserService from '../../../services/admin/UserService';
 import { useUI } from '../../../context/UIContext';
 import { useAdminUsers } from '../../../hooks/admin/useAdminUsers';
+import AdminPage from '../../../components/layout/AdminPage';
 
 /**
  * 🏢 Elite User Registry Control
- * Fully refactored for modularity and scalability (DRY).
  */
 export default function AdminUsers() {
-  const navigate = useNavigate();
   const { addNotification } = useUI();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
@@ -35,15 +35,24 @@ export default function AdminUsers() {
     setIsSubmitting(true);
     try {
         await UserService.create(formData);
-        addNotification('Identity Authorized', 'Global account shard successfully provisioned to systems.', 'success');
+        addNotification('User Shard Initialized', 'Account credentials committed successfully.', 'success');
         setIsModalOpen(false);
-        refresh(); // Update registry matrix
-        resetForm(); // Clear dialog internal state
+        refresh(); 
+        resetForm();
     } catch (err) {
-        addNotification('Auth Protocol Failure', 'Could not propagate identity node to clinical database.', 'error');
-        console.error(err);
+        addNotification('Error', 'Propagation fail on identity node.', 'error');
     } finally {
         setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleStatus = async (user) => {
+    try {
+        await UserService.update(user.id, { is_active: !user.is_active });
+        addNotification('Node State Modified', `User identity ${user.is_active ? 'deactivated' : 'activated'} successfully.`, 'success');
+        refresh();
+    } catch (err) {
+        addNotification('Sync Error', 'Could not modify node propagation state.', 'error');
     }
   };
 
@@ -57,102 +66,112 @@ export default function AdminUsers() {
         header: 'Identity Node', 
         cell: (u) => (
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-accent-primary/5 border border-accent-primary/10 flex items-center justify-center text-accent-primary text-[10px] font-black group-hover:rotate-6 transition-all duration-500">
+                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary text-[10px] font-black group-hover:rotate-6 transition-all duration-500">
                     {(u.full_name || '??').split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex flex-col">
-                    <p className="text-[12px] font-black text-text-primary dark:text-white uppercase leading-none">{u.full_name}</p>
-                    <p className="text-[8px] font-bold text-text-secondary dark:text-white/20 uppercase tracking-widest mt-1.5">ID-{u.id}</p>
+                    <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none">{u.full_name}</p>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 tabular-nums">ID: {u.id}</p>
                 </div>
             </div>
         )
     },
     { 
-        header: 'Operational Role',
+        header: 'Role Shard',
         cell: (u) => (
-            <Badge className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.15em] border-none shadow-sm ${
+            <Badge className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.15em] border-none ${
                 u.role === 'doctor' ? 'bg-blue-500/10 text-blue-500' : 
                 u.role === 'staff' ? 'bg-indigo-500/10 text-indigo-500' :
                 'bg-emerald-500/10 text-emerald-500'
-             }`}>
+            }`}>
                 {u.role}
              </Badge>
         )
     },
-    { header: 'Identity Gateway', cell: (u) => <span className="text-[10px] font-bold text-text-secondary dark:text-white/20 italic">{u.email}</span> },
+    { header: 'Email Sync', cell: (u) => <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tabular-nums lowercase italic">{u.email}</span> },
     { 
-        header: 'Security Shard',
+        header: 'Health Node',
         cell: (u) => (
             <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${u.is_active ? 'bg-emerald-500 shadow-emerald-500' : 'bg-amber-500 shadow-amber-500'}`} />
-                <span className="text-[10px] font-black uppercase tracking-tight">{u.is_active ? 'Authenticated' : 'Locked'}</span>
+                <div className={`w-1.5 h-1.5 rounded-full ${u.is_active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-widest ${u.is_active ? 'text-emerald-500' : 'text-amber-500'}`}>{u.is_active ? 'Active' : 'Locked'}</span>
             </div>
         )
     },
     { 
-        header: 'Actions', 
-        cell: () => (
-            <button className="p-3 rounded-xl bg-bg-base dark:bg-slate-800/40 text-text-secondary hover:text-accent-primary transition-all shadow-inner group/btn">
-                <MoreHorizontal size={14} className="group-hover/btn:scale-110 transition-transform" />
-            </button>
+        header: 'Protocol', 
+        cell: (u) => (
+            <TableActions 
+                row={u}
+                actions={[
+                    { label: 'View Shard', icon: Eye, onClick: (row) => console.log('View', row) },
+                    { label: 'Modify Credentials', icon: Edit2, onClick: (row) => console.log('Edit', row) },
+                    { 
+                        label: u.is_active ? 'Deactivate Node' : 'Activate Node', 
+                        icon: ShieldAlert, 
+                        onClick: handleToggleStatus,
+                        variant: u.is_active ? 'danger' : 'success'
+                    },
+                    { label: 'Terminate Identity', icon: Trash2, onClick: (row) => console.log('Delete', row), variant: 'danger' },
+                ]}
+            />
         )
     },
   ];
 
   const stats = [
-    { title: "Total Personnel", value: loading ? "..." : users.length, icon: Users, trend: "Sync'd", color: "var(--accent-primary)" },
-    { title: "Authorized MDs", value: loading ? "..." : users.filter(u => u.role === 'doctor').length, icon: Stethoscope, trend: "Active", color: "#10b981" },
-    { title: "Medical Staff", value: loading ? "..." : users.filter(u => u.role === 'staff').length, icon: Briefcase, trend: "Sync'd", color: "#6366f1" },
-    { title: "Civilian Nodes", value: loading ? "..." : users.filter(u => u.role === 'patient').length, icon: Activity, trend: "Live", color: "#f43f5e" },
+    { title: "Global Identities", value: loading ? "..." : users.length, icon: Users, trend: "Sync'd" },
+    { title: "Clinical Shards", value: loading ? "..." : users.filter(u => u.role === 'doctor').length, icon: Stethoscope, trend: "Total" },
+    { title: "Management Shards", value: loading ? "..." : users.filter(u => u.role === 'staff').length, icon: Briefcase, trend: "Total" },
+    { title: "Relational Shards", value: loading ? "..." : users.filter(u => u.role === 'patient').length, icon: Activity, trend: "Total" },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
-      
+    <AdminPage>
       <PageHeader 
-        title="User Matrix Control" 
-        subtitle="Global Human Capital Index"
+        title="Identity Management" 
+        subtitle="Control Global Hospital User Nodes"
         actions={
             <Button 
                 onClick={() => setIsModalOpen(true)}
-                className="bg-accent-primary text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/20 flex items-center gap-2 border-none"
+                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
             >
-                <UserPlus size={14} /> Provision Identity
+                <UserPlus size={16} /> Provision Shard
             </Button>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
       </div>
 
-      <FilterBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={[
-            { id: 'ALL', label: 'Global Faculty' },
-            { id: 'DOCTOR', label: 'Authorized MDs' },
-            { id: 'STAFF', label: 'Operational Staff' },
-            { id: 'PATIENT', label: 'Civilian Nodes' }
-        ]}
-      />
+      <div className="space-y-10">
+        <FilterBar 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            tabs={[
+                { id: 'ALL', label: 'All Identities' },
+                { id: 'DOCTOR', label: 'Clinicians' },
+                { id: 'STAFF', label: 'Administrative' },
+                { id: 'PATIENT', label: 'Relational' }
+            ]}
+        />
 
-      <AdminTable 
-        columns={columns} 
-        data={filteredUsers} 
-        isLoading={loading}
-      />
+        <AdminTable 
+            columns={columns} 
+            data={filteredUsers} 
+            isLoading={loading}
+        />
+      </div>
 
-      {/* 🔮 MODULAR IDENTITY PORTAL */}
       <AddUserModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAction={handleProvision}
         isSubmitting={isSubmitting}
       />
-    </div>
+    </AdminPage>
   );
 }
-

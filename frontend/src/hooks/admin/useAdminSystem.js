@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { systemService } from '../../services/admin/SystemService';
+import { systemService } from '../../services/admin/managementService';
 
 /**
  * 🎣 System Data Matrix Hook
@@ -44,3 +44,4 @@ export const useAdminSystem = () => {
         createAlert: (data) => systemService.createAlert(data)
     };
 };
+

@@ -12,7 +12,7 @@ import {
 import { Badge, Button, PageHeader, StatsCard } from '../../../components/ui';
 import AdminTable from '../../../components/features/admin/AdminTable';
 import FilterBar from '../../../components/features/admin/FilterBar';
-import RequestTestModal from '../../../components/features/admin/RequestTestModal';
+import RequestTestModal from '../../../components/modals/admin/clinical/RequestTestModal';
 
 import { useAdminLab } from '../../../hooks/admin/useAdminLab';
 import { useUI } from '../../../context/UIContext';

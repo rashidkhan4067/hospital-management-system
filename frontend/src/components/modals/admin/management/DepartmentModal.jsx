@@ -1,10 +1,11 @@
 import React from 'react';
 import { LayoutGrid, Fingerprint, Activity, ShieldCheck, Database, Zap } from 'lucide-react';
-import { Modal, Button, Input } from '../../ui';
+import { Modal, Button, Input } from '../../../ui';
 
 /**
  * 🏥 Clinical Unit Shard Generation Modal
  * Handles deployment and reconfiguration of medical departments.
+ * Re-mapped to the Global Management Modal Registry.
  */
 export default function DepartmentModal({ isOpen, onClose, onSubmit, department = null, loading = false }) {
   const [formData, setFormData] = React.useState({

@@ -14,7 +14,7 @@ import AdminTable from '../../../components/features/admin/AdminTable';
 import FilterBar from '../../../components/features/admin/FilterBar';
 import { useAdminDoctors } from '../../../hooks/admin/useAdminDoctors';
 import { useUI } from '../../../context/UIContext';
-import DefineSpecialtyModal from '../../../components/features/admin/DefineSpecialtyModal';
+import DefineSpecialtyModal from '../../../components/modals/admin/management/DefineSpecialtyModal';
 
 /**
  * 🏥 Clinical Specialty Registry

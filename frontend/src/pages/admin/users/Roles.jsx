@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { ShieldCheck, MoreHorizontal, ShieldAlert, Key, Fingerprint, Lock } from 'lucide-react';
-import { Card, Badge, Button } from '../../../components/ui';
+import { Card, Button, PageHeader } from '../../../components/ui';
 import { motion } from 'framer-motion';
 
 import AddUserModal from '../../../components/features/admin/AddUserModal';
 import UserService from '../../../services/admin/UserService';
 import { useUI } from '../../../context/UIContext';
 import { useAdminUsers } from '../../../hooks/admin/useAdminUsers';
+import AdminPage from '../../../components/layout/AdminPage'; // ✨ THE BASE FILE
 
-export default function RoleArchitecture() {
+/**
+ * 🔐 Role Architecture & Security Matrix
+ */
+export default function Roles() {
   const { addNotification } = useUI();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,13 +23,12 @@ export default function RoleArchitecture() {
     setIsSubmitting(true);
     try {
         await UserService.create(formData);
-        addNotification('Role Shard Forged', 'New personnel identity successfully committed to the authorization matrix.', 'success');
+        addNotification('Authorization Shard Forged', 'New identity successfully committed to the security matrix.', 'success');
         setIsModalOpen(false);
         refresh(); 
         resetForm();
     } catch (err) {
-        addNotification('Forge Failure', 'Could not propagate role shard to systems.', 'error');
-        console.error(err);
+        addNotification('Forge Failure', 'Could not propagate role shard.', 'error');
     } finally {
         setIsSubmitting(false);
     }
@@ -37,32 +40,27 @@ export default function RoleArchitecture() {
 
   const roles = [
     { title: 'Super Administrator', users: users.filter(u => u.is_superuser).length, access: 'Global', sensitivity: 'L5', color: 'rose', backendRole: 'admin' },
-    { title: 'Clinical Specialist', users: getRoleCount('doctor'), access: 'Clinical + Admin', sensitivity: 'L4', color: 'accent', backendRole: 'doctor' },
-    { title: 'Operational Staff', users: getRoleCount('staff'), access: 'Clinical Console', sensitivity: 'L3', color: 'emerald', backendRole: 'staff' },
-    { title: 'Civilian Patient', users: getRoleCount('patient'), access: 'Patient Portal', sensitivity: 'L1', color: 'blue', backendRole: 'patient' },
+    { title: 'Clinical Specialist', users: getRoleCount('doctor'), access: 'Clinical + Admin', sensitivity: 'L4', color: 'teal', backendRole: 'doctor' },
+    { title: 'Operational Staff', users: getRoleCount('staff'), access: 'Clinical Console', sensitivity: 'L3', color: 'indigo', backendRole: 'staff' },
+    { title: 'Civilian Patient', users: getRoleCount('patient'), access: 'Patient Portal', sensitivity: 'L1', color: 'emerald', backendRole: 'patient' },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
-      
-      <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 px-2">
-         <div className="space-y-1">
-            <div className="flex items-center gap-3">
-               <div className="w-1.5 h-6 bg-accent-primary rounded-full shadow-lg shadow-accent-primary/20" />
-               <h1 className="text-xl md:text-2xl font-black text-text-primary dark:text-white tracking-tight uppercase italic font-display">Role Architecture</h1>
-            </div>
-            <p className="text-[9px] font-bold text-text-secondary dark:text-white/30 uppercase tracking-[0.3em] ml-5 opacity-60">System Permission Shards</p>
-         </div>
+    <AdminPage>
+      <PageHeader 
+        title="Role Architecture" 
+        subtitle="Control Global Authorization Shards & Privacy Nodes"
+        actions={
+            <Button 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
+            >
+                <ShieldAlert size={18} /> Forge Security Shard
+            </Button>
+        }
+      />
 
-         <Button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/20 flex items-center gap-2 border-none"
-         >
-            <ShieldAlert size={16} /> Forge Role Shard
-         </Button>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         {roles.map((role, i) => (
           <motion.div
             key={role.title}
@@ -70,39 +68,39 @@ export default function RoleArchitecture() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
           >
-            <Card className="p-8 bg-bg-offset dark:bg-slate-800/40 border border-white/5 rounded-[40px] relative overflow-hidden group hover:scale-[1.02] transition-all">
-              <div className="flex items-center justify-between mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-bg-base dark:bg-white/5 flex items-center justify-center border border-white/5 shadow-inner">
-                  <ShieldCheck className={`text-${role.color}-500`} size={28} />
+            <Card className="matrix-card p-10 border-none flex flex-col gap-8 group">
+              <div className="flex items-center justify-between">
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-black/20 flex items-center justify-center border border-slate-100 dark:border-white/5 shadow-inner group-hover:rotate-12 transition-transform duration-500">
+                  <ShieldCheck className={role.title.includes('Super') ? 'text-rose-500' : 'text-accent-primary'} size={28} />
                 </div>
-                <button className="p-2 text-text-secondary opacity-40 hover:opacity-100 transition-opacity"><MoreHorizontal size={20} /></button>
+                <button className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-slate-400 hover:text-accent-primary transition-all shadow-inner">
+                    <MoreHorizontal size={16} />
+                </button>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[9px] font-black text-text-secondary dark:text-white/20 uppercase tracking-[0.3em] italic mb-1">Authorization Tier</p>
-                  <h3 className="text-xl font-black text-text-primary dark:text-white italic uppercase tracking-tight leading-none">{role.title}</h3>
-                </div>
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Auth Tier {role.sensitivity}</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">{role.title}</h3>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-3xl bg-bg-base dark:bg-black/20 border border-white/5">
-                    <p className="text-[8px] font-black text-text-secondary dark:text-white/20 uppercase tracking-widest mb-1">Users</p>
-                    <p className="text-lg font-black">{role.users}</p>
-                  </div>
-                  <div className="p-4 rounded-3xl bg-bg-base dark:bg-black/20 border border-white/5">
-                    <p className="text-[8px] font-black text-text-secondary dark:text-white/20 uppercase tracking-widest mb-1">Sensitivity</p>
-                    <p className="text-lg font-black text-accent-primary">{role.sensitivity}</p>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-5 rounded-[24px] bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Users</p>
+                  <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums italic">{role.users}</p>
                 </div>
+                <div className="p-5 rounded-[24px] bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic pt-2">Active</p>
+                </div>
+              </div>
 
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-text-secondary flex items-center gap-2"><Key size={12} /> Access Scope</span>
-                    <span className="text-[10px] font-black uppercase text-text-primary">{role.access}</span>
-                  </div>
-                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent-primary w-[75%] rounded-full opacity-40" />
-                  </div>
+              <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-4">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2 tracking-[0.1em]"><Key size={12} /> Access Scope</span>
+                    <span className="text-[10px] font-black uppercase text-slate-900 dark:text-white italic">{role.access}</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-accent-primary w-[75%] rounded-full opacity-40 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
             </Card>
@@ -110,16 +108,17 @@ export default function RoleArchitecture() {
         ))}
       </div>
 
-      <Card className="bg-accent-primary/5 border border-accent-primary/10 rounded-[48px] p-10 flex flex-col lg:flex-row items-center gap-10">
-        <div className="w-20 h-20 bg-accent-primary rounded-[28px] flex items-center justify-center text-white shadow-2xl shadow-accent-primary/20 shrink-0">
-          <Fingerprint size={40} />
+      <Card className="bg-accent-primary/5 border border-accent-primary/20 rounded-[48px] p-12 flex flex-col lg:flex-row items-center gap-10 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-accent-primary/5 blur-[120px] rounded-full -mr-40 -mt-40" />
+        <div className="w-24 h-24 bg-accent-primary rounded-[32px] flex items-center justify-center text-white shadow-2xl shadow-accent-primary/30 shrink-0 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-700">
+          <Fingerprint size={48} strokeWidth={2.5} />
         </div>
-        <div className="space-y-2 flex-1 text-center lg:text-left">
-          <h2 className="text-2xl font-black italic uppercase tracking-tight">Advanced Entropy Control</h2>
-          <p className="text-sm font-medium text-text-secondary max-w-2xl">Modify global permission shards and protocol levels. Changes here will propagate through the entire clinical network in real-time.</p>
+        <div className="space-y-3 flex-1 text-center lg:text-left relative z-10">
+          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">Advanced Entropy Control</h2>
+          <p className="text-sm font-bold text-slate-500 max-w-2xl">Modify global permission shards and protocol levels. Changes here will propagate through the entire clinical network in real-time. Use caution when modifying L5 nodes.</p>
         </div>
-        <Button className="bg-text-primary dark:bg-white text-bg-base px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 border-none">
-          <Lock size={16} /> Access Master Table
+        <Button className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-12 py-5 rounded-[22px] text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-4 border-none shadow-2xl hover:scale-105 transition-all relative z-10">
+          <Lock size={18} /> Master Auth Table
         </Button>
       </Card>
 
@@ -129,6 +128,7 @@ export default function RoleArchitecture() {
         onAction={handleForge}
         isSubmitting={isSubmitting}
       />
-    </div>
+    </AdminPage>
   );
 }
+

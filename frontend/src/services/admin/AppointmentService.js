@@ -24,6 +24,14 @@ class AppointmentService {
     }
 
     /**
+     * update - Synchronize a visit shard with new clinical metadata (e.g., status)
+     */
+    async update(id, data) {
+        const response = await api.patch(`${this.endpoint}${id}/`, data);
+        return response.data;
+    }
+
+    /**
      * cancel - Terminate a visit shard with audit reason
      */
     async cancel(id, reason) {

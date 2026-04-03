@@ -19,15 +19,15 @@ export default function AdminTable({
     )
 }) {
     return (
-        <Card className="bg-bg-offset dark:bg-slate-800/40 border border-white/5 rounded-[40px] overflow-hidden shadow-sm">
+        <Card className="matrix-card border-none shadow-xl">
             <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse border-separate border-spacing-y-1.5 px-2">
                     <thead>
-                        <tr className="border-b border-white/5 bg-bg-base dark:bg-black/10">
+                        <tr className="bg-slate-50 dark:bg-black/20">
                             {columns.map((col, idx) => (
                                 <th 
                                     key={idx} 
-                                    className={`p-6 text-[9px] font-black text-text-secondary dark:text-white/20 uppercase tracking-[0.3em] ${idx === 0 ? 'pl-10' : ''} ${idx === columns.length - 1 ? 'text-right pr-10' : ''}`}
+                                    className={`py-4 px-6 text-[9px] font-black text-text-secondary dark:text-white/20 uppercase tracking-[0.3em] first:rounded-l-2xl last:rounded-r-2xl ${idx === columns.length - 1 ? 'text-right' : ''}`}
                                 >
                                     {col.header}
                                 </th>
@@ -37,9 +37,9 @@ export default function AdminTable({
                     <tbody>
                         {isLoading ? (
                             Array.from({ length: 5 }).map((_, i) => (
-                                <tr key={i} className="animate-pulse border-b border-white/5 bg-bg-base dark:bg-black/5">
+                                <tr key={i} className="animate-pulse bg-white/50 dark:bg-black/5">
                                     {columns.map((col, j) => (
-                                        <td key={j} className="p-8">
+                                        <td key={j} className="p-6">
                                             <div className="h-2 bg-slate-200 dark:bg-white/10 rounded-full w-24"></div>
                                         </td>
                                     ))}
@@ -51,17 +51,17 @@ export default function AdminTable({
                                     data.map((row, rowIdx) => (
                                         <motion.tr 
                                             key={row.id || rowIdx}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 10 }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
                                             transition={{ delay: rowIdx * 0.03 }}
                                             onClick={() => onRowClick?.(row)}
-                                            className="group border-b border-white/5 last:border-none hover:bg-bg-base dark:hover:bg-white/5 transition-all cursor-pointer"
+                                            className="group cursor-pointer"
                                         >
                                             {columns.map((col, colIdx) => (
                                                 <td 
                                                     key={colIdx} 
-                                                    className={`p-6 ${colIdx === 0 ? 'pl-10' : ''} ${colIdx === columns.length - 1 ? 'text-right pr-10' : ''}`}
+                                                    className={`py-4 px-6 bg-white/40 dark:bg-white/5 group-hover:bg-accent-primary/5 transition-all duration-300 first:rounded-l-2xl last:rounded-r-2xl border-y border-transparent group-hover:border-accent-primary/10 ${colIdx === columns.length - 1 ? 'text-right' : ''}`}
                                                 >
                                                     {col.cell ? col.cell(row) : (
                                                         <span className="text-[11px] font-bold text-text-primary dark:text-white/80 uppercase">

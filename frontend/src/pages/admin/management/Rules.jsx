@@ -16,13 +16,13 @@ import {
 import { PageHeader, Button, Card } from '../../../components/ui';
 import { motion } from 'framer-motion';
 
-import { systemService } from '../../../services/admin/SystemService';
+import { systemService } from '../../../services/admin/managementService';
 
 /**
  * ⚙️ System Protocol Console (Global Settings)
  * Enterprise-grade configuration hub for clinical network protocols.
  */
-export default function SystemProtocol() {
+export default function Rules() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -244,3 +244,4 @@ function ComplianceItem({ label, value, icon }) {
     </div>
   );
 }
+

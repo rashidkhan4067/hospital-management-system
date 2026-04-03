@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { TrendingUp } from 'lucide-react';
 import { Card } from '../../../ui';
 import { motion } from 'framer-motion';
 
@@ -7,85 +8,90 @@ import { motion } from 'framer-motion';
  * 📈 Professional SaaS Trend Matrix
  * Strictly following the Theme Color Tokens (Accent Primary).
  */
-const AppointmentTrends = ({ data }) => {
+const PatientTrends = ({ data, onViewStats }) => {
     const [viewMode, setViewMode] = useState('7d');
 
     return (
-        <Card className="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-white/5 rounded-2xl p-8 h-[450px] shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all duration-300 ease-in-out relative flex flex-col group lg:shadow-[8px_8px_16px_#e2e8f0,-8px_-8px_16px_#ffffff] dark:lg:shadow-none">
+        <Card 
+            onClick={onViewStats}
+            className="relative bg-white/70 dark:bg-slate-900/40 backdrop-blur-3xl border border-white/40 dark:border-white/5 rounded-[2rem] p-8 h-[400px] overflow-hidden group shadow-2xl transition-all duration-700 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+        >
             
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8 relative z-10 w-full px-2">
-                <div className="space-y-1">
-                    <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none uppercase italic border-l-4 border-accent-primary pl-4">Clinical Demand Shard</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Aggregate Patient Throughput Protocol</p>
+            {/* 🌌 Atmospheric Glows */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-accent-primary/5 blur-[120px] rounded-full -mr-40 -mt-40 group-hover:bg-accent-primary/10 transition-colors duration-1000" />
+            
+            <div className="relative z-10 flex flex-col h-full">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-accent-primary/10 text-accent-primary flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                            <TrendingUp size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">Clinical Trends</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] opacity-60">Patient Throughput Logic</p>
+                        </div>
+                    </div>
+
+                    <div className="flex bg-white/50 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-100 dark:border-white/5 backdrop-blur-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        {['7d', 'mo'].map((mode) => (
+                            <button 
+                                key={mode}
+                                onClick={() => setViewMode(mode)}
+                                className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === mode ? 'bg-accent-primary text-white shadow-lg shadow-accent-primary/30' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+                            >
+                                {mode === '7d' ? '7 Days' : 'Month'}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                {/* 🔘 SLIDE SWITCH - THEMED DESIGN */}
-                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl relative self-center sm:self-auto shadow-inner">
-                    <motion.div
-                        className="absolute bg-white dark:bg-slate-800 rounded-lg shadow-sm w-[80px] h-[32px] z-0"
-                        animate={{ x: viewMode === '7d' ? 0 : 80 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    />
-                    <button 
-                        onClick={() => setViewMode('7d')}
-                        className={`w-20 h-8 text-[10px] font-black uppercase tracking-tight relative z-10 transition-colors ${viewMode === '7d' ? 'text-accent-primary' : 'text-slate-400'}`}
-                    >
-                        7 Days
-                    </button>
-                    <button 
-                        onClick={() => setViewMode('mo')}
-                        className={`w-20 h-8 text-[10px] font-black uppercase tracking-tight relative z-10 transition-colors ${viewMode === 'mo' ? 'text-accent-primary' : 'text-slate-400'}`}
-                    >
-                        Month
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex-1 w-full relative z-10 pb-4 pr-4">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id="colorAccent" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-accent-primary)" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="var(--color-accent-primary)" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.03} />
-                        <XAxis 
+                <div className="flex-1 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={data} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="var(--color-accent-primary)" stopOpacity={0.4} />
+                                  <stop offset="100%" stopColor="var(--color-accent-primary)" stopOpacity={0} />
+                              </linearGradient>
+                          </defs>
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.05} />
+                          <XAxis 
                             dataKey="name" 
                             axisLine={false} 
                             tickLine={false} 
-                            tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }} 
-                            dy={15} 
-                        />
-                        <Tooltip 
+                            tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8', textTransform: 'uppercase' }} 
+                            dy={15}
+                          />
+                          <Tooltip 
                             contentStyle={{ 
-                                borderRadius: '12px', 
-                                border: 'none', 
-                                background: '#0F172A', 
-                                color: '#fff',
-                                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                                fontSize: '10px',
-                                textTransform: 'uppercase',
+                                borderRadius: '20px', 
+                                border: '1px solid rgba(255,255,255,0.1)', 
+                                background: 'rgba(15, 23, 42, 0.9)', 
+                                backdropFilter: 'blur(10px)',
+                                boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                                fontSize: '11px',
                                 fontWeight: 900,
-                                padding: '12px'
-                            }} 
-                            cursor={{ stroke: 'var(--color-accent-primary)', strokeWidth: 1, strokeDasharray: '4 4' }}
-                        />
-                        <Area 
+                                color: '#fff',
+                                padding: '15px'
+                            }}
+                            cursor={{ stroke: 'var(--color-accent-primary)', strokeWidth: 2, strokeDasharray: '5 5' }}
+                          />
+                          <Area 
                             type="monotone" 
                             dataKey="value" 
                             stroke="var(--color-accent-primary)" 
-                            strokeWidth={4} 
+                            strokeWidth={5} 
                             fillOpacity={1} 
-                            fill="url(#colorAccent)" 
-                            animationDuration={1500}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+                            fill="url(#areaGradient)" 
+                            animationDuration={2000}
+                            className="drop-shadow-[0_0_20px_rgba(var(--color-accent-primary),0.5)]"
+                          />
+                      </AreaChart>
+                  </ResponsiveContainer>
+                </div>
             </div>
         </Card>
     );
 };
 
-export default AppointmentTrends;
+export default PatientTrends;

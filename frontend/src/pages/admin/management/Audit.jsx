@@ -23,7 +23,7 @@ import PageLoader from '../../../components/common/Loading';
  * 🔒 System Security Audit Matrix
  * Unified console for clinical access logs and intrusion node monitoring.
  */
-export default function SecurityAudit() {
+export default function Audit() {
   const { auditLogs, loading } = useAdminSystem();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
@@ -145,3 +145,4 @@ function StatMini({ title, value, status, icon: Icon }) {
     </Card>
   )
 }
+

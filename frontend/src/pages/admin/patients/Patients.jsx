@@ -4,14 +4,15 @@ import {
   UserPlus,
   Heart,
   Activity,
-  History,
-  MoreHorizontal,
-  Search
+  Eye,
+  ShieldPlus,
+  Calendar
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard } from '../../../components/ui';
+import { Badge, Button, PageHeader, StatsCard, TableActions } from '../../../components/ui';
 import { useNavigate } from 'react-router-dom';
 import AdminTable from '../../../components/features/admin/AdminTable';
 import FilterBar from '../../../components/features/admin/FilterBar';
+import AdminPage from '../../../components/layout/AdminPage';
 
 // 🎣 CLINICAL DATA HOOKS
 import { useAdminPatients } from '../../../hooks/admin/useAdminPatients';
@@ -19,7 +20,6 @@ import { useAdminStats } from '../../../hooks/admin/useAdminStats';
 
 /**
  * 🩺 Patient Management Module
- * Standardized high-fidelity interface for patient records.
  */
 export default function AdminPatients() {
   const navigate = useNavigate();
@@ -31,7 +31,6 @@ export default function AdminPatients() {
 
   const loading = patientsLoading || statsLoading;
 
-  // Optimized local filtering (searching only)
   const filteredPatients = patients.filter(p => 
     p.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.id?.toString().includes(searchTerm)
@@ -39,88 +38,95 @@ export default function AdminPatients() {
 
   const columns = [
     { 
-        header: 'Patient Identity', 
+        header: 'Patient Profile', 
         cell: (p) => (
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-accent-primary/5 border border-accent-primary/10 flex items-center justify-center text-accent-primary text-[10px] font-black uppercase">
+                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary text-[10px] font-black uppercase">
                     {(p.full_name || '??').split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex flex-col">
-                    <p className="text-[12px] font-black text-text-primary dark:text-white uppercase leading-none">{p.full_name || 'Anonymous Patient'}</p>
-                    <p className="text-[8px] font-bold text-text-secondary dark:text-white/20 uppercase tracking-widest mt-1.5">{p.id} • {p.gender || 'N/A'}</p>
+                    <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none">{p.full_name || 'Anonymous'}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 tabular-nums">ID: {p.id} • {p.gender || 'N/A'}</p>
                 </div>
             </div>
         )
     },
-    { header: 'Blood Grp', accessor: 'blood_group', cell: (p) => <Badge className="bg-rose-500/10 text-rose-500 border-none text-[9px] font-black">{p.blood_group || '??'}</Badge> },
-    { header: 'Last Update', accessor: 'updated_at', cell: (p) => new Date(p.updated_at).toLocaleDateString() },
+    { header: 'Blood Grp', accessor: 'blood_group', cell: (p) => <Badge className="bg-rose-500/10 text-rose-500 border-none text-[9px] px-3 py-1 font-black uppercase tracking-[0.2em]">{p.blood_group || '??'}</Badge> },
+    { header: 'Last Activity', accessor: 'updated_at', cell: (p) => <span className="text-[10px] font-bold text-slate-400 tabular-nums">{new Date(p.updated_at).toLocaleDateString()}</span> },
     { 
-        header: 'Health Status',
+        header: 'Health Node',
         accessor: 'is_admitted',
         cell: (p) => (
             <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${p.is_admitted ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
-                <span className="text-[10px] font-black uppercase tracking-tight">{p.is_admitted ? 'Admitted' : 'Outpatient'}</span>
+                <div className={`w-2 h-2 rounded-full ${p.is_admitted ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-widest ${p.is_admitted ? 'text-rose-500' : 'text-emerald-500'}`}>{p.is_admitted ? 'Admitted' : 'Normal'}</span>
             </div>
         )
     },
-    { header: 'Contact', accessor: 'phone' },
+    { header: 'Contact Shard', accessor: 'phone', cell: (p) => <span className="text-[10px] font-black text-slate-500 tracking-[0.1em] tabular-nums">{p.phone}</span> },
     { 
-        header: 'Actions', 
-        cell: () => (
-            <button className="p-3 rounded-xl bg-bg-base dark:bg-slate-800/40 text-text-secondary hover:text-accent-primary transition-all">
-                <MoreHorizontal size={14} />
-            </button>
+        header: 'Protocol', 
+        cell: (p) => (
+            <TableActions 
+                row={p}
+                actions={[
+                    { label: 'View Shard', icon: Eye, onClick: (row) => navigate(`/admin/patients/${row.id}`) },
+                    { label: 'Live Pulse', icon: Activity, onClick: (row) => navigate(`/admin/patients/${row.id}/appointments`) },
+                    { label: 'Book Visit', icon: Calendar, onClick: (row) => navigate(`/admin/appointments/add?patient=${row.id}`) },
+                    { label: 'Modify Record', icon: ShieldPlus, onClick: (row) => navigate(`/admin/patients/edit/${row.id}`) },
+                ]}
+            />
         )
     },
   ];
 
   const stats = [
-    { title: "Total Patients", value: loading ? "..." : statsSummary?.counts?.patients ?? 0, icon: Users, trend: "Live", color: "var(--accent-primary)" },
-    { title: "Critical Care", value: loading ? "..." : statsSummary?.counts?.active_admissions ?? 0, icon: Heart, trend: "Stable", color: "#f43f5e" },
-    { title: "New This Week", value: loading ? "..." : (patients.length > 5 ? 5 : patients.length), icon: UserPlus, trend: "Current", color: "#10b981" },
-    { title: "Recovery Rate", value: "94.2%", icon: Activity, trend: "In-Transit", color: "#6366f1" },
+    { title: "Total Shards", value: loading ? "..." : statsSummary?.counts?.patients ?? 0, icon: Users, trend: "Live Tracking" },
+    { title: "Active Inpatients", value: loading ? "..." : statsSummary?.counts?.active_admissions ?? 0, icon: Heart, trend: "Critical" },
+    { title: "New Propagation", value: loading ? "..." : (patients.length > 5 ? 5 : patients.length), icon: UserPlus, trend: "Current" },
+    { title: "Network Quality", value: "94.2%", icon: Activity, trend: "Verified" },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
-      
+    <AdminPage>
       <PageHeader 
-        title="Patient Care Index" 
-        subtitle="Medical Record Propagation Hub"
+        title="Patients" 
+        subtitle="Manage Clinical Identity Shards"
         actions={
             <Button 
                 onClick={() => navigate('/admin/patients/add')}
-                className="bg-accent-primary text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/20 flex items-center gap-2 border-none"
+                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
             >
-                <UserPlus size={14} /> New Registration
+                <UserPlus size={16} /> Register Identity
             </Button>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
       </div>
 
-      <FilterBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={[
-            { id: 'ALL', label: 'All Subjects' },
-            { id: 'STABLE', label: 'Stable' },
-            { id: 'RECOVERING', label: 'Recovering' },
-            { id: 'CRITICAL', label: 'Critical Care' }
-        ]}
-      />
+      <div className="space-y-10">
+        <FilterBar 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            tabs={[
+                { id: 'ALL', label: 'All Shards' },
+                { id: 'STABLE', label: 'Verified Patients' },
+                { id: 'RECOVERING', label: 'In Recovery' },
+                { id: 'CRITICAL', label: 'Active Inpatients' }
+            ]}
+        />
 
-      <AdminTable 
-        columns={columns} 
-        data={filteredPatients} 
-        isLoading={loading}
-        onRowClick={(p) => navigate(`/admin/patients/${p.id}`)}
-      />
-    </div>
+        <AdminTable 
+            columns={columns} 
+            data={filteredPatients} 
+            isLoading={loading}
+            onRowClick={(p) => navigate(`/admin/patients/${p.id}`)}
+        />
+      </div>
+    </AdminPage>
   );
 }
