@@ -202,6 +202,19 @@ class AdminAppointmentCreateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id"]
 
+    def validate(self, attrs):
+        import datetime
+        doctor = attrs.get('doctor')
+        start_time = attrs.get('start_time')
+        
+        if doctor and start_time:
+            dummy_date = datetime.date(2000, 1, 1)
+            start_dt = datetime.datetime.combine(dummy_date, start_time)
+            end_dt = start_dt + datetime.timedelta(minutes=doctor.slot_duration_minutes)
+            attrs["end_time"] = end_dt.time()
+            
+        return attrs
+
     def create(self, validated_data):
         return super().create(validated_data)
 

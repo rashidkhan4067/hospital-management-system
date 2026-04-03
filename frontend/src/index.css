@@ -5,17 +5,17 @@
   --font-display: 'Inter', sans-serif;
 
   /* 💼 Professional SaaS Enterprise Palette */
-  --color-bg-base: var(--color-bg-base);
-  --color-bg-offset: var(--color-bg-offset);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-accent-primary: var(--color-accent-primary);
-  --color-accent-secondary: var(--color-accent-secondary);
-  --color-accent-orange: var(--color-accent-orange);
+  --color-bg-base: #F1F5F9;
+  --color-bg-offset: #FFFFFF;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-accent-primary: #14B8A6;
+  --color-accent-secondary: #3B82F6;
+  --color-accent-orange: #F97316;
   --color-accent-ai: #7C3AED; 
 
   /* 💊 Professional Status Nodes */
-  --color-status-success: #10B981; /* Teal-ish Green */
+  --color-status-success: #10B981;
   --color-status-warning: #F59E0B;
   --color-status-error: #EF4444;
   --color-status-info: #3B82F6;
@@ -27,23 +27,10 @@
 }
 
 @layer base {
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
-  :root {
-    /* Industry-Standard SaaS Theme - High Fidelity */
-    --color-bg-base: #F1F5F9;      /* Light Gray/Slate */
-    --color-bg-offset: #FFFFFF;    /* Pure White Surface */
-    --color-text-primary: #0F172A; /* Deep Navy Text */
-    --color-text-secondary: #64748B; /* Slate Gray Subtext */
-    --color-accent-primary: #14B8A6; /*  Primary Teal */
-    --color-accent-secondary: #3B82F6; /*  Secondary Blue */
-    --color-accent-orange: #F97316;   /*  Accent Orange */
-  }
-
   .dark {
     /* Midnight Matrix Topology */
     --color-bg-base: #020617;     
-    --color-bg-offset: #0F172A;    /* Deep Navy Cards */
+    --color-bg-offset: #0F172A;
     --color-text-primary: #F8FAFC; 
     --color-text-secondary: #94A3B8; 
     --glass-bg: rgba(15, 23, 42, 0.7);
@@ -73,11 +60,7 @@
     @apply antialiased selection:bg-teal-600/10 selection:text-teal-600;
   }
 
-  /* 8px Master Grid System */
-  .p-grid { padding: 0.5rem; }
-  .m-grid { margin: 0.5rem; }
-
-  /* Smooth Custom Scrolling (Stripe Aesthetic) */
+  /* Smooth Custom Scrolling */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -109,7 +92,6 @@
 }
 
 @layer components {
-  /* Dynamic Responsive Cards with Scale Effects */
   .card-premium {
     @apply bg-bg-offset dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/40 dark:border-white/5 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:scale-[1.01] transition-all duration-500 overflow-hidden;
   }
@@ -122,20 +104,52 @@
     @apply w-full h-12 bg-bg-offset border border-slate-200 dark:border-white/5 rounded-[20px] px-5 text-sm font-medium focus:ring-4 focus:ring-teal-500/10 focus:border-accent-primary transition-all duration-300;
   }
 
-  /* 💎 Elite Matrix Design System (Clinically Focused) */
   .matrix-card {
-    @apply bg-white/70 dark:bg-slate-900/40 backdrop-blur-3xl border border-white/40 dark:border-white/5 rounded-[2.5rem] p-8 shadow-2xl transition-all duration-700 overflow-hidden relative group;
+    @apply bg-white/70 dark:bg-slate-900/40 backdrop-blur-3xl border border-white/40 dark:border-white/5 rounded-[2.5rem] p-8 shadow-2xl transition-all duration-700 overflow-hidden relative;
   }
 
   .matrix-hover {
-    @apply hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:-translate-y-1 transition-all duration-700;
+    @apply shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:-translate-y-1 transition-all duration-700;
   }
 
   .matrix-container {
-    @apply animate-in fade-in duration-1000 font-sans p-6 md:p-8 pb-16 max-w-[1800px] mx-auto bg-slate-50/30 dark:bg-transparent w-full;
+    @apply font-sans p-6 md:p-8 pb-16 max-w-[1800px] mx-auto bg-slate-50/30 dark:bg-transparent w-full;
   }
 
   .matrix-glow-top {
-    @apply absolute top-0 right-0 w-80 h-80 bg-accent-primary/5 blur-[120px] rounded-full -mr-40 -mt-40 group-hover:bg-accent-primary/10 transition-colors duration-1000;
+    @apply absolute top-0 right-0 w-80 h-80 bg-accent-primary/5 blur-[120px] rounded-full -mr-40 -mt-40 transition-colors duration-1000;
+  }
+
+  /* Descendant Hover State for Glow Transition */
+  .matrix-card:hover .matrix-glow-top {
+    @apply bg-accent-primary/10;
+  }
+}
+
+@layer utilities {
+  /* 🪄 Custom Animation DSL (Tailwind v4 compatible) */
+  .animate-in {
+    animation-duration: 700ms;
+    animation-fill-mode: both;
+    animation-name: enter;
+  }
+
+  .fade-in {
+    --tw-enter-opacity: 0;
+  }
+
+  .slide-in-from-top-1 {
+    --tw-enter-translate-y: -0.25rem;
+  }
+
+  .slide-in-from-bottom-4 {
+    --tw-enter-translate-y: 1rem;
+  }
+
+  @keyframes enter {
+    from {
+      opacity: var(--tw-enter-opacity, 1);
+      transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), 1) rotate(var(--tw-enter-rotate, 0));
+    }
   }
 }

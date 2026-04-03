@@ -21,6 +21,8 @@ from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
     ChangePasswordSerializer,
+    UserAdminCreateSerializer,
+    UserAdminUpdateSerializer,
 )
 from .email_services import send_welcome_email, send_login_alert_email
 
@@ -184,4 +186,6 @@ class UserManagementViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return UserAdminCreateSerializer
+        if self.action in ['update', 'partial_update']:
+            return UserAdminUpdateSerializer
         return UserSerializer

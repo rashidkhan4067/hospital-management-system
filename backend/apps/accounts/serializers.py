@@ -166,7 +166,7 @@ class UserAdminCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         from apps.doctors.models import Doctor
-        from apps.patients.models import Patient
+        from apps.patients.models import PatientProfile
         
         validated_data.pop('confirm_password')
         user = User.objects.create_user(**validated_data)
@@ -181,9 +181,46 @@ class UserAdminCreateSerializer(serializers.ModelSerializer):
                 specialization=Doctor.Specialization.GENERAL
             )
         elif user.role == User.Role.PATIENT:
-            Patient.objects.create(user=user)
+            PatientProfile.objects.create(user=user)
             
         return user
+
+class UserAdminUpdateSerializer(serializers.ModelSerializer):
+    """
+    🏢 Admin-only User Modification
+    Modifies identities in the administrative matrix without requiring passwords.
+    """
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    confirm_password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'email', 'first_name', 'last_name', 
+            'phone_number', 'role', 'is_active', 'password', 'confirm_password'
+        ]
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
+        if password or confirm_password:
+            if password != confirm_password:
+                raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+        return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        validated_data.pop('confirm_password', None)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+            
+        if password:
+            instance.set_password(password)
+            
+        instance.save()
+        return instance
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. UserSerializer

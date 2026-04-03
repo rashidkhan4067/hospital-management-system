@@ -94,6 +94,7 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN   = "admin",   _("Admin")    # Hospital administrator — full access
         DOCTOR  = "doctor",  _("Doctor")   # Medical professional — manage own schedule
+        STAFF   = "staff",   _("Staff")    # Hospital support staff / desk
         PATIENT = "patient", _("Patient")  # Patient — book appointments, view own records
 
     # ── Core Identity Fields ──────────────────────────────────────────────────
