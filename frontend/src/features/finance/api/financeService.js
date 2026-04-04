@@ -27,10 +27,29 @@ class FinanceService {
   }
 
   /**
-   * Create a new fiscal transaction node.
+   * Process a payment for a specific invoice.
    */
-  async createTransaction(data) {
-    const response = await api.post('/finance/transactions/', data);
+  async payInvoice(invoiceId, paymentData) {
+    const response = await api.post(`/finance/invoices/${invoiceId}/pay/`, paymentData);
+    return response.data;
+  }
+
+  /**
+   * Generate a base invoice from an appointment completion.
+   */
+  async generateFromAppointment(appointmentId, fee = 50) {
+    const response = await api.post('/finance/invoices/from-appointment/', {
+      appointment_id: appointmentId,
+      consultation_fee: fee,
+    });
+    return response.data;
+  }
+
+  /**
+   * Add a specific line item to an invoice.
+   */
+  async addItem(invoiceId, itemData) {
+    const response = await api.post(`/finance/invoices/${invoiceId}/add-item/`, itemData);
     return response.data;
   }
 

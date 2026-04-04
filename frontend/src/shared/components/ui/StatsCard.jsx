@@ -21,7 +21,7 @@ export default function StatsCard({ title, value, icon: Icon, color = 'var(--acc
   return (
     <Card 
       onClick={onClick}
-      className={`matrix-card group flex flex-row items-center gap-5 p-5 border border-transparent hover:border-accent-primary/10 transition-all duration-500 relative overflow-hidden bg-white/70 dark:bg-slate-900/10 backdrop-blur-3xl shadow-xl hover:shadow-2xl rounded-[2.5rem] ${onClick ? 'cursor-pointer hover:scale-[1.03] active:scale-[0.98]' : 'cursor-default'}`}
+      className={`matrix-card group flex flex-row items-center gap-4 sm:gap-5 p-4 sm:p-5 border border-transparent hover:border-accent-primary/10 transition-all duration-500 relative overflow-hidden bg-white/70 dark:bg-slate-900/10 backdrop-blur-3xl shadow-xl hover:shadow-2xl rounded-3xl sm:rounded-[2.5rem] ${onClick ? 'cursor-pointer sm:hover:scale-[1.03] active:scale-[0.98]' : 'cursor-default'}`}
     >
       {/* 🚀 Dynamic Icon Portal */}
       <div 

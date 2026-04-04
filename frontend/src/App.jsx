@@ -53,13 +53,30 @@ const DoctorSchedulePage  = lazy(() => import('@/features/doctors/pages/DoctorSc
 const SpecializationsPage = lazy(() => import('@/features/doctors/pages/SpecializationsPage'));
 
 // ─── Feature: Finance ────────────────────────────────────────────────────────
-const FinancesPage = lazy(() => import('@/features/finance/pages/FinancesPage'));
+const FinancesPage   = lazy(() => import('@/features/finance/pages/FinancesPage'));
+const BillingPage    = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with BillingPage
+const ExpensesPage   = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with ExpensesPage
+const FinReportsPage = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with FinancialReportsPage
 
 // ─── Feature: Analytics ──────────────────────────────────────────────────────
 const InventoryPage      = lazy(() => import('@/features/analytics/pages/InventoryPage'));
 const MedicineRecordPage = lazy(() => import('@/features/analytics/pages/MedicineRecordPage'));
 const LabPage            = lazy(() => import('@/features/analytics/pages/LabPage'));
 const PharmacyPage       = lazy(() => import('@/features/analytics/pages/PharmacyPage'));
+
+// ─── Feature: Wards / IPD / OPD ──────────────────────────────────────────────
+// TODO: build WardMapPage, AdmissionPage, OPDQueuePage in src/features/wards/
+const WardMapPage    = lazy(() => import('@/features/analytics/pages/InventoryPage'));  // placeholder
+const AdmissionPage  = lazy(() => import('@/features/analytics/pages/InventoryPage'));  // placeholder
+const OPDQueuePage   = lazy(() => import('@/features/appointments/pages/AppointmentsPage')); // placeholder
+
+// ─── Feature: Staff / Rosters ─────────────────────────────────────────────────
+// TODO: build ShiftRosterPage, LeaveManagementPage in src/features/identity/
+const ShiftRosterPage       = lazy(() => import('@/features/identity/pages/UsersPage'));   // placeholder
+const LeaveManagementPage   = lazy(() => import('@/features/identity/pages/UsersPage'));   // placeholder
+
+// ─── Feature: AI Insights ─────────────────────────────────────────────────────
+const AIInsightsPage = lazy(() => import('@/features/ai/pages/AILogs')); // placeholder
 
 // ─── Feature: AI ─────────────────────────────────────────────────────────────
 const SanaAIPage   = lazy(() => import('@/features/ai/pages/SanaAIPage'));
@@ -68,11 +85,13 @@ const AIChatsPage  = lazy(() => import('@/features/ai/pages/AIChats'));
 const AIConfigPage = lazy(() => import('@/features/ai/pages/AIConfig'));
 
 // ─── Feature: Management ─────────────────────────────────────────────────────
-const AlertsPage      = lazy(() => import('@/features/management/pages/Alerts'));
-const AuditPage       = lazy(() => import('@/features/management/pages/Audit'));
-const DepartmentsPage = lazy(() => import('@/features/management/pages/Departments'));
-const RulesPage       = lazy(() => import('@/features/management/pages/Rules'));
-const StructurePage   = lazy(() => import('@/features/management/pages/Structure'));
+const AlertsPage               = lazy(() => import('@/features/management/pages/Alerts'));
+const AuditPage                = lazy(() => import('@/features/management/pages/Audit'));
+const DepartmentsPage          = lazy(() => import('@/features/management/pages/Departments'));
+const RulesPage                = lazy(() => import('@/features/management/pages/Rules'));
+const StructurePage            = lazy(() => import('@/features/management/pages/Structure'));
+const NotificationSettingsPage = lazy(() => import('@/features/management/pages/Alerts'));  // placeholder
+const SystemHealthPage         = lazy(() => import('@/features/management/pages/Structure')); // placeholder
 
 // ─── Feature: Public ─────────────────────────────────────────────────────────
 const LandingPage         = lazy(() => import('@/features/public/pages/LandingPage'));
@@ -159,7 +178,10 @@ export default function App() {
                       <Route path="/admin/doctors/specialty" element={<SpecializationsPage />} />
 
                       {/* Finance */}
-                      <Route path="/admin/finances" element={<FinancesPage />} />
+                      <Route path="/admin/finances"           element={<FinancesPage />} />
+                      <Route path="/admin/billing"            element={<BillingPage />} />
+                      <Route path="/admin/expenses"           element={<ExpensesPage />} />
+                      <Route path="/admin/reports/financial"  element={<FinReportsPage />} />
 
                       {/* Analytics */}
                       <Route path="/admin/inventory"     element={<InventoryPage />} />
@@ -168,17 +190,29 @@ export default function App() {
                       <Route path="/admin/lab"           element={<LabPage />} />
                       <Route path="/admin/pharmacy"      element={<PharmacyPage />} />
 
+                      {/* Wards / OPD / IPD */}
+                      <Route path="/admin/wards"       element={<WardMapPage />} />
+                      <Route path="/admin/admissions"  element={<AdmissionPage />} />
+                      <Route path="/admin/opd-queue"   element={<OPDQueuePage />} />
+
+                      {/* Staff / Rosters */}
+                      <Route path="/admin/staff/roster" element={<ShiftRosterPage />} />
+                      <Route path="/admin/staff/leaves" element={<LeaveManagementPage />} />
+
                       {/* AI */}
-                      <Route path="/admin/ai-agent/logs"   element={<AILogsPage />} />
-                      <Route path="/admin/ai-agent/chats"  element={<AIChatsPage />} />
-                      <Route path="/admin/ai-agent/config" element={<AIConfigPage />} />
+                      <Route path="/admin/ai-agent/logs"     element={<AILogsPage />} />
+                      <Route path="/admin/ai-agent/chats"    element={<AIChatsPage />} />
+                      <Route path="/admin/ai-agent/config"   element={<AIConfigPage />} />
+                      <Route path="/admin/ai-agent/insights" element={<AIInsightsPage />} />
 
                       {/* Management */}
-                      <Route path="/admin/departments"     element={<DepartmentsPage />} />
-                      <Route path="/admin/notifs/send"     element={<AlertsPage />} />
-                      <Route path="/admin/security/audit"  element={<AuditPage />} />
+                      <Route path="/admin/departments"      element={<DepartmentsPage />} />
+                      <Route path="/admin/notifs/send"      element={<AlertsPage />} />
+                      <Route path="/admin/security/audit"   element={<AuditPage />} />
                       <Route path="/admin/settings/general" element={<RulesPage />} />
-                      <Route path="/admin/settings"        element={<StructurePage />} />
+                      <Route path="/admin/settings/gateway" element={<NotificationSettingsPage />} />
+                      <Route path="/admin/settings/health"  element={<SystemHealthPage />} />
+                      <Route path="/admin/settings"         element={<StructurePage />} />
                     </Route>
                   </Route>
                 </Route>

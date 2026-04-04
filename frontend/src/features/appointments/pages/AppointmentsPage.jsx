@@ -1,173 +1,197 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Calendar, 
-  Plus,
-  Clock,
-  UserCheck,
-  AlertCircle,
-  Eye,
-  CheckCircle,
-  XCircle
+   Calendar, Plus, Clock, UserCheck, AlertCircle, Eye, CheckCircle, XCircle, Download, Trash2, Edit3 
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard, TableActions } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import FilterBar from '@/shared/components/ui/FilterBar';
+import { 
+   Badge,
+   Button, 
+   Card,
+   PageHeader,
+   TableActions 
+} from '@/shared/components/ui';
+
+// 🧪 Blueprint Components
+import AppointmentHeader from '@/features/appointments/components/AppointmentHeader';
+import AppointmentFilters from '@/features/appointments/components/AppointmentFilters';
+import AppointmentsTable from '@/features/appointments/components/AppointmentsTable';
+import AppointmentDrawer from '@/features/appointments/components/AppointmentDrawer';
+import UpcomingAppointments from '@/features/appointments/components/UpcomingAppointments';
+import SanaVoiceBooking from '@/features/appointments/components/SanaVoiceBooking';
+import AppointmentKpiGrid from '@/features/appointments/components/AppointmentKpiGrid';
+import DoctorAvailability from '@/features/appointments/components/DoctorAvailability';
+import ClinicalIntelligenceHub from '@/features/appointments/components/ClinicalIntelligenceHub';
+import AppointmentCTA from '@/features/appointments/components/AppointmentCTA';
 
 import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 import AppointmentService from '@/features/appointments/api/appointmentService';
 import { useUI } from '@/core/ui/UIContext';
 import { useAdminAppointments } from '@/features/appointments/hooks/useAppointments';
 import AdminPage from '@/shared/components/layout/AdminPage';
-import { useNavigate } from 'react-router-dom';
+import { BREAKPOINTS } from '@/core/config/UI';
 
 /**
- * 📅 Appointment Management
- * Screen to view and manage all hospital visits.
+ * 📅 Al Shifaa Advanced Appointments Hub
+ * Final High-fidelity, unified diagnostic matrix with Hero CTA.
  */
-export default function AdminAppointments({ autoOpenAdd = false }) {
-  const navigate = useNavigate();
-  const { addNotification } = useUI();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('ALL');
-  const [isModalOpen, setIsModalOpen] = useState(autoOpenAdd);
+export default function AppointmentsPage() {
+   const { addNotification } = useUI();
+   const [searchTerm, setSearchTerm] = useState('');
+   const [activeTab, setActiveTab] = useState('ALL');
+   const [isModalOpen, setIsModalOpen] = useState(false);
+   const [selectedAppointment, setSelectedAppointment] = useState(null);
+   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const { appointments, loading, refresh } = useAdminAppointments();
+   const { appointments, loading, refresh } = useAdminAppointments();
 
-  // Change Appointment Status
-  const handleStatusChange = async (appointment, newStatus) => {
-    try {
-        await AppointmentService.update(appointment.id, { status: newStatus });
-        addNotification('Status Updated', `Appointment marked as ${newStatus} successfully.`, 'success');
-        refresh();
-    } catch (err) {
-        addNotification('Error', 'Could not update appointment status.', 'error');
-    }
-  };
+   // ─── Operational Logic ───
+   const handleStatusChange = async (appointment, newStatus) => {
+      try {
+         await AppointmentService.update(appointment.id, { status: newStatus });
+         addNotification('Status Updated', `Appointment marked as ${newStatus} successfully.`, 'success');
+         refresh();
+      } catch (err) {
+         addNotification('Error', 'Could not update appointment status.', 'error');
+      }
+   };
 
-  // Filter List of Appointments
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter(a => {
-        const patientName = a.patient?.full_name || '';
-        const doctorName = a.doctor?.full_name || '';
-        const status = a.status?.toUpperCase();
-        
-        const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              doctorName.toLowerCase().includes(searchTerm.toLowerCase());
-                              
-        const matchesTab = activeTab === 'ALL' || 
-                           status === activeTab || 
-                           (activeTab === 'SCHEDULED' && status === 'PENDING');
+   const onViewDetail = (appointment) => {
+      setSelectedAppointment(appointment);
+      setIsDrawerOpen(true);
+   };
 
-        return matchesSearch && matchesTab;
-    });
-  }, [appointments, searchTerm, activeTab]);
+   // ─── Filter Matrix ───
+   const filteredAppointments = useMemo(() => {
+      return appointments.filter(a => {
+         const patientName = a.patient?.full_name || '';
+         const doctorName = a.doctor?.full_name || '';
+         const status = a.status?.toUpperCase();
+         
+         const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                               doctorName.toLowerCase().includes(searchTerm.toLowerCase());
+                               
+         const matchesTab = activeTab === 'ALL' || 
+                            status === activeTab || 
+                            (activeTab === 'SCHEDULED' && status === 'PENDING');
 
-  const columns = [
-    { 
-        header: 'Patient Name', 
-        cell: (a) => (
-            <div className="flex flex-col group cursor-pointer" onClick={() => navigate(`/admin/patients/${a.patient?.id}`)}>
-                <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none group-hover:text-accent-primary transition-colors">{a.patient?.full_name || 'Anonymous'}</p>
-                <p className="text-[8px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-1.5 tabular-nums">ID: {a.id}</p>
-            </div>
-        )
-    },
-    { 
-        header: 'Doctor',
-        cell: (a) => <span className="text-[10px] font-black text-accent-primary uppercase italic">{a.doctor?.full_name || 'Unassigned'}</span>
-    },
-    { 
-        header: 'Date & Time',
-        cell: (a) => (
-            <div className="flex items-center gap-2">
-                <Clock size={12} className="text-slate-400" />
-                <span className="text-[10px] font-black text-slate-900 dark:text-white/80 tabular-nums">{a.appointment_date} • {a.start_time}</span>
-            </div>
-        )
-    },
-    { 
-        header: 'Status',
-        cell: (a) => {
-            const status = a.status?.toLowerCase();
-            return (
-                <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${status === 'scheduled' || status === 'pending' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : status === 'completed' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${status === 'scheduled' || status === 'pending' ? 'text-emerald-500' : status === 'completed' ? 'text-blue-500' : 'text-rose-500'}`}>{a.status_display || a.status}</span>
-                </div>
-            );
-        }
-    },
-    { 
-        header: 'Type',
-        cell: () => <Badge className="bg-slate-50 dark:bg-white/5 text-accent-primary border-none text-[8px] font-black uppercase px-4 italic tracking-widest">Clinic Visit</Badge>
-    },
-    { 
-        header: 'Actions', 
-        cell: (a) => (
-            <TableActions 
-                row={a}
-                actions={[
-                    { label: 'View Patient File', icon: Eye, onClick: (row) => navigate(`/admin/patients/${row.patient?.id}`) },
-                    { label: 'Mark Complete', icon: CheckCircle, onClick: (row) => handleStatusChange(row, 'completed') },
-                    { label: 'Cancel Visit', icon: XCircle, onClick: (row) => handleStatusChange(row, 'cancelled'), variant: 'danger' },
-                ]}
+         return matchesSearch && matchesTab;
+      });
+   }, [appointments, searchTerm, activeTab]);
+
+   return (
+      <AdminPage>
+         <div className={`flex flex-col gap-4 lg:gap-5 w-full min-h-screen bg-slate-50/50 dark:bg-transparent px-4 lg:px-8 -mt-2 pb-20`}>
+            
+            {/* 🛸 COMMAND HUB: Row 1 — Header */}
+            <AppointmentHeader 
+               searchTerm={searchTerm} 
+               setSearchTerm={setSearchTerm} 
+               onBook={() => setIsModalOpen(true)}
+               onTalkToSana={() => {}}
+               userRole="admin" 
             />
-        )
-    }
-  ];
 
-  const stats = useMemo(() => [
-    { title: "Total Appointments", value: loading ? "..." : appointments.length, icon: Calendar, trend: "Current" },
-    { title: "Scheduled", value: loading ? "..." : appointments.filter(a => a.status === 'scheduled' || a.status === 'pending').length, icon: UserCheck, trend: "Pending" },
-    { title: "Completed", value: loading ? "..." : appointments.filter(a => a.status === 'completed').length, icon: Clock, trend: "Success" },
-    { title: "Cancelled", value: loading ? "..." : appointments.filter(a => a.status === 'cancelled').length, icon: AlertCircle, trend: "History" },
-  ], [appointments, loading]);
+            {/* 🌠 PERSISTENT GREETING: Row 2 — Hero CTA */}
+            <AppointmentCTA 
+               appointments={appointments} 
+               onBook={() => setIsModalOpen(true)}
+               onTalkToSana={() => {}} 
+            />
 
-  return (
-    <AdminPage>
-      <PageHeader 
-        title="Appointments" 
-        subtitle="Manage Medical Visits"
-        actions={
-            <Button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
-            >
-                <Plus size={16} /> Book Appointment
-            </Button>
-        }
-      />
+            {/* 🛰 KPI Hub */}
+            <AppointmentKpiGrid appointments={appointments} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
-      </div>
+            {/* 🛰 Unified Assembly */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+               
+               {/* 🏥 CLINICAL OPERATIONS HUB (Left Space) */}
+               <div className="lg:col-span-8 flex flex-col gap-5 lg:gap-6">
+                  
+                  {/* 1. Integrated Status Matrix */}
+                  <AppointmentFilters 
+                     activeTab={activeTab} 
+                     setActiveTab={setActiveTab} 
+                     filters={{}} 
+                     setFilters={() => {}} 
+                  />
 
-      <div className="space-y-10 mt-10">
-        <FilterBar 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            tabs={[
-                { id: 'ALL', label: 'All Appointments' },
-                { id: 'SCHEDULED', label: 'Scheduled' },
-                { id: 'COMPLETED', label: 'Completed' },
-                { id: 'CANCELLED', label: 'Cancelled' }
-            ]}
-        />
+                  {/* 2. Primary Record Matrix */}
+                  <AppointmentsTable 
+                     appointments={filteredAppointments} 
+                     isLoading={loading}
+                     onStatusChange={handleStatusChange}
+                     onViewDetail={onViewDetail}
+                  />
 
-        <AdminTable 
-            columns={columns} 
-            data={filteredAppointments} 
-            isLoading={loading}
-        />
-      </div>
+                  {/* 3. Operational Toolbox */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
+                     <div className="lg:col-span-1 p-5 rounded-[2.5rem] bg-accent-primary/10 border border-accent-primary/20 flex flex-col gap-3 group cursor-pointer hover:bg-accent-primary transition-all shadow-xl shadow-accent-primary/10">
+                        <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-accent-primary shadow-sm transition-transform group-hover:rotate-12 italic">
+                           <Download size={16} />
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-black group-hover:text-white text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Global Export</p>
+                           <p className="text-[8px] font-bold text-slate-400 group-hover:text-white/60 uppercase tracking-widest mt-1.5 leading-none">Archives Matrix</p>
+                        </div>
+                     </div>
 
-      <BookVisitModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onRefresh={refresh}
-      />
-    </AdminPage>
-  );
+                     <div className="lg:col-span-2 p-5 lg:p-6 rounded-[2.5rem] bg-white/70 dark:bg-slate-900/10 backdrop-blur-3xl border border-slate-200 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-5 group shadow-2als">
+                        <div className="flex items-center gap-4">
+                           <div className="w-11 h-11 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all shadow-sm italic">
+                              <Trash2 size={20} />
+                           </div>
+                           <div className="flex flex-col">
+                              <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Bulk Dispatch</p>
+                              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 leading-none italic">Synchronize medical entries.</p>
+                           </div>
+                        </div>
+                        <Button className="px-6 py-3.5 rounded-2xl bg-accent-primary text-white text-[10px] font-black uppercase tracking-widest border-none shadow-lg shadow-accent-primary/20">Execute Task</Button>
+                     </div>
+                  </div>
+
+                  {/* 4. Intelligence Hub */}
+                  <ClinicalIntelligenceHub />
+               </div>
+
+               {/* 🛰 SIDEBAR INTELLIGENCE CLUSTER (Right Space) */}
+               <div className="lg:col-span-4 flex flex-col gap-5 lg:gap-6">
+                  <UpcomingAppointments 
+                     appointments={appointments} 
+                     onCancel={(a) => handleStatusChange(a, 'cancelled')} 
+                  />
+                  
+                  <SanaVoiceBooking onStart={() => {}} />
+
+                  <DoctorAvailability />
+                  
+                  {/* Protocol Notice */}
+                  <Card className="p-5 lg:p-6 rounded-[2.5rem] bg-orange-500 text-white flex flex-col gap-4 relative overflow-hidden group shadow-xl shadow-orange-500/10 border-none">
+                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[80px] rounded-full pointer-events-none" />
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center border border-white/20 shadow-sm">
+                           <AlertCircle size={20} className="text-white" strokeWidth={2.5} />
+                        </div>
+                        <h4 className="text-[12px] font-black uppercase italic tracking-[0.2em] leading-none">Protocol Notice</h4>
+                     </div>
+                     <p className="text-[10px] font-black italic text-white/90 leading-relaxed uppercase tracking-wide opacity-80">
+                        Archive sync 100% efficient. Credentials verified.
+                     </p>
+                  </Card>
+               </div>
+            </div>
+         </div>
+
+         {/* ─── Layered Intelligence ─── */}
+         <BookVisitModal 
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onRefresh={refresh}
+         />
+
+         <AppointmentDrawer 
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+            appointment={selectedAppointment}
+         />
+      </AdminPage>
+   );
 }

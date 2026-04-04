@@ -43,18 +43,85 @@ class Invoice(models.Model):
     🧾 CLINICAL INVOICE MODULE
     Immutable fiscal record for a patient encounter.
     """
-    invoice_no = models.CharField(max_length=50, unique=True)
+    STATUS_CHOICES = [
+        ('PAID', 'Settled'),
+        ('PARTIAL', 'Partial Shard'),
+        ('DUE', 'Outstanding'),
+        ('CANCELLED', 'Voided')
+    ]
+
+    invoice_no = models.CharField(max_length=50, unique=True, editable=False)
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="invoices")
     appointment = models.OneToOneField(Appointment, on_delete=models.SET_NULL, null=True, blank=True)
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     due_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=[('PAID', 'Settled'), ('PARTIAL', 'Partial Shard'), ('DUE', 'Outstanding')], default='DUE')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DUE')
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.invoice_no:
+            import uuid
+            self.invoice_no = f"INV-{uuid.uuid4().hex[:6].upper()}"
+        
+        # Calculate due amount before saving
+        self.due_amount = self.total_amount - self.paid_amount
+        
+        if self.paid_amount >= self.total_amount and self.total_amount > 0:
+            self.status = 'PAID'
+        elif self.paid_amount > 0:
+            self.status = 'PARTIAL'
+        else:
+            self.status = 'DUE'
+            
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"INV-{self.invoice_no}"
+        return self.invoice_no
+
+    class Meta:
+        ordering = ['-created_at']
+
+class InvoiceItem(models.Model):
+    """
+    📦 ITEM SEGMENT
+    Individual line items within an invoice (Service, Medicine, Lab Test).
+    """
+    ITEM_TYPES = [
+        ('CONSULTATION', 'Doctor Consultation'),
+        ('MEDICINE', 'Pharmacy/Medicine'),
+        ('LAB_TEST', 'Laboratory Test'),
+        ('PROCEDURE', 'Medical Procedure'),
+        ('OTHER', 'Miscellaneous'),
+    ]
+
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items")
+    name = models.CharField(max_length=255)
+    item_type = models.CharField(max_length=20, choices=ITEM_TYPES, default='OTHER')
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+
+    def save(self, *args, **kwargs):
+        self.subtotal = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+        
+        # Update parent invoice total
+        self.invoice.total_amount = sum(item.subtotal for item in self.invoice.items.all()) | (self.subtotal if not self.pk else 0)
+        # Note: In a real app we'd use a more robust signal or method, 
+        # but for this script we'll update the total.
+        items_total = sum(item.subtotal for item in self.invoice.items.all())
+        if not self.pk: # If new item, add its subtotal
+             items_total += self.subtotal
+        
+        Invoice.objects.filter(pk=self.invoice.pk).update(
+            total_amount=items_total,
+            due_amount=items_total - self.invoice.paid_amount
+        )
+
+    def __str__(self):
+        return f"{self.name} ({self.invoice.invoice_no})"
 
 class InsuranceClaim(models.Model):
     """

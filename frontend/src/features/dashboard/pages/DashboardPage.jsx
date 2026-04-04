@@ -1,37 +1,48 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    Users,
-    Calendar,
-    Stethoscope,
-    TrendingUp,
-    UserPlus,
-} from 'lucide-react';
-import { Button, PageHeader } from '@/shared/components/ui';
+import { Users, Calendar, Stethoscope, TrendingUp, UserPlus } from 'lucide-react';
 
-// 🏥 QUICK ACTIONS
+// ── Modals ──────────────────────────────────────────────────────────────────
 import AddUserModal from '@/features/identity/components/AddUserModal';
 import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 
-// 🎣 CLINICAL DATA HOOKS & SERVICES
+// ── Data Hooks ───────────────────────────────────────────────────────────────
 import { useAdminAnalytics } from '@/features/analytics/hooks/useAnalytics';
 import analyticsService from '@/features/analytics/api/analyticsService';
 
-// 🏢 DASHBOARD COMPONENTS
+// ── Layout ───────────────────────────────────────────────────────────────────
 import AdminPage from '@/shared/components/layout/AdminPage';
+
+// ─── ROW 1: Header ───────────────────────────────────────────────────────────
+import DashboardHeader from '@/features/dashboard/components/DashboardHeader';
+
+// ─── ROW 2: Stats Row ────────────────────────────────────────────────────────
 import MetricCards from '@/features/dashboard/components/MetricCards';
-import PatientTrends from '@/features/dashboard/components/PatientTrends'; 
-import RevenueChart from '@/features/dashboard/components/RevenueChart';
+import TodaySummary from '@/features/dashboard/components/TodaySummary';
+import SanaStats from '@/features/dashboard/components/SanaStats';
 import DepartmentStats from '@/features/dashboard/components/DepartmentStats';
-import LiveAppointments from '@/features/dashboard/components/LiveAppointments';
-import AIAssistant from '@/features/dashboard/components/AIAssistant';
-import SystemPulse from '@/features/dashboard/components/SystemPulse';
+import WelcomeCTA from '@/features/dashboard/components/WelcomeCTA';
+
+// ─── ROW 3: Main Content ─────────────────────────────────────────────────────
+import TodayAppointments from '@/features/dashboard/components/TodayAppointments';
+import OPDQueue from '@/features/dashboard/components/OPDQueue';
+import RecentPatients from '@/features/dashboard/components/RecentPatients';
+import StaffStatus from '@/features/dashboard/components/StaffStatus';
+import ActivityFeed from '@/features/dashboard/components/ActivityFeed';
+
+// ─── ROW 4: Right Column Widgets ─────────────────────────────────────────────
+import WeeklyChart from '@/features/dashboard/components/WeeklyChart';
 import DoctorStatus from '@/features/dashboard/components/DoctorsStatus';
-import StockAlerts from '@/features/dashboard/components/StockAlerts'; 
+import BedStatus from '@/features/dashboard/components/BedStatus';
+
+// ─── ROW 5: Bottom Row ───────────────────────────────────────────────────────
+import RevenueCard from '@/features/dashboard/components/RevenueCard';
+import StockAlerts from '@/features/dashboard/components/StockAlerts';
+import SystemHealthCard from '@/features/dashboard/components/SystemHealthCard';
 
 /**
- * 🏢 Admin Dashboard
- * Main hospital management screen.
+ * 🏥 Al Shifaa Admin Dashboard — Layout per image.png blueprint
+ * 5-row structure: Header → Stats → Main → Widgets → Bottom
  */
 export default function AdminDashboard({ propAppointments }) {
     const navigate = useNavigate();
@@ -42,180 +53,147 @@ export default function AdminDashboard({ propAppointments }) {
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
 
-    // Fetch Recent Activity
+    // ── Fetch Audit / Activity ────────────────────────────────────────────────
     const fetchAudit = useCallback(async () => {
         try {
             const audit = await analyticsService.getSystemAudit();
-            setAuditLogs(audit.results?.slice(0, 4).map(l => ({
+            setAuditLogs(audit.results?.slice(0, 6).map(l => ({
                 title: l.event,
                 time: new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 node: l.status,
                 status: 'Success'
             })) || []);
-        } catch (err) { 
-            console.warn("[Dashboard]: Activity Fetch Failed", err); 
-        }
+        } catch (err) { console.warn('[Dashboard]: Activity fetch failed', err); }
     }, []);
 
     useEffect(() => {
         fetchAudit();
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        const autoRefresh = setInterval(() => refresh(), 45000); 
-
-        return () => {
-            clearInterval(timer);
-            clearInterval(autoRefresh);
-        };
+        const autoRefresh = setInterval(() => refresh(), 45000);
+        return () => { clearInterval(timer); clearInterval(autoRefresh); };
     }, [refresh, fetchAudit]);
 
-    // Stats for Dashboard
+    // ── KPI Cards ────────────────────────────────────────────────────────────
     const kpiMetrics = useMemo(() => [
-        { 
-            title: 'Total Patients', 
-            value: loading ? '...' : (pulse?.counts?.patients ?? 0).toLocaleString(), 
-            icon: <Users />, 
-            trend: pulse?.clinical?.delta || '+0.0%', 
-            trendType: 'up',
-            onClick: () => navigate('/admin/patients')
-        },
-        { 
-            title: 'Active Doctors', 
-            value: loading ? '...' : (pulse?.counts?.doctors ?? 0).toLocaleString(), 
-            icon: <Stethoscope />, 
-            trend: 'Live', 
-            trendType: 'neutral',
-            onClick: () => navigate('/admin/doctors')
-        },
-        { 
-            title: 'Daily Visits', 
-            value: loading ? '...' : (pulse?.counts?.appointments ?? 0).toLocaleString(), 
-            icon: <Calendar />, 
-            trend: 'Steady', 
-            trendType: 'up',
-            onClick: () => navigate('/admin/appointments')
-        },
-        { 
-            title: 'Total Earnings', 
-            value: loading ? '...' : `Rs. ${(pulse?.financial?.net_revenue || 0).toLocaleString()}`, 
-            icon: <TrendingUp />, 
-            trend: pulse?.financial?.delta || 'Real-time', 
-            trendType: 'up',
-            onClick: () => navigate('/admin/finances')
-        }
+        { title: 'Total Patients', value: loading ? '...' : (pulse?.counts?.patients ?? 0).toLocaleString(), icon: <Users />, trend: pulse?.clinical?.delta || '+0.0%', trendType: 'up', onClick: () => navigate('/admin/patients') },
+        { title: 'Active Doctors', value: loading ? '...' : (pulse?.counts?.doctors ?? 0).toLocaleString(), icon: <Stethoscope />, trend: 'Live', trendType: 'neutral', onClick: () => navigate('/admin/doctors') },
+        { title: 'Daily Visits', value: loading ? '...' : (pulse?.counts?.appointments ?? 0).toLocaleString(), icon: <Calendar />, trend: 'Steady', trendType: 'up', onClick: () => navigate('/admin/appointments') },
+        { title: 'Total Earnings', value: loading ? '...' : `Rs. ${(pulse?.financial?.net_revenue || 0).toLocaleString()}`, icon: <TrendingUp />, trend: pulse?.financial?.delta || 'Real-time', trendType: 'up', onClick: () => navigate('/admin/finances') },
     ], [pulse, loading, navigate]);
 
-    // Chart Data
-    const trendData = useMemo(() => 
-        clinicalTrends?.length > 0 
-            ? clinicalTrends.slice(0, 7).reverse().map(d => ({ 
-                name: d.date?.split('-')[2] || 'D', 
-                value: d.total_patients 
-              })) 
-            : [{ name: 'N/A', value: 0 }], 
-    [clinicalTrends]);
-
-    const revenueData = useMemo(() => 
-        financialTrends?.length > 0
-            ? financialTrends.slice(0, 6).reverse().map(d => {
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                const monthIdx = parseInt(d.date?.split('-')[1]) - 1;
-                return {
-                    name: monthNames[monthIdx] || 'Month',
-                    revenue: d.total_revenue
-                };
-              })
-            : [{ name: 'Feb', revenue: 12400 }, { name: 'Mar', revenue: 15800 }, { name: 'Apr', revenue: 18200 }],
-    [financialTrends]);
+    // ── Chart Data ────────────────────────────────────────────────────────────
+    const weeklyData = useMemo(() => {
+        if (clinicalTrends?.length > 0) {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            return clinicalTrends.slice(0, 7).reverse().map(d => ({
+                name: days[new Date(d.date).getDay()] || 'D',
+                value: d.total_patients
+            }));
+        }
+        return [];
+    }, [clinicalTrends]);
 
     return (
         <AdminPage>
-            {/* 🌌 Header */}
-            <PageHeader 
-                title="Admin Dashboard" 
-                subtitle="Hospital Overview & Real-time Records"
-                status="System Active"
-                time={currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                actions={
-                    <div className="flex items-center gap-2">
-                        <Button 
-                            onClick={() => setIsUserModalOpen(true)}
-                            className="bg-transparent hover:bg-accent-primary text-slate-600 dark:text-slate-400 hover:text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 border-none"
-                        >
-                            <UserPlus size={16} /> Add User
-                        </Button>
-                        <div className="w-px h-8 bg-slate-100 dark:bg-white/10 self-center mx-1" />
-                        <Button 
-                            onClick={() => setIsVisitModalOpen(true)}
-                            className="bg-transparent hover:bg-accent-primary text-slate-600 dark:text-slate-400 hover:text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 border-none"
-                        >
-                            <Calendar size={16} /> Book Visit
-                        </Button>
-                    </div>
-                }
+
+         <div className={`flex flex-col gap-6 w-full -mt-2`}>
+            {/* 🛸 COMMAND HUB: Row 1 — Header */}
+            <DashboardHeader 
+               onNewAppointment={() => setIsVisitModalOpen(true)}
+               onSearch={() => {}}
+               currentTime={currentTime}
             />
 
-            {/* 📊 KPI Cards */}
-            <div className="px-1">
-                <MetricCards metrics={kpiMetrics} />
-            </div>
+            {/* 🌠 PERSISTENT GREETING: Row 2 — Welcome CTA */}
+            <WelcomeCTA onQuickAction={(type) => {
+               if (type === 'appointment') setIsVisitModalOpen(true);
+               if (type === 'patient') setIsUserModalOpen(true);
+            }} />
+            
+            <MetricCards metrics={kpiMetrics} />
+         </div>
 
-            {/* 📈 Charts & Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
-                <div className="lg:col-span-8 flex flex-col gap-8 w-full min-w-0">
-                    <PatientTrends 
-                        data={trendData} 
-                        onViewStats={() => navigate('/admin/analytics')}
-                    />
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                        <RevenueChart 
-                            data={revenueData} 
-                            onViewFinances={() => navigate('/admin/finances')}
-                        />
-                        <DepartmentStats onNavigate={() => navigate('/admin/departments')} />
-                    </div>
+            {/* ─── ROW 3: Operational Shards / Distribution ─────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full mt-4">
 
-                    <LiveAppointments 
-                        appointments={propAppointments || []} 
-                        onExport={() => navigate('/admin/appointments')}
-                        onViewPatient={(id) => navigate(`/admin/patients/${id}`)}
-                    />
+                {/* Operational Shards & Section Distribution Matrix */}
+                <div className="lg:col-span-6">
+                    <TodaySummary pulse={pulse} loading={loading} />
                 </div>
 
-                <div className="lg:col-span-4 flex flex-col gap-6 w-full min-w-0">
-                    <AIAssistant onOpenChat={() => navigate('/admin/ai-agent/chats')} />
-                    <StockAlerts onViewInventory={() => navigate('/admin/inventory')} />
-                    <DoctorStatus 
-                        doctors={[1, 2, 3, 4]} 
+                {/* Sana Intelligence Shard — Intelligence Node */}
+                <div className="lg:col-span-3">
+                    <SanaStats onOpenChat={() => navigate('/admin/ai-agent/chats')} />
+                </div>
+
+                {/* Department Performance Matrix — Load Distribution Shard */}
+                <div className="lg:col-span-3">
+                    <DepartmentStats onNavigate={() => navigate('/admin/departments')} />
+                </div>
+            </div>
+
+            {/* ─── ROW 3: Main Operational Hub ────────────────────────────────────── */}
+            <div className="w-full">
+                <TodayAppointments
+                    appointments={propAppointments || []}
+                    onViewPatient={(id) => navigate(`/admin/patients/${id}`)}
+                    onViewAll={() => navigate('/admin/appointments')}
+                />
+            </div>
+
+            {/* ─── ROW 4: Live Registry Lists — 3 Columns ───────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                <OPDQueue onNavigate={() => navigate('/admin/opd-queue')} />
+                <RecentPatients onNavigate={() => navigate('/admin/patients')} />
+                <StaffStatus onNavigate={() => navigate('/admin/staff')} />
+            </div>
+
+            {/* ─── ROW 5: Analytics & Activity ────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+                <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <WeeklyChart data={weeklyData} />
+                    <DoctorStatus
+                        doctors={[1, 2, 3, 4]}
                         onAddDoctor={() => navigate('/admin/doctors/add')}
                     />
-                    <SystemPulse 
-                        logs={auditLogs} 
-                        onExpand={() => navigate('/admin/settings/security')}
-                    />
+                </div>
+                <div className="lg:col-span-4 flex flex-col gap-6">
+                    <BedStatus onNavigate={() => navigate('/admin/wards')} />
+                    <ActivityFeed logs={auditLogs} />
                 </div>
             </div>
 
-            {/* 🎖️ System Status Indicator */}
-            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 px-10 py-4 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-white/5 rounded-full shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] z-50 flex items-center gap-10 invisible sm:flex">
+            {/* ─── ROW 6: Performance & Maintenance ───────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+                <RevenueCard
+                    pulse={pulse}
+                    loading={loading}
+                    onNavigate={() => navigate('/admin/billing')}
+                />
+                <StockAlerts onViewInventory={() => navigate('/admin/inventory')} />
+                <SystemHealthCard onNavigate={() => navigate('/admin/settings/health')} />
+            </div>
+
+            {/* ─── System Status Pill (floating) ──────────────────────────── */}
+            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 px-10 py-4 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-white/5 rounded-full shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] z-50 items-center gap-10 hidden sm:flex">
                 <div className="flex items-center gap-4">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-accent-primary animate-pulse shadow-[0_0_12px_var(--color-accent-primary)]" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">System: Active</span>
                 </div>
                 <div className="w-px h-6 bg-slate-200 dark:bg-white/10" />
-                <button onClick={() => refresh()} className="text-[10px] font-black uppercase tracking-widest text-accent-primary hover:scale-110 transition-transform active:rotate-180 duration-500">
-                    Update Now
+                <button onClick={refresh} className="text-[10px] font-black uppercase tracking-widest text-accent-primary hover:scale-110 transition-transform active:rotate-180 duration-500 border-none bg-transparent">
+                    Refresh Data
                 </button>
             </div>
 
-            <AddUserModal 
+            {/* ─── Modals ──────────────────────────────────────────────────── */}
+            <AddUserModal
                 isOpen={isUserModalOpen}
                 onClose={() => setIsUserModalOpen(false)}
                 onRefresh={refresh}
                 initialRole="patient"
             />
-            
-            <BookVisitModal 
+            <BookVisitModal
                 isOpen={isVisitModalOpen}
                 onClose={() => setIsVisitModalOpen(false)}
                 onRefresh={refresh}
