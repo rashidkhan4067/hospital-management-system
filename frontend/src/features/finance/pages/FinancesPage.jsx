@@ -5,7 +5,8 @@ import AdminPage from '@/shared/components/layout/AdminPage';
 import FilterBar from '@/shared/components/ui/FilterBar';
 
 // 🏗️ MODULAR FINANCE SHARDS
-import FinanceStats from '@/features/finance/components/FinanceStats';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
 import TransactionTable from '@/features/finance/components/TransactionTable';
 import ProvisionTransactionModal from '@/features/finance/components/ProvisionTransactionModal';
 import ReceiptModal from '@/features/finance/components/ReceiptModal';
@@ -97,6 +98,7 @@ export default function AdminFinances() {
       <PageHeader 
         title="Revenue Matrix" 
         subtitle="Global Financial Shard Propagation Console"
+        status="Live Audit"
         actions={
             <div className="flex gap-4">
                 <Button 
@@ -115,7 +117,27 @@ export default function AdminFinances() {
         }
       />
 
-      <FinanceStats metrics={statsSummary?.finance} loading={loading} />
+      {/* ── Unified Hero CTA ── */}
+      <UnifiedHeroCTA 
+        title={<>Financial <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Oversight.</span></>}
+        subtitle={`Tracking Rs. ${(statsSummary?.finance?.revenue || 0).toLocaleString()} in clinical revenue with ${transactions.length} committed transaction shards.`}
+        pillPrefix="Clinical Financial Ledger"
+        pillIcon={CreditCard}
+        actions={[
+          { title: 'New Sync', subtitle: 'Post Transaction', icon: CreditCard, onClick: () => setIsModalOpen(true) },
+          { title: 'Full Export', subtitle: 'Generate CSV Shard', icon: Download, onClick: () => handleExport() }
+        ]}
+      />
+
+      <UnifiedKpiGrid 
+        loading={loading}
+        stats={[
+          { title: 'Gross Revenue', value: `Rs. ${(statsSummary?.finance?.revenue || 0).toLocaleString()}`, icon: CreditCard, trend: '+12.4% Up' },
+          { title: 'Transactions', value: transactions.length, icon: Download, trend: 'Synchronized' },
+          { title: 'Pending Clearance', value: transactions.filter(t => t.status === 'PENDING').length, icon: CreditCard, trend: 'In Cache' },
+          { title: 'System Health', value: '100% Sync', icon: CreditCard, trend: 'Optimal' }
+        ]}
+      />
 
       <div className="space-y-10 mt-10">
         <FilterBar 

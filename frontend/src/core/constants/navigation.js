@@ -53,9 +53,9 @@ import { ROLES } from './index';
 
 export const PATIENT_NAV = [
   { to: '/dashboard',       label: 'Dashboard',     icon: LayoutDashboard },
-  { to: '/doctors',         label: 'Our Doctors',   icon: Users },
-  { to: '/my-appointments', label: 'My Visits',     icon: Calendar },
-  { to: '/sana-ai',         label: 'Sana AI',       icon: Bot },
+  { to: '/doctors',         label: 'Find Doctors',   icon: Users },
+  { to: '/appointments',    label: 'My Appointments', icon: Calendar },
+  { to: '/voice',           label: 'Talk to Sana',   icon: Mic },
 ];
 
 export const DOCTOR_NAV = [

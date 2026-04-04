@@ -78,7 +78,7 @@ export default function AdminTable({
                                 {columns.map((col, idx) => (
                                     <th 
                                         key={idx} 
-                                        className={`py-5 px-6 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] first:rounded-l-2xl last:rounded-r-2xl ${idx === columns.length - 1 ? 'text-right' : ''}`}
+                                        className={`py-5 px-6 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] font-display first:rounded-l-2xl last:rounded-r-2xl ${idx === columns.length - 1 ? 'text-right' : ''}`}
                                     >
                                         {col.header}
                                     </th>

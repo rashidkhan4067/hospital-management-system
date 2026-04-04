@@ -112,27 +112,84 @@ export default function AddUserModal({ isOpen, onClose, onRefresh, initialRole =
                     <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Phone</label>
                         <input
-                            placeholder="+1 234 567 890"
-                            className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white"
+                            placeholder="+92 300 0000000"
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white shadow-inner"
                             value={formData.phone_number}
                             onChange={(e) => updateField('phone_number', e.target.value)}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Role</label>
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Role Matrix</label>
                         <select
                             required
                             className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[11px] font-black uppercase outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none h-[53px]"
                             value={formData.role}
                             onChange={(e) => updateField('role', e.target.value)}
                         >
-                            <option value="patient">Patient</option>
-                            <option value="doctor">Doctor</option>
-                            <option value="staff">Staff</option>
-                            <option value="admin">Admin</option>
+                            <option value="patient">Patient Shard</option>
+                            <option value="doctor">Doctor Shard</option>
+                            <option value="staff">Staff Node</option>
+                            <option value="admin">Root Admin</option>
                         </select>
                     </div>
                 </div>
+
+                {formData.role === 'patient' && (
+                  <div className="animate-in slide-in-from-top-4 duration-500 space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Age</label>
+                            <input
+                                type="number"
+                                placeholder="Age"
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white"
+                                value={formData.age || ''}
+                                onChange={(e) => updateField('age', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Gender</label>
+                            <select
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[11px] font-black uppercase outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none h-[53px]"
+                                value={formData.gender || ''}
+                                onChange={(e) => updateField('gender', e.target.value)}
+                            >
+                                <option value="">Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Blood Group</label>
+                            <select
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[11px] font-black uppercase outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white appearance-none h-[53px]"
+                                value={formData.blood_group || ''}
+                                onChange={(e) => updateField('blood_group', e.target.value)}
+                            >
+                                <option value="">Select</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-secondary dark:text-white/20 ml-1">Residence Address</label>
+                        <input
+                            placeholder="Residential Matrix Address..."
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-[12px] font-extrabold outline-none focus:border-accent-primary transition-all text-slate-900 dark:text-white"
+                            value={formData.address || ''}
+                            onChange={(e) => updateField('address', e.target.value)}
+                        />
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
                     <div className="space-y-2">

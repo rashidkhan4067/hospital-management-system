@@ -1,14 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import AdminPage from '@/shared/components/layout/AdminPage';
 import { useAdminAnalytics } from '@/features/analytics/hooks/useAnalytics';
-import { UI_TOKENS, BREAKPOINTS } from '@/core/config/UI';
+import { UI_TOKENS } from '@/core/config/UI';
 import { useTheme } from '@/core/theme/ThemeContext';
 
-// 🧪 Analytical Shards
-import AnalyticsHeader from '@/features/analytics/components/AnalyticsHeader';
-import AnalyticsCTA from '@/features/analytics/components/AnalyticsCTA';
-import KpiCard from '@/features/analytics/components/KpiCard';
-import SanaAIAnalyticsCard from '@/features/analytics/components/SanaAIAnalyticsCard';
+// ── Layout & Shared UI
+import AdminPage from '@/shared/components/layout/AdminPage';
+import { PageHeader, Card, Button, FilterBar } from '@/shared/components/ui';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
 
 // 📉 Chart Shards (Internal Imports for better flow)
 import {
@@ -20,7 +19,7 @@ import {
   Calendar, Users, Zap, Star, Download, FileText, ChevronRight, ClipboardCheck, BarChart3,
   Mic
 } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+
 
 // 📈 Chart Mock Utilities
 const mockSparkline = (base, range) =>
@@ -68,23 +67,64 @@ export default function StatsPage() {
     { name: 'Dr. Zain Malik', spec: 'General Physician', volume: 442, confirm: '91%', rating: 4.5 },
     { name: 'Dr. Hina Pervez', spec: 'Dermatologist', volume: 342, confirm: '99%', rating: 5.0 },
   ], []);
-
   return (
     <AdminPage>
-      <div className={`flex flex-col ${BREAKPOINTS.MOBILE_PADDING} lg:${BREAKPOINTS.DESKTOP_PADDING} gap-4 w-full min-h-screen bg-slate-50/50 dark:bg-transparent -mt-2 pb-20`}>
+      <div className={`flex flex-col gap-4 w-full min-h-screen bg-slate-50/50 dark:bg-transparent px-4 lg:px-8 -mt-2 pb-20`}>
 
-        {/* ─── ROW 1: Header & CTA ─── */}
-        <AnalyticsHeader range={range} onRangeChange={setRange} />
-        <AnalyticsCTA onExport={() => { }} onDeepDive={() => { }} />
+        {/* ─── ROW 1: Page Command Header ─── */}
+        <PageHeader 
+          title="Clinical Intelligence"
+          subtitle="Real-time Analytical Shards & Data Visualization"
+          status="Master Protocol"
+          actions={
+            <Button className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-2 border-none">
+              <Download size={16} strokeWidth={3} /> Export Hub
+            </Button>
+          }
+        />
 
-        {/* ─── ROW 2: KPI Telemetry Matrix ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statsMatrix.map((stat, idx) => (
-            <KpiCard key={idx} {...stat} />
-          ))}
+        {/* ─── ROW 2: Analytical Context Hero ─── */}
+        <UnifiedHeroCTA 
+          compact
+          title={<>Clinical <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Intelligence Hub.</span></>}
+          subtitle="Your clinical operations are 94.2% optimized. Global telemetry synchronized across 14 active hospital nodes."
+          pillPrefix="Clinical Analytics Active"
+          pillIcon={BarChart3}
+          actions={[
+            { title: 'Global Export', subtitle: 'Archive Metrics', icon: Download, onClick: () => {} },
+            { title: 'Neural Dialog', subtitle: 'Sana AI Support', icon: Mic, onClick: () => {} }
+          ]}
+        />
+
+        {/* ─── ROW 3: KPI Telemetry Grid ─── */}
+        <UnifiedKpiGrid 
+          loading={loading}
+          stats={[
+            { title: 'Total Visits', value: '4,842', icon: Calendar, trend: '+12.4% Up' },
+            { title: 'Confirm Rate', value: '94.2%', icon: TrendingUp, trend: 'Stable' },
+            { title: 'Voice Share', value: '24.8%', icon: Mic, trend: '+8.4% Up' },
+            { title: 'System Health', value: 'Nominal', icon: Activity, trend: 'Live' }
+          ]}
+        />
+
+        {/* ─── 🛰 ANALYTIC MASTER CONTROL ─── */}
+        <div className="w-full">
+          <FilterBar 
+            searchTerm={range} 
+            setSearchTerm={setRange}
+            activeTab={range}
+            setActiveTab={setRange}
+            placeholder="Search Metrics, Performance or Node ID..."
+            tabs={[
+              { id: 'Today', label: 'Today' },
+              { id: '7d',    label: 'Last 7 Days' },
+              { id: '30d',   label: 'Monthly Hub' },
+              { id: 'Year',  label: 'Annual Matrix' }
+            ]}
+          />
         </div>
 
-        {/* ─── ROW 3: Unified Analytical Matrix (The "Blank Space" Fix) ─── */}
+        {/* ─── ROW 4: Analytical Shards ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
 
           {/* 🏥 MAIN CONTENT COLUMN (Left) */}
@@ -241,9 +281,20 @@ export default function StatsPage() {
 
           </div>
 
-          {/* 🛰 SIDEBAR INTELLIGENCE COLUMN (Right) */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            <SanaAIAnalyticsCard />
+            <Card className="p-6 rounded-[2.5rem] bg-indigo-600 text-white flex flex-col gap-4 relative overflow-hidden shadow-xl shadow-indigo-500/20 border-none">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[80px] rounded-full pointer-events-none" />
+              <div className="flex items-center gap-4">
+                 <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center border border-white/20">
+                    <Activity size={20} className="text-white" />
+                 </div>
+                 <h4 className="text-[12px] font-black uppercase italic tracking-[0.2em] leading-none">Neural Insights</h4>
+              </div>
+              <p className="text-[10px] font-black italic text-white/90 leading-relaxed uppercase tracking-wide opacity-80">
+                 Peak booking density detected between 10 AM and 2 PM. Recommend increasing nurse staff rotation by 15%.
+              </p>
+            </Card>
+
 
             {/* Status Matrix */}
             <Card className={`${UI_TOKENS.SHARD_BASE} p-6 min-h-[380px] flex flex-col gap-6 relative overflow-hidden group`}>

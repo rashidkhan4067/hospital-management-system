@@ -1,44 +1,37 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Calendar, Stethoscope, TrendingUp, UserPlus } from 'lucide-react';
+import { Users, Calendar, Stethoscope, TrendingUp, UserPlus, Plus } from 'lucide-react';
 
-// ── Modals ──────────────────────────────────────────────────────────────────
+// ── Modals
 import AddUserModal from '@/features/identity/components/AddUserModal';
 import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 
-// ── Data Hooks ───────────────────────────────────────────────────────────────
+// ── Data Hooks
 import { useAdminAnalytics } from '@/features/analytics/hooks/useAnalytics';
 import analyticsService from '@/features/analytics/api/analyticsService';
 
-// ── Layout ───────────────────────────────────────────────────────────────────
+// ── Layout & Shared UI
 import AdminPage from '@/shared/components/layout/AdminPage';
+import { PageHeader, Card, Button } from '@/shared/components/ui';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
 
-// ─── ROW 1: Header ───────────────────────────────────────────────────────────
-import DashboardHeader from '@/features/dashboard/components/DashboardHeader';
-
-// ─── ROW 2: Stats Row ────────────────────────────────────────────────────────
+// ── Dashboard Feature Components
 import MetricCards from '@/features/dashboard/components/MetricCards';
 import TodaySummary from '@/features/dashboard/components/TodaySummary';
 import SanaStats from '@/features/dashboard/components/SanaStats';
 import DepartmentStats from '@/features/dashboard/components/DepartmentStats';
-import WelcomeCTA from '@/features/dashboard/components/WelcomeCTA';
-
-// ─── ROW 3: Main Content ─────────────────────────────────────────────────────
 import TodayAppointments from '@/features/dashboard/components/TodayAppointments';
 import OPDQueue from '@/features/dashboard/components/OPDQueue';
 import RecentPatients from '@/features/dashboard/components/RecentPatients';
 import StaffStatus from '@/features/dashboard/components/StaffStatus';
 import ActivityFeed from '@/features/dashboard/components/ActivityFeed';
-
-// ─── ROW 4: Right Column Widgets ─────────────────────────────────────────────
 import WeeklyChart from '@/features/dashboard/components/WeeklyChart';
 import DoctorStatus from '@/features/dashboard/components/DoctorsStatus';
 import BedStatus from '@/features/dashboard/components/BedStatus';
-
-// ─── ROW 5: Bottom Row ───────────────────────────────────────────────────────
 import RevenueCard from '@/features/dashboard/components/RevenueCard';
 import StockAlerts from '@/features/dashboard/components/StockAlerts';
 import SystemHealthCard from '@/features/dashboard/components/SystemHealthCard';
+
 
 /**
  * 🏥 Al Shifaa Admin Dashboard — Layout per image.png blueprint
@@ -98,17 +91,34 @@ export default function AdminDashboard({ propAppointments }) {
 
          <div className={`flex flex-col gap-6 w-full -mt-2`}>
             {/* 🛸 COMMAND HUB: Row 1 — Header */}
-            <DashboardHeader 
-               onNewAppointment={() => setIsVisitModalOpen(true)}
-               onSearch={() => {}}
-               currentTime={currentTime}
+            <PageHeader 
+                title="Clinical Dashboard"
+                subtitle={<>Welcome, <span className="text-accent-primary">{pulse?.user?.displayName?.split(' ')[0] || 'Administrator'}</span> • System Protocols Nominal</>}
+                status="Live System"
+                actions={
+                    <div className="flex items-center gap-2">
+                        <Button 
+                            onClick={() => setIsVisitModalOpen(true)}
+                            className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-accent-primary/90 hover:scale-105 transition-all shadow-lg shadow-accent-primary/25 border-none"
+                        >
+                            <Plus size={16} strokeWidth={3} /> New Appointment
+                        </Button>
+                    </div>
+                }
             />
 
-            {/* 🌠 PERSISTENT GREETING: Row 2 — Welcome CTA */}
-            <WelcomeCTA onQuickAction={(type) => {
-               if (type === 'appointment') setIsVisitModalOpen(true);
-               if (type === 'patient') setIsUserModalOpen(true);
-            }} />
+            {/* 🌠 PERSISTENT GREETING: Row 2 — Unified Hero CTA */}
+            <UnifiedHeroCTA 
+               compact
+               title={<>Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 17 ? 'Afternoon' : 'Evening'}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">{pulse?.user?.displayName?.split(' ')[0] || 'Administrator'}.</span></>}
+               subtitle="Your clinical operations matrix for Al Shifaa is synchronized and ready for management. Performance metrics across all nodes are optimal."
+               pillPrefix="Clinical Command Hub"
+               pillIcon={Users}
+               actions={[
+                  { title: 'New Visit', subtitle: 'Book Patient', icon: Calendar, onClick: () => setIsVisitModalOpen(true) },
+                  { title: 'Registry', subtitle: 'Add New Patient', icon: UserPlus, onClick: () => setIsUserModalOpen(true) }
+               ]}
+            />
             
             <MetricCards metrics={kpiMetrics} />
          </div>

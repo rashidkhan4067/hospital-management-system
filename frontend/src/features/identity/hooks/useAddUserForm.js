@@ -16,7 +16,11 @@ export const useAddUserForm = (onSuccess, initialRole = 'patient') => {
     phone_number: '',
     role: initialRole,
     password: '',
-    confirm_password: ''
+    confirm_password: '',
+    age: '',
+    gender: '',
+    blood_group: '',
+    address: ''
   });
 
   const updateField = useCallback((field, value) => {
@@ -31,7 +35,11 @@ export const useAddUserForm = (onSuccess, initialRole = 'patient') => {
       phone_number: '',
       role: initialRole,
       password: '',
-      confirm_password: ''
+      confirm_password: '',
+      age: '',
+      gender: '',
+      blood_group: '',
+      address: ''
     });
   }, [initialRole]);
 

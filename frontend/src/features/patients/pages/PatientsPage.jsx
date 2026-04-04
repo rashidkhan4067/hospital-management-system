@@ -1,185 +1,184 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { 
-  Users, 
-  UserPlus,
-  Heart,
-  Activity,
+import {
   Eye,
   ShieldPlus,
   Calendar,
-  Trash2
+  Trash2,
+  Activity,
+  UserPlus,
+  Users,
+  Heart,
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard, TableActions } from '@/shared/components/ui';
+import { Badge, Button, TableActions, PageHeader, FilterBar } from '@/shared/components/ui';
 import { useNavigate } from 'react-router-dom';
 import AdminTable from '@/shared/components/ui/AdminTable';
-import FilterBar from '@/shared/components/ui/FilterBar';
 import AdminPage from '@/shared/components/layout/AdminPage';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
 
-// 🔮 Modals
+// Modularized Clinical Components
+import PatientTable from '../components/list/PatientTable';
+import PatientStatsRow from '../components/list/PatientStatsRow';
+import AddPatientModal from '../components/list/AddPatientModal';
+import EditPatientModal from '../components/emr/modals/EditPatientModal';
+
+// Modals & Identity
 import DeleteConfirmModal from '@/features/identity/components/DeleteConfirmModal';
-import AddUserModal from '@/features/identity/components/AddUserModal';
-import { useNotifications } from '@/shared/hooks/useNotifications';
 import UserService from '@/features/identity/api/userService';
+import { useNotifications } from '@/shared/hooks/useNotifications';
 
-// 🎣 Data Hooks
+// Data Hooks
 import { useAdminPatients } from '@/features/patients/hooks/usePatients';
 import { useAdminStats } from '@/features/dashboard/hooks/useStats';
 
 /**
- * 🩺 Patient Management
- * Screen to manage all patients and their medical history.
+ * 🩺 Patient Registry Command Center
+ * Full patient list with CTA hero, KPI strip, search, and action table.
  */
 export default function AdminPatients({ autoOpenAdd = false }) {
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
-  
-  // 🧭 UI State
+
+  // UI State
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(autoOpenAdd);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🎣 Data Hooks
+  // Data
   const { patients, loading: patientsLoading, refresh } = useAdminPatients();
   const { stats: statsSummary, loading: statsLoading } = useAdminStats();
-
   const loading = patientsLoading || statsLoading;
 
-  // Delete Patient Record
-  const handleDelete = useCallback(async (patient) => {
-    setIsSubmitting(true);
-    try {
+  // Derived stats
+  const totalPatients = statsSummary?.counts?.patients ?? patients.length;
+  const admitted = statsSummary?.counts?.active_admissions ?? patients.filter((p) => p.is_admitted).length;
+  const newPatients = patients.length > 5 ? 5 : patients.length;
+
+  // Handlers
+  const handleDelete = useCallback(
+    async (patient) => {
+      setIsSubmitting(true);
+      try {
         await UserService.delete(patient.id);
-        addNotification('Patient Deleted', `Patient record has been removed.`, 'success');
+        addNotification('Patient Deleted', 'Patient record has been removed.', 'success');
         setIsDeleteModalOpen(false);
         refresh();
-    } catch (err) {
+      } catch {
         addNotification('Error', 'Failed to delete record.', 'error');
-    } finally {
+      } finally {
         setIsSubmitting(false);
-    }
-  }, [refresh, addNotification]);
+      }
+    },
+    [refresh, addNotification]
+  );
 
   const openDelete = useCallback((patient) => {
     setSelectedPatient(patient);
     setIsDeleteModalOpen(true);
   }, []);
 
-  // Filter List of Patients
+  const openEdit = (patient) => {
+     setSelectedPatient(patient);
+     setIsEditModalOpen(true);
+  };
+
+  const openRecord = (patient) => {
+     navigate(`/admin/patients/${patient.id}`);
+  };
+
+  // Filtered list
   const filteredPatients = useMemo(() => {
-    return patients.filter(p => {
-        const matchesSearch = p.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             p.id?.toString().includes(searchTerm);
-        
-        if (activeTab === 'CRITICAL') return matchesSearch && p.is_admitted;
-        if (activeTab === 'STABLE') return matchesSearch && !p.is_admitted;
-        
-        return matchesSearch;
+    return patients.filter((p) => {
+      const matchesSearch =
+        p.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.id?.toString().includes(searchTerm) ||
+        p.phone?.includes(searchTerm);
+
+      if (activeTab === 'CRITICAL') return matchesSearch && p.is_admitted;
+      if (activeTab === 'STABLE') return matchesSearch && !p.is_admitted;
+      return matchesSearch;
     });
   }, [patients, searchTerm, activeTab]);
 
-  // Dashboard Stats
-  const stats = useMemo(() => [
-    { title: "Total Patients", value: loading ? "..." : statsSummary?.counts?.patients ?? 0, icon: Users, trend: "Tracking" },
-    { title: "Admitted", value: loading ? "..." : statsSummary?.counts?.active_admissions ?? 0, icon: Heart, trend: "Live" },
-    { title: "New Patients", value: loading ? "..." : (patients.length > 5 ? 5 : patients.length), icon: UserPlus, trend: "Current" },
-    { title: "System Status", value: "Online", icon: Activity, trend: "Live" },
-  ], [loading, statsSummary, patients.length]);
-
-  const columns = [
-    { 
-        header: 'Patient Profile', 
-        cell: (p) => (
-            <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate(`/admin/patients/${p.id}`)}>
-                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary text-[10px] font-black uppercase group-hover:scale-110 transition-all">
-                    {(p.full_name || '??').split(' ').map(n => n[0]).join('')}
-                </div>
-                <div className="flex flex-col">
-                    <p className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-none group-hover:text-accent-primary transition-colors">{p.full_name || 'Anonymous'}</p>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 tabular-nums">ID: {p.id} • {p.gender || 'N/A'}</p>
-                </div>
-            </div>
-        )
-    },
-    { header: 'Blood Type', accessor: 'blood_group', cell: (p) => <Badge className="bg-rose-500/10 text-rose-500 border-none text-[9px] px-3 py-1 font-black uppercase tracking-[0.2em]">{p.blood_group || '??'}</Badge> },
-    { header: 'Last Visit', accessor: 'updated_at', cell: (p) => <span className="text-[10px] font-bold text-slate-400 tabular-nums">{new Date(p.updated_at).toLocaleDateString()}</span> },
-    { 
-        header: 'Patient Status',
-        accessor: 'is_admitted',
-        cell: (p) => (
-            <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${p.is_admitted ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]'}`} />
-                <span className={`text-[10px] font-black uppercase tracking-widest ${p.is_admitted ? 'text-rose-500' : 'text-emerald-500'}`}>{p.is_admitted ? 'Admitted' : 'Outpatient'}</span>
-            </div>
-        )
-    },
-    { header: 'Contact', accessor: 'phone', cell: (p) => <span className="text-[10px] font-black text-slate-500 tracking-[0.1em] tabular-nums">{p.phone}</span> },
-    { 
-        header: 'Actions', 
-        cell: (p) => (
-            <TableActions 
-                row={p}
-                actions={[
-                    { label: 'View Record', icon: Eye, onClick: (row) => navigate(`/admin/patients/${row.id}`) },
-                    { label: 'Activity', icon: Activity, onClick: (row) => navigate(`/admin/patients/${row.id}/appointments`) },
-                    { label: 'Book Visit', icon: Calendar, onClick: (row) => navigate(`/admin/appointments/add?patient=${row.id}`) },
-                    { label: 'Edit Patient', icon: ShieldPlus, onClick: (row) => navigate(`/admin/patients/edit/${row.id}`) },
-                    { label: 'Delete Record', icon: Trash2, onClick: openDelete, variant: 'danger' },
-                ]}
-            />
-        )
-    },
-  ];
-
   return (
     <AdminPage>
+      {/* ── Proper Modular Header ── */}
       <PageHeader 
-        title="Patients" 
-        subtitle="Manage Hospital Patient Records"
+        title="Patient Registry" 
+        subtitle="Clinical Identity Matrix Synchronized"
+        status="Live Records"
         actions={
-            <Button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
-            >
-                <UserPlus size={16} /> Add Patient
-            </Button>
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-accent-primary/90 hover:scale-105 transition-all shadow-lg shadow-accent-primary/25 border-none"
+          >
+            <UserPlus size={16} strokeWidth={3} /> Add Patient Shard
+          </Button>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
-      </div>
+      {/* ── Unified Hero CTA ── */}
+      <UnifiedHeroCTA 
+        compact
+        title={<>Patient <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Command Center.</span></>}
+        subtitle={`Currently tracking ${totalPatients} registered patients with ${admitted} actively admitted nodes.`}
+        pillPrefix="Clinical Patient Registry"
+        pillIcon={Users}
+        actions={[
+          { title: 'New Intake', subtitle: 'Register Patient', icon: UserPlus, onClick: () => setIsAddModalOpen(true) },
+          { title: 'Live Admissions', subtitle: `${admitted} Admitted Now`, icon: Activity, onClick: () => setActiveTab('CRITICAL') }
+        ]}
+      />
 
-      <div className="space-y-10 mt-10">
-        <FilterBar 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            tabs={[
-                { id: 'ALL', label: 'All Patients' },
-                { id: 'STABLE', label: 'Verified Patients' },
-                { id: 'CRITICAL', label: 'Admitted' }
-            ]}
-        />
+      {/* ── Patient Stats Matrix (Blueprint Alignment) ── */}
+      <PatientStatsRow 
+         total={totalPatients} 
+         newThisMonth={newPatients} 
+         activeToday={admitted} 
+         loading={loading} 
+      />
 
-        <AdminTable 
-            columns={columns} 
-            data={filteredPatients} 
-            isLoading={loading}
-        />
-      </div>
+      {/* ── Integrated Commands ── */}
+      <FilterBar 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        placeholder="Search patient name, ID, phone..."
+        tabs={[
+          { id: 'ALL',      label: 'All Patients' },
+          { id: 'STABLE',   label: 'Outpatients' },
+          { id: 'CRITICAL', label: 'Admitted' },
+        ]}
+      />
 
-      <AddUserModal
+      {/* ── Primary Data Matrix (Blueprint Alignment) ── */}
+      <PatientTable
+        data={filteredPatients}
+        isLoading={loading}
+        onRowClick={openRecord}
+        onEdit={openEdit}
+        onDelete={openDelete}
+      />
+
+      {/* ── Specialized Modals ── */}
+      <AddPatientModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onRefresh={refresh}
-        initialRole="patient"
       />
-
-      <DeleteConfirmModal 
+      <EditPatientModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        patientId={selectedPatient?.id}
+        initialData={selectedPatient}
+        onRefresh={refresh}
+      />
+      <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onAction={handleDelete}

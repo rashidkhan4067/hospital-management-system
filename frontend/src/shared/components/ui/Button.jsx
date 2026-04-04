@@ -13,7 +13,7 @@ export const Button = ({
   icon: Icon,
   ...props 
 }) => {
-  const baseClass = 'btn';
+  const baseClass = 'btn font-display';
   const variantClass = variant === 'primary' ? 'btn-primary' : 'social-btn';
   const glowClass = glow ? 'btn-glow' : '';
   const combinedClass = `${baseClass} ${variantClass} ${glowClass} ${className}`.trim();

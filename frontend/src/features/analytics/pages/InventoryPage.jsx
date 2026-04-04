@@ -12,9 +12,10 @@ import {
   Edit,
   Trash
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard, Card, TableActions } from '@/shared/components/ui';
+import { Badge, Button, PageHeader, Card, TableActions, FilterBar } from '@/shared/components/ui';
 import AdminTable from '@/shared/components/ui/AdminTable';
-import FilterBar from '@/shared/components/ui/FilterBar';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
 import ProvisionSupplyShardModal from '@/features/analytics/components/ProvisionSupplyShardModal';
 import AdminPage from '@/shared/components/layout/AdminPage';
 import { useNavigate } from 'react-router-dom';
@@ -148,12 +149,7 @@ export default function AdminInventory({ autoOpenAdd = false }) {
     },
   ];
 
-  const stats = [
-    { title: "Total Items", value: loading ? "..." : items.length, icon: Archive, trend: "Sync'd" },
-    { title: "Critical Nodes", value: loading ? "..." : items.filter(i => i.status === 'critical').length, icon: AlertTriangle, trend: "Watch" },
-    { title: "Matrix Health", value: "98.2%", icon: Activity, trend: "Stable" },
-    { title: "Incoming Flux", value: "+42", icon: Truck, trend: "In Route" },
-  ];
+
 
   return (
     <AdminPage>
@@ -170,11 +166,31 @@ export default function AdminInventory({ autoOpenAdd = false }) {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        {stats.map((stat, i) => <StatsCard key={i} {...stat} />)}
-      </div>
+      {/* ── Unified Hero CTA ── */}
+      <UnifiedHeroCTA 
+        compact
+        title={<>Inventory <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Logistics.</span></>}
+        subtitle={`Managing ${items.length} clinical supply nodes with ${items.filter(i => i.status === 'critical').length} critical alerts pending resolution.`}
+        pillPrefix="Clinical Supply Shard"
+        pillIcon={Package}
+        actions={[
+          { title: 'Provision Shard', subtitle: 'Add New Stock', icon: Plus, onClick: handleProvision },
+          { title: 'Force Sync', subtitle: 'Refresh Matrix', icon: RefreshCw, onClick: refresh }
+        ]}
+      />
 
-      <div className="space-y-10">
+      {/* ── Unified KPI Hub ── */}
+      <UnifiedKpiGrid 
+        loading={loading}
+        stats={[
+          { title: "Total Items", value: items.length, icon: Archive, trend: "Sync'd" },
+          { title: "Critical Nodes", value: items.filter(i => i.status === 'critical').length, icon: AlertTriangle, trend: "Watch" },
+          { title: "Matrix Health", value: "98.2%", icon: Activity, trend: "Stable" },
+          { title: "Incoming Flux", value: "+42", icon: Truck, trend: "In Route" },
+        ]}
+      />
+
+      <div className="space-y-8 mt-4">
         <FilterBar 
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -194,6 +210,7 @@ export default function AdminInventory({ autoOpenAdd = false }) {
             isLoading={loading}
         />
       </div>
+
 
       {!loading && logs.length > 0 && (
           <div className="space-y-8 mt-10">

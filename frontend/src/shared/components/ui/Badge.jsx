@@ -9,7 +9,7 @@ export const Badge = ({ children, icon: Icon, className = '', ...props }) => {
     <motion.div 
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className={`badge-glow ${className}`.trim()} 
+      className={`badge-glow font-display ${className}`.trim()} 
       {...props}
     >
       {Icon && <Icon size={16} />}

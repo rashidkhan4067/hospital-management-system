@@ -1,33 +1,33 @@
 import React, { useState, useMemo } from 'react';
 import { 
-   Calendar, Plus, Clock, UserCheck, AlertCircle, Eye, CheckCircle, XCircle, Download, Trash2, Edit3 
+   Calendar, Plus, Clock, UserCheck, AlertCircle, Eye, CheckCircle, XCircle,
+   Download, Trash2, Edit3, Mic, Activity
 } from 'lucide-react';
 import { 
    Badge,
    Button, 
    Card,
    PageHeader,
-   TableActions 
+   TableActions,
+   FilterBar 
 } from '@/shared/components/ui';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
 
-// 🧪 Blueprint Components
-import AppointmentHeader from '@/features/appointments/components/AppointmentHeader';
-import AppointmentFilters from '@/features/appointments/components/AppointmentFilters';
+// Feature components
 import AppointmentsTable from '@/features/appointments/components/AppointmentsTable';
 import AppointmentDrawer from '@/features/appointments/components/AppointmentDrawer';
 import UpcomingAppointments from '@/features/appointments/components/UpcomingAppointments';
 import SanaVoiceBooking from '@/features/appointments/components/SanaVoiceBooking';
-import AppointmentKpiGrid from '@/features/appointments/components/AppointmentKpiGrid';
 import DoctorAvailability from '@/features/appointments/components/DoctorAvailability';
 import ClinicalIntelligenceHub from '@/features/appointments/components/ClinicalIntelligenceHub';
-import AppointmentCTA from '@/features/appointments/components/AppointmentCTA';
 
 import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 import AppointmentService from '@/features/appointments/api/appointmentService';
 import { useUI } from '@/core/ui/UIContext';
 import { useAdminAppointments } from '@/features/appointments/hooks/useAppointments';
 import AdminPage from '@/shared/components/layout/AdminPage';
-import { BREAKPOINTS } from '@/core/config/UI';
+
 
 /**
  * 📅 Al Shifaa Advanced Appointments Hub
@@ -82,23 +82,62 @@ export default function AppointmentsPage() {
          <div className={`flex flex-col gap-4 lg:gap-5 w-full min-h-screen bg-slate-50/50 dark:bg-transparent px-4 lg:px-8 -mt-2 pb-20`}>
             
             {/* 🛸 COMMAND HUB: Row 1 — Header */}
-            <AppointmentHeader 
-               searchTerm={searchTerm} 
-               setSearchTerm={setSearchTerm} 
-               onBook={() => setIsModalOpen(true)}
-               onTalkToSana={() => {}}
-               userRole="admin" 
+            <PageHeader 
+               title="Clinical Appointments"
+               subtitle="Appointment Hub Synchronized"
+               status="Live Schedule"
+               actions={
+                  <div className="flex items-center gap-2">
+                     <Button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-accent-primary/90 hover:scale-105 transition-all shadow-lg shadow-accent-primary/25 border-none"
+                     >
+                        <Plus size={16} strokeWidth={3} /> Book New
+                     </Button>
+                  </div>
+               }
             />
 
             {/* 🌠 PERSISTENT GREETING: Row 2 — Hero CTA */}
-            <AppointmentCTA 
-               appointments={appointments} 
-               onBook={() => setIsModalOpen(true)}
-               onTalkToSana={() => {}} 
+            <UnifiedHeroCTA 
+               compact
+               title={<>Clinical <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Intelligence.</span></>}
+               subtitle="Manage clinical sessions, synchronize practitioner availability, and optimize node allocation across the Al Shifaa matrix."
+               pillPrefix="Clinical Appointment Registry"
+               pillIcon={Calendar}
+               actions={[
+                  { title: 'New Visit', subtitle: 'Book Clinical Session', icon: Plus, onClick: () => setIsModalOpen(true) },
+                  { title: 'Sana Voice', subtitle: 'AI Audio Booking', icon: Mic, onClick: () => {} }
+               ]}
             />
 
             {/* 🛰 KPI Hub */}
-            <AppointmentKpiGrid appointments={appointments} />
+            <UnifiedKpiGrid 
+               loading={loading}
+               stats={[
+                  { title: 'Total Visits', value: appointments.length, icon: Calendar, trend: '+12.4% Up' },
+                  { title: 'Confirmed', value: appointments.filter(a => a.status === 'scheduled').length, icon: CheckCircle, trend: 'Stable' },
+                  { title: 'Pending', value: appointments.filter(a => a.status === 'pending').length, icon: AlertCircle, trend: 'Ok' },
+                  { title: 'System Load', value: 'Nominal', icon: Activity, trend: 'Live' }
+               ]}
+            />
+
+            {/* 🛰 Master Control Matrix */}
+            <div className="w-full">
+               <FilterBar 
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  placeholder="Search patient, doctor, or ID..."
+                  tabs={[
+                     { id: 'ALL', label: 'All Global' },
+                     { id: 'SCHEDULED', label: 'Confirmed' },
+                     { id: 'PENDING', label: 'Pending' },
+                     { id: 'CANCELLED', label: 'Cancelled' }
+                  ]}
+               />
+            </div>
 
             {/* 🛰 Unified Assembly */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
@@ -106,15 +145,8 @@ export default function AppointmentsPage() {
                {/* 🏥 CLINICAL OPERATIONS HUB (Left Space) */}
                <div className="lg:col-span-8 flex flex-col gap-5 lg:gap-6">
                   
-                  {/* 1. Integrated Status Matrix */}
-                  <AppointmentFilters 
-                     activeTab={activeTab} 
-                     setActiveTab={setActiveTab} 
-                     filters={{}} 
-                     setFilters={() => {}} 
-                  />
+                  {/* 1. Primary Record Matrix */}
 
-                  {/* 2. Primary Record Matrix */}
                   <AppointmentsTable 
                      appointments={filteredAppointments} 
                      isLoading={loading}

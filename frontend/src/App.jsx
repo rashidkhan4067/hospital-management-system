@@ -45,9 +45,12 @@ const PatientRecordPage = lazy(() => import('@/features/patients/pages/PatientRe
 // ─── Feature: Appointments ────────────────────────────────────────────────────
 const AdminAppointmentsPage = lazy(() => import('@/features/appointments/pages/AppointmentsPage'));
 const UserAppointmentsPage  = lazy(() => import('@/features/appointments/pages/UserAppointmentsPage'));
+const BookingDispatcher     = lazy(() => import('@/features/appointments/pages/BookingDispatcher'));
 
 // ─── Feature: Doctors ────────────────────────────────────────────────────────
 const DoctorsPage         = lazy(() => import('@/features/doctors/pages/DoctorsPage'));
+const DoctorDispatcher    = lazy(() => import('@/features/doctors/pages/DoctorDispatcher'));
+const DoctorDetailDispatcher = lazy(() => import('@/features/doctors/pages/DoctorDetailDispatcher'));
 const DoctorRecordPage     = lazy(() => import('@/features/doctors/pages/DoctorRecordPage'));
 const DoctorSchedulePage  = lazy(() => import('@/features/doctors/pages/DoctorSchedulePage'));
 const SpecializationsPage = lazy(() => import('@/features/doctors/pages/SpecializationsPage'));
@@ -80,6 +83,7 @@ const AIInsightsPage = lazy(() => import('@/features/ai/pages/AILogs')); // plac
 
 // ─── Feature: AI ─────────────────────────────────────────────────────────────
 const SanaAIPage   = lazy(() => import('@/features/ai/pages/SanaAIPage'));
+const SanaVoicePage = lazy(() => import('@/features/ai/pages/SanaVoicePage'));
 const AILogsPage   = lazy(() => import('@/features/ai/pages/AILogs'));
 const AIChatsPage  = lazy(() => import('@/features/ai/pages/AIChats'));
 const AIConfigPage = lazy(() => import('@/features/ai/pages/AIConfig'));
@@ -131,7 +135,6 @@ export default function App() {
                 {/* 🌐 PUBLIC */}
                 <Route element={<PublicLayout />}>
                   <Route path="/"              element={<LandingPage />} />
-                  <Route path="/doctors"       element={<DoctorsPublicPage />} />
                   <Route path="/specialists"   element={<DoctorsPublicPage />} />
                   <Route path="/clinical-tech" element={<ClinicalTechPage />} />
                   <Route path="/safety"        element={<SafetyPage />} />
@@ -142,8 +145,11 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route element={<AppLayout />}>
                     <Route path="/dashboard"       element={<DashboardDispatcher />} />
-                    <Route path="/my-appointments" element={<UserAppointmentsPage />} />
-                    <Route path="/sana-ai"         element={<SanaAIPage />} />
+                    <Route path="/doctors"         element={<DoctorDispatcher />} />
+                    <Route path="/doctors/:id"     element={<DoctorDetailDispatcher />} />
+                    <Route path="/book/:doctorId"  element={<BookingDispatcher />} />
+                    <Route path="/appointments"    element={<UserAppointmentsPage />} />
+                    <Route path="/voice"           element={<SanaVoicePage />} />
 
                     {/* 🔒 ADMIN ONLY */}
                     <Route element={<ProtectedRoute requireAdmin={true} />}>
