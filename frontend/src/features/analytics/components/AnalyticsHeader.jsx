@@ -3,11 +3,11 @@ import { Calendar, Download, ChevronDown, Filter, Search, Activity } from 'lucid
 import { Button } from '@/shared/components/ui';
 
 const AnalyticsHeader = ({ range, onRangeChange, filters, onFilterChange }) => {
-  const today = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   return (
@@ -17,34 +17,34 @@ const AnalyticsHeader = ({ range, onRangeChange, filters, onFilterChange }) => {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white italic uppercase tracking-tighter leading-none">
-               Analytics Intelligence
+              Analytics Intelligence
             </h1>
             <div className="px-3 py-1 rounded-lg bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-[10px] font-black uppercase italic shadow-sm flex items-center gap-2">
-               <Activity size={12} className="animate-pulse" /> Clinical Hub
+              <Activity size={12} className="animate-pulse" /> Clinical Hub
             </div>
           </div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1 italic">
-             {today} • <span className="text-accent-primary italic">Live Telemetry Synchronized</span>
+            {today} • <span className="text-accent-primary italic">Live Telemetry Synchronized</span>
           </p>
         </div>
 
         {/* 🛠 Tactical Range Matrix */}
         <div className="flex flex-wrap items-center gap-3 bg-white/70 dark:bg-slate-900/40 backdrop-blur-3xl p-2 rounded-[1.5rem] border border-slate-200 dark:border-white/10 shadow-2als">
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/60 rounded-xl border border-white/5 p-1">
-              {['Today', '7d', '30d'].map((r) => (
-                <button
-                  key={r}
-                  onClick={() => onRangeChange(r)}
-                  className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase transition-all duration-300 ${range === r ? 'bg-accent-primary text-white shadow-lg shadow-accent-primary/20 scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-            <div className="h-8 w-[1px] bg-slate-200 dark:bg-white/10 mx-1" />
-            <Button className="bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg border-none">
-              <Download size={14} strokeWidth={3} /> Export CSV
-            </Button>
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/60 rounded-xl border border-white/5 p-1">
+            {['Today', '7d', '30d'].map((r) => (
+              <button
+                key={r}
+                onClick={() => onRangeChange(r)}
+                className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase transition-all duration-300 ${range === r ? 'bg-accent-primary text-white shadow-lg shadow-accent-primary/20 scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <div className="h-8 w-[1px] bg-slate-200 dark:bg-white/10 mx-1" />
+          <Button className="bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg border-none">
+            <Download size={14} strokeWidth={3} /> Export CSV
+          </Button>
         </div>
       </div>
 

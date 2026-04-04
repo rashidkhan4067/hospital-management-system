@@ -9,11 +9,11 @@ import { useAuth } from '@/core/auth/AuthContext';
  */
 const DashboardHeader = ({ onNewAppointment, onSearch, currentTime }) => {
   const { user } = useAuth();
-  const today = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   return (

@@ -24,12 +24,6 @@ export const UI_TOKENS = {
     TEXT_PRIMARY: "text-[14px] font-black uppercase italic tracking-tighter text-slate-800 dark:text-white leading-none",
     TEXT_SECONDARY: "text-[8px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-white/30 mt-1",
     VALUE: "text-2xl font-black italic text-slate-900 dark:text-white tracking-tighter",
-    
-    // 🏛️ Page Architecture (Standardized)
-    PAGE_HEADER: "flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 mt-4",
-    PAGE_TITLE: "text-2xl lg:text-3xl font-black text-slate-900 dark:text-white italic uppercase tracking-tighter leading-none",
-    SUB_HEADER: "text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1 italic",
-    HERO_CTA: "relative overflow-hidden p-6 sm:p-10 rounded-3xl sm:rounded-[2.5rem] border border-white/5 shadow-2xals mb-6",
 
     // 🛰️ Component Spacing
     GAP_XL: "gap-10",
@@ -45,7 +39,7 @@ export const UI_TOKENS = {
 
 export const CTA_THEMES = {
     // 🛸 Master Command Action Buttons
-    PRIMARY: "flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest hover:bg-accent-primary/90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent-primary/25 border-none cursor-pointer",
+    PRIMARY: "flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest hover:bg-accent-primary/90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent-primary/25 border-none cursor-pointer",
     
     SECONDARY: "group/btn relative flex items-center gap-4 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:border-accent-primary/50 transition-all duration-500 overflow-hidden cursor-pointer",
 
@@ -56,7 +50,7 @@ export const CTA_THEMES = {
     DANGER: "flex items-center gap-3 px-6 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-xl shadow-rose-500/10 active:scale-95 cursor-pointer",
 
     // 👻 Sub-Navigation / Minimalist
-    GHOST: "w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 hover:text-accent-primary hover:border-accent-primary/30 transition-all active:scale-90 cursor-pointer p-0",
+    GHOST: "w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 hover:text-accent-primary hover:border-accent-primary/30 transition-all active:scale-90 cursor-pointer p-0",
 
     // 🌌 Layout Matrix
     CTA_GRID: "grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0",
@@ -66,8 +60,6 @@ export const CTA_THEMES = {
 export const BREAKPOINTS = {
     MOBILE_PADDING: "px-6",
     DESKTOP_PADDING: "px-8 lg:px-12",
-    MARGIN_TOP: "mt-4",
-    MARGIN_BOTTOM: "mb-8",
     ROUNDED_MOBILE: "rounded-3xl",
     ROUNDED_DESKTOP: "rounded-[2.5rem]",
 };
