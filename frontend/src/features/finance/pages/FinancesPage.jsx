@@ -20,11 +20,14 @@ import { useUI } from '@/core/ui/UIContext';
 import { useFinanceForm } from '../hooks/useFinanceForm';
 import { exportToCSV } from '@/shared/utils/exportUtils';
 
+import { useNavigate } from 'react-router-dom';
+
 /**
  * 💹 Financial Oversight & Billing Hub (Orchestrator)
  * High-fidelity hub for managing clinical financial telemetry.
  */
 export default function AdminFinances() {
+  const navigate = useNavigate();
   const { addNotification } = useUI();
   
   // 🧭 UI Local State
@@ -157,6 +160,7 @@ export default function AdminFinances() {
             data={filteredTransactions} 
             loading={loading}
             onAction={handleAction}
+            onRowClick={(row) => navigate(`/admin/finances/${row.id}`)}
         />
       </div>
 

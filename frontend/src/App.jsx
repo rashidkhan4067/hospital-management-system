@@ -57,6 +57,7 @@ const SpecializationsPage = lazy(() => import('@/features/doctors/pages/Speciali
 
 // ─── Feature: Finance ────────────────────────────────────────────────────────
 const FinancesPage   = lazy(() => import('@/features/finance/pages/FinancesPage'));
+const TransactionRecordPage = lazy(() => import('@/features/finance/pages/TransactionRecordPage'));
 const BillingPage    = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with BillingPage
 const ExpensesPage   = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with ExpensesPage
 const FinReportsPage = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with FinancialReportsPage
@@ -185,6 +186,7 @@ export default function App() {
 
                       {/* Finance */}
                       <Route path="/admin/finances"           element={<FinancesPage />} />
+                      <Route path="/admin/finances/:id"       element={<TransactionRecordPage />} />
                       <Route path="/admin/billing"            element={<BillingPage />} />
                       <Route path="/admin/expenses"           element={<ExpensesPage />} />
                       <Route path="/admin/reports/financial"  element={<FinReportsPage />} />

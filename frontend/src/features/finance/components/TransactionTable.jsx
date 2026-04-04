@@ -7,7 +7,7 @@ import AdminTable from '@/shared/components/ui/AdminTable';
  * 📊 Transaction Matrix Shard
  * Specialized high-fidelity table for financial audit orchestration.
  */
-export default function TransactionTable({ data, loading, onAction }) {
+export default function TransactionTable({ data, loading, onAction, onRowClick }) {
     const columns = [
         { 
             header: 'Billing Instance', 
@@ -68,6 +68,7 @@ export default function TransactionTable({ data, loading, onAction }) {
             columns={columns} 
             data={data} 
             isLoading={loading}
+            onRowClick={onRowClick}
         />
     );
 }
