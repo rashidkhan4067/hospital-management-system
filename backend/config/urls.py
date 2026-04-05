@@ -45,6 +45,7 @@ urlpatterns = [
     path('api/v1/appointments/', include('apps.appointments.urls', namespace='appointments')),
     path('api/v1/inventory/', include('apps.inventory.urls', namespace='inventory')),
     path('api/v1/system/', include('apps.system.urls')),
+    path('api/v1/wards/', include('apps.wards.urls', namespace='wards')),
     path('api/v1/ai/', include('apps.ai.urls')),
 ]
 

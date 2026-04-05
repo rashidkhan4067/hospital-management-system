@@ -17,7 +17,7 @@ const DoctorAvailability = ({ doctors = [] }) => {
       <Card className="p-5 lg:p-6 rounded-[2.5rem] bg-white/70 dark:bg-slate-900/10 backdrop-blur-3xl border border-slate-200 dark:border-white/5 shadow-2als flex flex-col gap-6 group overflow-hidden">
          <div className="flex items-center justify-between relative z-10 shrink-0">
             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20 shadow-inner group-hover:scale-110 transition-transform italic shrink-0">
+               <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary border border-accent-primary/20 shadow-inner group-hover:scale-110 transition-transform italic shrink-0">
                   <UserCheck size={20} strokeWidth={2.5} />
                </div>
                <div className="flex flex-col">
@@ -25,7 +25,7 @@ const DoctorAvailability = ({ doctors = [] }) => {
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Live Personnel Hub</p>
                </div>
             </div>
-            <button className="w-8 h-8 rounded-lg bg-indigo-500/5 text-indigo-400 hover:bg-indigo-500 hover:text-white flex items-center justify-center transition-all">
+            <button className="w-8 h-8 rounded-lg bg-accent-primary/5 text-accent-primary hover:bg-accent-primary hover:text-white flex items-center justify-center transition-all border-none">
                <Activity size={14} />
             </button>
          </div>
@@ -52,7 +52,7 @@ const DoctorAvailability = ({ doctors = [] }) => {
             ))}
          </div>
 
-         <button className="w-full py-4 rounded-2xl bg-indigo-500 text-white text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-indigo-500/20 border-none flex items-center justify-center gap-2">
+         <button className="w-full py-4 rounded-2xl bg-accent-primary text-white text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-accent-primary/20 border-none flex items-center justify-center gap-2">
             Open Global Availability Matrix <ChevronRight size={14} />
          </button>
       </Card>

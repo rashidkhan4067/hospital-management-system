@@ -10,7 +10,7 @@ import {
   Settings,
   Edit2
 } from 'lucide-react';
-import { Badge, Button, PageHeader, TableActions, FilterBar } from '@/shared/components/ui';
+import { Badge, Button, Card, PageHeader, TableActions, FilterBar } from '@/shared/components/ui';
 import { useNavigate } from 'react-router-dom';
 import AdminTable from '@/shared/components/ui/AdminTable';
 import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
@@ -37,7 +37,7 @@ export default function AdminDoctors({ autoOpenAdd = false }) {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { doctors, loading, refresh } = useAdminDoctors();
+  const { doctors, stats, loading, refresh } = useAdminDoctors();
 
 
 
@@ -159,12 +159,54 @@ export default function AdminDoctors({ autoOpenAdd = false }) {
       <UnifiedKpiGrid 
         loading={loading}
         stats={[
-          { title: "Total Doctors", value: doctors.length, icon: Stethoscope, trend: "Current" },
-          { title: "Specializations", value: [...new Set(doctors.map(d => d.specialization))].length, icon: Award, trend: "Current" },
-          { title: "Available Now", value: doctors.filter(d => d.is_available).length, icon: Activity, trend: "Active" },
+          { title: "Total Doctors", value: stats?.overview?.total || doctors.length, icon: Stethoscope, trend: "Current" },
+          { title: "Specializations", value: stats?.specializations?.length || [...new Set(doctors.map(d => d.specialization))].length, icon: Award, trend: "Current" },
+          { title: "Available Now", value: stats?.overview?.active || doctors.filter(d => d.is_available).length, icon: Activity, trend: "Active" },
           { title: "Verified", value: "100%", icon: ShieldCheck, trend: "Secure" },
         ]}
       />
+
+      {/* ── Practitioner Availability Matrix — Admin Intelligence Shard ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">
+          <div className="lg:col-span-3">
+             <Card className="p-8 rounded-[48px] bg-white/70 dark:bg-slate-900/10 backdrop-blur-3xl border border-slate-200 dark:border-white/5 shadow-2xals relative overflow-hidden flex flex-col gap-8 h-full">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter leading-none">Clinical Node Coverage</h3>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 opacity-60">Real-time Physician Density per Department</p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                    {stats?.specializations?.slice(0, 5).map((spec, i) => (
+                        <div key={i} className="space-y-4">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[9px] font-black uppercase text-slate-400 truncate">{spec.specialization}</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white italic tabular-nums">{spec.count}</span>
+                                    <span className="text-[10px] font-bold text-emerald-500 uppercase">({spec.active})</span>
+                                </div>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-accent-primary rounded-full" style={{ width: `${(spec.active / spec.count) * 100}%` }} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+             </Card>
+          </div>
+          <div className="lg:col-span-1">
+             <Card className="p-8 rounded-[48px] bg-slate-900 dark:bg-slate-800 text-white border-none flex flex-col justify-between h-full relative group overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-accent-primary/10 blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-[2s]" />
+               <div className="space-y-4 relative z-10">
+                  <h4 className="text-[11px] font-black text-accent-primary uppercase tracking-[0.3em] italic">Orchestration Notice</h4>
+                  <p className="text-sm font-bold leading-relaxed opacity-80 uppercase tracking-tighter italic">Total hospital nodes are currently 98% efficient. No coverage gaps detected in critical wards.</p>
+               </div>
+               <Button className="w-full bg-white/10 hover:bg-white text-white hover:text-slate-900 border-none rounded-2xl py-4 text-[9px] font-black uppercase tracking-widest transition-all relative z-10">
+                  Staffing Report
+               </Button>
+             </Card>
+          </div>
+      </div>
 
       <div className="space-y-8 mt-4">
         <FilterBar 

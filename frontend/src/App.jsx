@@ -29,12 +29,9 @@ const StatsPage           = lazy(() => import('@/features/dashboard/pages/StatsP
 const AdminChatPage       = lazy(() => import('@/features/dashboard/pages/AdminChatPage'));
 
 // ─── Feature: Identity ────────────────────────────────────────────────────────
+const PermissionsPage = lazy(() => import('@/features/identity/pages/RolesPage'));
 const UsersPage    = lazy(() => import('@/features/identity/pages/UsersPage'));
-const StaffPage    = lazy(() => {
-  return import('@/features/identity/pages/UsersPage').then(m => ({
-    default: (props) => <m.default {...props} mode="personnel" />
-  }));
-});
+const StaffPage    = lazy(() => import('@/features/management/pages/StaffPage'));
 const RolesPage    = lazy(() => import('@/features/identity/pages/RolesPage'));
 const ProfilePage  = lazy(() => import('@/features/identity/pages/ProfilePage'));
 
@@ -52,32 +49,35 @@ const DoctorsPage         = lazy(() => import('@/features/doctors/pages/DoctorsP
 const DoctorDispatcher    = lazy(() => import('@/features/doctors/pages/DoctorDispatcher'));
 const DoctorDetailDispatcher = lazy(() => import('@/features/doctors/pages/DoctorDetailDispatcher'));
 const DoctorRecordPage     = lazy(() => import('@/features/doctors/pages/DoctorRecordPage'));
+const AppointmentRecordPage = lazy(() => import('@/features/appointments/pages/AppointmentRecordPage'));
 const DoctorSchedulePage  = lazy(() => import('@/features/doctors/pages/DoctorSchedulePage'));
 const SpecializationsPage = lazy(() => import('@/features/doctors/pages/SpecializationsPage'));
 
 // ─── Feature: Finance ────────────────────────────────────────────────────────
 const FinancesPage   = lazy(() => import('@/features/finance/pages/FinancesPage'));
 const TransactionRecordPage = lazy(() => import('@/features/finance/pages/TransactionRecordPage'));
-const BillingPage    = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with BillingPage
-const ExpensesPage   = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with ExpensesPage
-const FinReportsPage = lazy(() => import('@/features/finance/pages/FinancesPage'));  // TODO: replace with FinancialReportsPage
+const BillingPage    = lazy(() => import('@/features/finance/pages/BillingPage'));
+const BillingRecordPage = lazy(() => import('@/features/finance/pages/BillingRecordPage'));
+const ExpensesPage   = lazy(() => import('@/features/finance/pages/ExpensesPage'));
+const ExpenseRecordPage = lazy(() => import('@/features/finance/pages/ExpenseRecordPage'));
+const FinReportsPage = lazy(() => import('@/features/finance/pages/FinancialReportsPage'));
 
 // ─── Feature: Analytics ──────────────────────────────────────────────────────
 const InventoryPage      = lazy(() => import('@/features/analytics/pages/InventoryPage'));
+const MessengerPage      = lazy(() => import('@/features/communication/pages/MessengerPage'));
 const MedicineRecordPage = lazy(() => import('@/features/analytics/pages/MedicineRecordPage'));
 const LabPage            = lazy(() => import('@/features/analytics/pages/LabPage'));
 const PharmacyPage       = lazy(() => import('@/features/analytics/pages/PharmacyPage'));
 
 // ─── Feature: Wards / IPD / OPD ──────────────────────────────────────────────
-// TODO: build WardMapPage, AdmissionPage, OPDQueuePage in src/features/wards/
-const WardMapPage    = lazy(() => import('@/features/analytics/pages/InventoryPage'));  // placeholder
-const AdmissionPage  = lazy(() => import('@/features/analytics/pages/InventoryPage'));  // placeholder
-const OPDQueuePage   = lazy(() => import('@/features/appointments/pages/AppointmentsPage')); // placeholder
+const WardsBedsPage   = lazy(() => import('@/features/wards/pages/WardsBeds'));
+const AdmissionsPage  = lazy(() => import('@/features/wards/pages/AdmissionsPage'));
+const OPDQueuePage    = lazy(() => import('@/features/appointments/pages/OPDQueuePage'));
 
 // ─── Feature: Staff / Rosters ─────────────────────────────────────────────────
 // TODO: build ShiftRosterPage, LeaveManagementPage in src/features/identity/
-const ShiftRosterPage       = lazy(() => import('@/features/identity/pages/UsersPage'));   // placeholder
-const LeaveManagementPage   = lazy(() => import('@/features/identity/pages/UsersPage'));   // placeholder
+const ShiftRosterPage       = lazy(() => import('@/features/management/pages/ShiftRosterPage'));
+const LeaveManagementPage   = lazy(() => import('@/features/management/pages/LeaveManagementPage'));
 
 // ─── Feature: AI Insights ─────────────────────────────────────────────────────
 const AIInsightsPage = lazy(() => import('@/features/ai/pages/AILogs')); // placeholder
@@ -176,6 +176,7 @@ export default function App() {
                       {/* Appointments */}
                       <Route path="/admin/appointments"     element={<AdminAppointmentsPage />} />
                       <Route path="/admin/appointments/add" element={<AdminAppointmentsPage autoOpenAdd={true} />} />
+                      <Route path="/admin/appointments/:id" element={<AppointmentRecordPage />} />
 
                       {/* Doctors */}
                       <Route path="/admin/doctors"           element={<DoctorsPage />} />
@@ -188,7 +189,9 @@ export default function App() {
                       <Route path="/admin/finances"           element={<FinancesPage />} />
                       <Route path="/admin/finances/:id"       element={<TransactionRecordPage />} />
                       <Route path="/admin/billing"            element={<BillingPage />} />
+                      <Route path="/admin/billing/:id"        element={<BillingRecordPage />} />
                       <Route path="/admin/expenses"           element={<ExpensesPage />} />
+                      <Route path="/admin/expenses/:id"       element={<ExpenseRecordPage />} />
                       <Route path="/admin/reports/financial"  element={<FinReportsPage />} />
 
                       {/* Analytics */}
@@ -199,8 +202,8 @@ export default function App() {
                       <Route path="/admin/pharmacy"      element={<PharmacyPage />} />
 
                       {/* Wards / OPD / IPD */}
-                      <Route path="/admin/wards"       element={<WardMapPage />} />
-                      <Route path="/admin/admissions"  element={<AdmissionPage />} />
+                      <Route path="/admin/wards"       element={<WardsBedsPage />} />
+                      <Route path="/admin/admissions"  element={<AdmissionsPage />} />
                       <Route path="/admin/opd-queue"   element={<OPDQueuePage />} />
 
                       {/* Staff / Rosters */}
@@ -215,6 +218,7 @@ export default function App() {
 
                       {/* Management */}
                       <Route path="/admin/departments"      element={<DepartmentsPage />} />
+                      <Route path="/admin/chats"            element={<MessengerPage />} />
                       <Route path="/admin/notifs/send"      element={<AlertsPage />} />
                       <Route path="/admin/security/audit"   element={<AuditPage />} />
                       <Route path="/admin/settings/general" element={<RulesPage />} />

@@ -1,134 +1,134 @@
 import React, { useState } from 'react';
-import { ShieldCheck, MoreHorizontal, ShieldAlert, Key, Fingerprint, Lock } from 'lucide-react';
-import { Card, Button, PageHeader } from '@/shared/components/ui';
-import { motion } from 'framer-motion';
-
-import AddUserModal from '@/features/identity/components/AddUserModal';
-import UserService from '@/features/identity/api/userService';
-import { useUI } from '@/core/ui/UIContext';
+import { 
+  ShieldCheck, ShieldAlert, Key, Fingerprint, Lock, 
+  Plus, Search, Shield, Globe, Terminal, Activity
+} from 'lucide-react';
+import { 
+  Card, 
+  Button, 
+  PageHeader,
+  Badge 
+} from '@/shared/components/ui';
+import AdminPage from '@/shared/components/layout/AdminPage';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
 import { useAdminUsers } from '@/features/identity/hooks/useUsers';
-import AdminPage from '@/shared/components/layout/AdminPage'; // ✨ THE BASE FILE
+
+// 🏗️ FEATURE SHARDS
+import { 
+  PermissionMatrixShard, 
+  SecurityPulseShard, 
+  AccessPolicyShard 
+} from '../components/RoleShards';
 
 /**
- * 🔐 Role Architecture & Security Matrix
+ * 🔐 Role Architecture Hub — High-fidelity authorization management
  */
-export default function Roles() {
-  const { addNotification } = useUI();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { users, loading, refresh } = useAdminUsers();
-
-  const handleForge = async (formData, resetForm) => {
-    setIsSubmitting(true);
-    try {
-        await UserService.create(formData);
-        addNotification('Authorization Shard Forged', 'New identity successfully committed to the security matrix.', 'success');
-        setIsModalOpen(false);
-        refresh(); 
-        resetForm();
-    } catch (err) {
-        addNotification('Forge Failure', 'Could not propagate role shard.', 'error');
-    } finally {
-        setIsSubmitting(false);
-    }
-  };
+export default function RolesPage() {
+  const { users, loading } = useAdminUsers();
 
   const getRoleCount = (roleName) => {
     return users.filter(u => u.role === roleName).length;
   };
 
+  const kpis = [
+      { title: 'Auth Nodes', value: '04', icon: Shield, color: 'text-rose-500', trend: 'L5 Verified' },
+      { title: 'Global Permits', value: '42', icon: Key, color: 'text-accent-primary', trend: 'Active Pulse' },
+      { title: 'System Entropy', value: '99.9%', icon: Activity, color: 'text-emerald-500', trend: 'Stable' },
+      { title: 'Security Shards', value: '12', icon: Lock, color: 'text-orange-500', trend: 'Synchronized' }
+  ];
+
   const roles = [
-    { title: 'Super Administrator', users: users.filter(u => u.is_superuser).length, access: 'Global', sensitivity: 'L5', color: 'rose', backendRole: 'admin' },
-    { title: 'Clinical Specialist', users: getRoleCount('doctor'), access: 'Clinical + Admin', sensitivity: 'L4', color: 'teal', backendRole: 'doctor' },
-    { title: 'Operational Staff', users: getRoleCount('staff'), access: 'Clinical Console', sensitivity: 'L3', color: 'indigo', backendRole: 'staff' },
-    { title: 'Civilian Patient', users: getRoleCount('patient'), access: 'Patient Portal', sensitivity: 'L1', color: 'emerald', backendRole: 'patient' },
+    { title: 'Super Admin', users: users.filter(u => u.is_superuser).length, sensitivity: 'L5', color: 'rose', icon: ShieldAlert, classes: { bg: 'bg-rose-500/10', text: 'text-rose-500', border: 'border-rose-500/20', glow: 'bg-rose-500/5' } },
+    { title: 'Specialist', users: getRoleCount('doctor'), sensitivity: 'L4', color: 'blue', icon: ShieldCheck, classes: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20', glow: 'bg-blue-500/5' } },
+    { title: 'Clinic Staff', users: getRoleCount('staff'), sensitivity: 'L3', color: 'indigo', icon: Terminal, classes: { bg: 'bg-indigo-500/10', text: 'text-indigo-500', border: 'border-indigo-500/20', glow: 'bg-indigo-500/5' } },
+    { title: 'Civilian', users: getRoleCount('patient'), sensitivity: 'L1', color: 'emerald', icon: Globe, classes: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', glow: 'bg-emerald-500/5' } },
   ];
 
   return (
     <AdminPage>
-      <PageHeader 
-        title="Role Architecture" 
-        subtitle="Control Global Authorization Shards & Privacy Nodes"
-        actions={
-            <Button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
-            >
-                <ShieldAlert size={18} /> Forge Security Shard
-            </Button>
-        }
-      />
+      <div className="flex flex-col gap-4 lg:gap-5 w-full min-h-screen bg-slate-50/50 dark:bg-transparent px-4 lg:px-8 -mt-2 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-1000 italic">
+        
+        {/* 🛸 COMMAND CLUSTER: Row 1 — Header */}
+        <PageHeader 
+          title="Role Architecture"
+          subtitle="Management and synchronization of global authorization shards and security nodes."
+          status="Master Protocol: Active"
+          actions={
+            <div className="flex items-center gap-2">
+              <Button
+                className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-rose-500/25 border-none font-display italic"
+              >
+                <ShieldAlert size={16} strokeWidth={3} /> Forge Auth Shard
+              </Button>
+            </div>
+          }
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-        {roles.map((role, i) => (
-          <motion.div
-            key={role.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <Card className="matrix-card p-10 border-none flex flex-col gap-8 group">
-              <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-black/20 flex items-center justify-center border border-slate-100 dark:border-white/5 shadow-inner group-hover:rotate-12 transition-transform duration-500">
-                  <ShieldCheck className={role.title.includes('Super') ? 'text-rose-500' : 'text-accent-primary'} size={28} />
-                </div>
-                <button className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-slate-400 hover:text-accent-primary transition-all shadow-inner">
-                    <MoreHorizontal size={16} />
-                </button>
-              </div>
+        {/* 🌠 PERSISTENT HUB: Row 2 — Hero CTA */}
+        <UnifiedHeroCTA 
+          compact
+          title={<>Advanced <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Authorization.</span></>}
+          subtitle="Control global permission shards and protocol levels. Changes propagate through the entire clinical network in real-time. Caution: L5 nodes active."
+          pillPrefix="Entropy Control Protocol"
+          pillIcon={Fingerprint}
+          actions={[
+             { title: 'Access Audit', subtitle: 'Security Ledger', icon: Lock, onClick: () => {} },
+             { title: 'Seal Matrix',  subtitle: 'Auto-Revoke',     icon: Shield, onClick: () => {} }
+          ]}
+        />
 
-              <div className="space-y-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Auth Tier {role.sensitivity}</p>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">{role.title}</h3>
-              </div>
+        {/* 🛰 KPI Hub */}
+        <UnifiedKpiGrid loading={false} stats={kpis} />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-5 rounded-[24px] bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 text-center">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Users</p>
-                  <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums italic">{role.users}</p>
-                </div>
-                <div className="p-5 rounded-[24px] bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 text-center">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic pt-2">Active</p>
-                </div>
-              </div>
+        {/* 🔐 ROLE NODES: High-Density Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           {roles.map((role, i) => (
+              <Card key={i} className="p-8 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-2als transition-all hover:-translate-y-1 group relative overflow-hidden">
+                 <div className={`absolute top-0 right-0 w-24 h-24 ${role.classes.glow} blur-[40px] rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform`} />
+                 
+                 <div className="flex items-center justify-between relative z-10">
+                    <div className={`w-14 h-14 rounded-2xl ${role.classes.bg} flex items-center justify-center ${role.classes.text} border ${role.classes.border} shadow-inner group-hover:rotate-12 transition-transform`}>
+                       <role.icon size={26} strokeWidth={2.5} />
+                    </div>
+                    <Badge variant="outline" className="text-[8px] font-black uppercase italic tracking-widest opacity-60">Tier {role.sensitivity}</Badge>
+                 </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-4">
-                <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2 tracking-[0.1em]"><Key size={12} /> Access Scope</span>
-                    <span className="text-[10px] font-black uppercase text-slate-900 dark:text-white italic">{role.access}</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent-primary w-[75%] rounded-full opacity-40 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+                 <div className="mt-8 space-y-1 relative z-10">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">{role.title}</h3>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Auth Shard</p>
+                 </div>
+
+                 <div className="mt-10 grid grid-cols-2 gap-3 relative z-10">
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 text-center">
+                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">Nodes</span>
+                       <span className="text-lg font-black text-slate-900 dark:text-white tabular-nums italic leading-none">{role.users}</span>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 text-center">
+                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">Pulse</span>
+                       <span className="text-[10px] font-black text-emerald-500 uppercase italic leading-none pt-1 inline-block">Secure</span>
+                    </div>
+                 </div>
+              </Card>
+           ))}
+        </div>
+
+        {/* 🏗 MATRIX ASSEMBLY: 8:4 Modular Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+           
+           {/* LEFT - Permission Matrix (8 cols) */}
+           <div className="lg:col-span-8 flex flex-col gap-6">
+              <PermissionMatrixShard />
+           </div>
+
+           {/* RIGHT - Security Shards (4 cols) */}
+           <div className="lg:col-span-4 flex flex-col gap-6">
+              <SecurityPulseShard />
+              <AccessPolicyShard />
+           </div>
+        </div>
+
       </div>
-
-      <Card className="bg-accent-primary/5 border border-accent-primary/20 rounded-[48px] p-12 flex flex-col lg:flex-row items-center gap-10 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-accent-primary/5 blur-[120px] rounded-full -mr-40 -mt-40" />
-        <div className="w-24 h-24 bg-accent-primary rounded-[32px] flex items-center justify-center text-white shadow-2xl shadow-accent-primary/30 shrink-0 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-700">
-          <Fingerprint size={48} strokeWidth={2.5} />
-        </div>
-        <div className="space-y-3 flex-1 text-center lg:text-left relative z-10">
-          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">Advanced Entropy Control</h2>
-          <p className="text-sm font-bold text-slate-500 max-w-2xl">Modify global permission shards and protocol levels. Changes here will propagate through the entire clinical network in real-time. Use caution when modifying L5 nodes.</p>
-        </div>
-        <Button className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-12 py-5 rounded-[22px] text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-4 border-none shadow-2xl hover:scale-105 transition-all relative z-10">
-          <Lock size={18} /> Master Auth Table
-        </Button>
-      </Card>
-
-      <AddUserModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAction={handleForge}
-        isSubmitting={isSubmitting}
-      />
     </AdminPage>
   );
 }
-

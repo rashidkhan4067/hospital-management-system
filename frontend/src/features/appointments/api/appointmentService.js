@@ -1,4 +1,5 @@
 import BaseService from '@/core/api/BaseService';
+import apiClient from '@/core/api/apiClient';
 
 /**
  * 📅 Appointment Service (OOPS: Inheritance)
@@ -22,13 +23,27 @@ class AppointmentService extends BaseService {
   }
 
   /**
-   * Cancels a visit record with a reason.
+   * 📋 OPD Queue Fetcher
+   * Fetches the current session's appointment queue for the outpatient department.
    */
+  async getQueue() {
+    const response = await apiClient.get(`${this.endpoint}queue/`);
+    return response.data;
+  }
+
   async cancel(id, reason) {
     return super.update(id, { 
       status: 'cancelled', 
       cancellation_reason: reason 
     });
+  }
+
+  /**
+   * 📊 Clinical Telemetry
+   */
+  async getStats() {
+    const response = await apiClient.get(`${this.endpoint}stats/`);
+    return response.data;
   }
 }
 

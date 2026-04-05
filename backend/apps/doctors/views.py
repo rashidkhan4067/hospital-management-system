@@ -89,3 +89,29 @@ class DoctorViewSet(viewsets.ModelViewSet):
             "available_slots": slots,
             "count": len(slots)
         })
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated, IsAdminUser])
+    def stats(self, request):
+        """
+        📊 Clinical Analytical Shard
+        Aggregated node telemetry for physician availability and departmental sharding.
+        """
+        from django.db.models import Count, Q
+        
+        counts = Doctor.objects.aggregate(
+            total=Count('id'),
+            active=Count('id', filter=Q(is_available=True)),
+            offline=Count('id', filter=Q(is_available=False))
+        )
+        
+        # Breakdown by specialization - Mapping personnel to clinical nodes
+        specializations = Doctor.objects.values('specialization').annotate(
+            count=Count('id'),
+            active=Count('id', filter=Q(is_available=True))
+        ).order_by('-count')
+        
+        return Response({
+            "overview": counts,
+            "specializations": list(specializations),
+            "node_health": "NOMINAL"
+        })

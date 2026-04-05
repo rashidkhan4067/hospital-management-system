@@ -7,15 +7,19 @@ import { doctorService } from '@/features/doctors/api/doctorService';
  */
 export const useAdminDoctors = () => {
     const [doctors, setDoctors] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchDoctors = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await doctorService.getAll();
-            // Handle if response is paginated { results: [...] } or a raw array
-            setDoctors(response.results || response);
+            const [doctorsRes, statsRes] = await Promise.all([
+                doctorService.getAll(),
+                doctorService.getStats()
+            ]);
+            setDoctors(doctorsRes.results || doctorsRes);
+            setStats(statsRes);
             setError(null);
         } catch (err) {
             setError('System could not propagate doctor faculty shards.');
@@ -26,14 +30,15 @@ export const useAdminDoctors = () => {
     }, []);
 
     useEffect(() => {
-        fetchDoctors();
-    }, [fetchDoctors]);
+        fetchData();
+    }, [fetchData]);
 
     return { 
         doctors, 
+        stats,
         loading, 
         error, 
-        refresh: fetchDoctors 
+        refresh: fetchData 
     };
 };
 

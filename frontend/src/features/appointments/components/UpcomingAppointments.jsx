@@ -54,8 +54,8 @@ const UpcomingAppointments = ({ appointments = [], onCancel }) => {
             )}
          </div>
 
-         <button className="mt-2 w-full py-4 rounded-2xl bg-slate-900 dark:bg-white/5 border border-slate-800 dark:border-white/10 text-[10px] font-black uppercase text-white hover:text-accent-primary transition-all flex items-center justify-center gap-3 shadow-lg">
-            Complete Archive Matrix <ChevronRight size={16} className="text-accent-primary" />
+         <button className="mt-2 w-full py-4 rounded-2xl bg-accent-primary text-[10px] font-black uppercase text-white hover:brightness-110 transition-all flex items-center justify-center gap-3 shadow-lg shadow-accent-primary/20 border-none">
+            Complete Archive Matrix <ChevronRight size={16} className="text-white" />
          </button>
       </Card>
    );

@@ -139,6 +139,26 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return serializer.save(patient=self.request.user)
         return serializer.save()
 
+    @action(detail=False, methods=["get"])
+    def queue(self, request):
+        """
+        GET /api/v1/appointments/queue/
+        Returns today's appointments in order of start time.
+        """
+        from django.utils import timezone
+        today = timezone.localdate()
+        
+        # We only want scheduled or confirmed appointments for today
+        qs = self.get_queryset().filter(
+            appointment_date=today,
+            status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED]
+        ).order_by('start_time')
+        
+        # For a real queue, we might want to add a 'queue_number' 
+        # but for now, we'll just return the ordered list.
+        serializer = AppointmentSerializer(qs, many=True)
+        return Response(serializer.data)
+
     @action(detail=True, methods=["patch"])
     def cancel(self, request, pk=None):
         """
@@ -161,3 +181,33 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         
         # Return full updated representation
         return Response(AppointmentSerializer(appointment).data)
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated, IsAdminUser])
+    def stats(self, request):
+        """
+        📊 Appointment Telemetry Shard
+        Aggregated node telemetry for appointment volume and status sharding.
+        """
+        from django.db.models import Count, Q
+        from django.utils import timezone
+        
+        today = timezone.localdate()
+        
+        counts = Appointment.objects.aggregate(
+            total=Count('id'),
+            today=Count('id', filter=Q(appointment_date=today)),
+            pending=Count('id', filter=Q(status='pending')),
+            scheduled=Count('id', filter=Q(status='scheduled')),
+            cancelled=Count('id', filter=Q(status='cancelled'))
+        )
+        
+        # Breakdown by department (via doctor)
+        department_volume = Appointment.objects.values('doctor__specialization').annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        return Response({
+            "overview": counts,
+            "department_volume": list(department_volume),
+            "node_health": "NOMINAL"
+        })

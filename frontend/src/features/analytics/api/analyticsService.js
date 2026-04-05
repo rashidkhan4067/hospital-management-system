@@ -61,6 +61,15 @@ class AnalyticsService extends BaseService {
   }
 
   /**
+   * 📊 Executive Intelligence Shard
+   * Fetches the real-time system pulse for the dashboard KPIs.
+   */
+  async getExecutiveSummary() {
+    const response = await this.client.get(`${this.endpoint}pulse/`);
+    return response.data;
+  }
+
+  /**
    * 🛡️ DSA: Aggregate Data (Summation Algorithm)
    * Efficiently sums up values in a single pass.
    */

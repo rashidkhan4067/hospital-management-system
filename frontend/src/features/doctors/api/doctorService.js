@@ -19,6 +19,14 @@ class DoctorService extends BaseService {
     });
     return response.data;
   }
+
+  /**
+   * 📊 Clinical Telemetry
+   */
+  async getStats() {
+    const response = await api.get(`${this.endpoint}stats/`);
+    return response.data;
+  }
 }
 
 const doctorService = new DoctorService();

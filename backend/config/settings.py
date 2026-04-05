@@ -99,6 +99,7 @@ INSTALLED_APPS = [
     "apps.appointments",             # Appointment booking + conflict detection
     "apps.inventory",                # Global Resource Allocation Control
     "apps.system",                   # Global System Control & Operational Shards
+    "apps.wards",                    # Clinical Wards & Bed Allocation (Scalable Node)
     "apps.ai",                       # AI Configuration & Log Shards
     "rest_framework_simplejwt.token_blacklist",  # Ensures JWT tokens can be invalidated (Logout)
 ]
