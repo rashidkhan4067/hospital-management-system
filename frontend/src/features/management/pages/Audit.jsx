@@ -10,18 +10,29 @@ import {
   ChevronRight,
   User,
   MoreHorizontal,
-  Lock
+  Lock,
+  Zap,
+  Fingerprint,
+  Database,
+  Download,
+  RefreshCw,
+  Filter,
+  Eye,
+  Trash2
 } from 'lucide-react';
-import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader, Button, Card, Badge, Avatar } from '@/shared/components/ui';
 import AdminTable from '@/shared/components/ui/AdminTable';
-import FilterBar from '@/shared/components/ui/FilterBar';
+import AdminPage from '@/shared/components/layout/AdminPage';
+import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
 
 import { useAdminSystem } from '@/features/management/hooks/useSystem';
 import PageLoader from '@/shared/components/common/Loading';
 
 /**
- * 🔒 System Security Audit Matrix
- * Unified console for clinical access logs and intrusion node monitoring.
+ * 🔒 Security Audit Matrix
+ * High-fidelity overwatch for clinical access logs and intrusion detection.
  */
 export default function Audit() {
   const { auditLogs, loading } = useAdminSystem();
@@ -30,22 +41,33 @@ export default function Audit() {
 
   if (loading) return <PageLoader />;
 
-  const logs = auditLogs.filter(l => 
+  const filteredLogs = auditLogs.filter(l => 
     (l.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) || l.action.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (activeTab === 'ALL' || l.status.toUpperCase() === activeTab)
   );
+
+  const kpis = [
+    { label: 'Security Protocols', value: '24 ACTIVE', icon: ShieldCheck, trend: 'L9 Verified', status: 'success' },
+    { label: 'Threat Pulse', value: 'ZERO', icon: Activity, trend: 'Optimal', status: 'success' },
+    { label: 'Identity Nodes', value: '1,482', icon: Fingerprint, trend: '+42 Today', status: 'processing' },
+    { label: 'Audit Density', value: 'High', icon: Database, trend: '98.2%', status: 'success' },
+  ];
 
   const columns = [
     { 
         header: 'Audit Shard (Event)', 
         cell: (l) => (
-            <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${l.status === 'Intrusion-Alert' ? 'bg-rose-500/10 text-rose-500' : 'bg-accent-primary/10 text-accent-primary'}`}>
-                    {l.status === 'Intrusion-Alert' ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}
+            <div className="flex items-center gap-5 italic group/row">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover/row:scale-110 duration-500 shadow-sm ${l.status === 'Intrusion-Alert' ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                    {l.status === 'Intrusion-Alert' ? <ShieldAlert size={20} strokeWidth={2.5} /> : <ShieldCheck size={20} strokeWidth={2.5} />}
                 </div>
-                <div className="flex flex-col max-w-[400px]">
-                    <p className="text-[12px] font-black text-text-primary dark:text-white uppercase leading-none truncate">{l.action}</p>
-                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{l.id} • Terminal: {l.ip}</p>
+                <div className="flex flex-col">
+                    <p className="text-[13px] font-black text-slate-900 dark:text-white uppercase leading-none tracking-tighter font-display mb-1.5">{l.action}</p>
+                    <div className="flex items-center gap-2 opacity-50">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">{l.id}</span>
+                        <div className="w-1 h-1 rounded-full bg-slate-300" />
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] italic">IP: {l.ip}</span>
+                    </div>
                 </div>
             </div>
         )
@@ -53,96 +75,121 @@ export default function Audit() {
     { 
         header: 'Human Node', 
         cell: (l) => (
-            <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-bg-base dark:bg-white/5 flex items-center justify-center text-slate-400">
-                    <User size={12} />
+            <div className="flex items-center gap-3 italic">
+                <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-accent-primary transition-all border border-transparent group-hover:border-accent-primary/10">
+                    <User size={16} strokeWidth={2.5} />
                 </div>
-                <span className="text-[10px] font-black uppercase text-slate-400">{l.user_name || 'System Shard'}</span>
+                <div className="flex flex-col">
+                    <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white tracking-widest leading-none">{l.user_name || 'System Shard'}</span>
+                    <span className="text-[7px] font-bold text-slate-400 uppercase mt-1">Verified Identity</span>
+                </div>
             </div>
         )
     },
     { 
         header: 'Access Protocol',
         cell: (l) => (
-            <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${l.status === 'Success' ? 'bg-emerald-500 shadow-emerald-500' : 'bg-rose-500 shadow-rose-500'}`} />
-                <span className="text-[10px] font-black uppercase tracking-tight">{l.status}</span>
+            <div className="flex items-center gap-3 italic">
+                <div className={`w-2 h-2 rounded-full shadow-lg ${l.status === 'Success' ? 'bg-emerald-500 shadow-emerald-500/30 animate-pulse' : 'bg-rose-500 shadow-rose-500/30 animate-pulse'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${l.status === 'Success' ? 'text-emerald-500' : 'text-rose-500'}`}>{l.status}</span>
             </div>
         )
     },
-    { header: 'Propagation', cell: (l) => <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(l.timestamp).toLocaleString()}</span> },
     { 
-        header: 'Audit Trace', 
-        cell: () => (
-            <button className="flex items-center gap-2 text-[8px] font-black text-slate-400 uppercase tracking-widest hover:text-accent-primary hover:underline transition-all">
-                Full Shard <ChevronRight size={10} />
-            </button>
+        header: 'Propagation', 
+        cell: (l) => (
+            <div className="flex flex-col italic">
+                <span className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-widest">{new Date(l.timestamp).toLocaleTimeString()}</span>
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1 tracking-tighter opacity-60">{new Date(l.timestamp).toLocaleDateString()}</span>
+            </div>
         )
     },
-  ];
-
-  const stats = [
-     { title: "Security Protocols", value: "24 Active", status: "Success", icon: ShieldCheck },
-     { title: "Network Shards", value: "1,482 Logs", status: "Neutral", icon: Terminal },
-     { title: "Threat Detection", value: "0 Critical", status: "Success", icon: Activity },
+    { 
+        header: 'Trace', 
+        cell: () => (
+            <div className="flex items-center gap-2">
+                <button className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-accent-primary hover:bg-white dark:hover:bg-slate-900 shadow-sm transition-all group/btn">
+                    <Eye size={16} />
+                </button>
+                <button className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 shadow-sm transition-all group/btn">
+                    <MoreHorizontal size={16} />
+                </button>
+            </div>
+        )
+    },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 font-sans p-4 md:p-6 pb-20 max-w-[1700px] mx-auto">
-      
-      <PageHeader 
-        title="Security Audit Matrix" 
-        subtitle="Global Clinical Access & Intrusion Node Registry"
-        actions={
+    <AdminPage>
+      <div className="space-y-8 animate-in fade-in duration-1000 italic pb-20">
+        
+        <PageHeader 
+          title="Security Audit Matrix" 
+          subtitle="Global Institutional Traceability & Intrusion Detection Command"
+          actions={
             <div className="flex items-center gap-3">
-               <Button className="bg-bg-base dark:bg-white/5 text-text-primary dark:text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border-none">
-                  Rotate Keys
-               </Button>
-               <Button className="bg-rose-500 text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 border-none flex items-center gap-2 animate-pulse">
-                  <ShieldAlert size={14} /> Full Lockout
+               <button className="p-3 bg-white dark:bg-slate-900 rounded-2xl text-slate-400 hover:text-accent-primary transition-all shadow-2als border border-slate-50 dark:border-white/5">
+                  <Download size={18} strokeWidth={2.5} />
+               </button>
+               <Button className="bg-rose-500 text-white px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-rose-500/25 border-none hover:translate-y-[-2px] transition-all flex items-center gap-2">
+                  <ShieldAlert size={16}/> Protocol Lockout
                </Button>
             </div>
-        }
-      />
+          }
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {stats.map((s, i) => <StatMini key={i} {...s} />)}
+        <UnifiedHeroCTA 
+          compact
+          title={<>Security <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Overwatch.</span></>}
+          subtitle="Monitoring global access shards across the clinical grid. Full traceability enabled for every neural interaction and record modification."
+          pillPrefix="Encryption Level 9"
+          pillIcon={Lock}
+          actions={[
+             { title: 'Rotate Keys',  subtitle: 'Shard Cycle', icon: RefreshCw, onClick: () => {} },
+             { title: 'Threat Map', subtitle: 'Gird Viz',    icon: Activity,  onClick: () => {} }
+          ]}
+        />
+
+        <UnifiedKpiGrid loading={false} stats={kpis} />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 py-4">
+           <div className="flex items-center gap-4 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide no-scrollbar">
+              {['ALL', 'SUCCESS', 'INTRUSIONALERT', 'OVERRIDE'].map((tab) => (
+                 <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap shadow-sm ${
+                       activeTab === tab 
+                       ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 scale-105 italic border-none' 
+                       : 'bg-white dark:bg-slate-900 text-slate-400 border border-slate-50 dark:border-white/5 hover:text-accent-primary'
+                    }`}
+                 >
+                    {tab === 'ALL' ? 'Global Registry' : tab === 'INTRUSIONALERT' ? 'Threat Alerts' : tab.replace('ALERT', '') + ' Logs'}
+                 </button>
+              ))}
+           </div>
+
+           <div className="relative group min-w-[320px]">
+              <input 
+                type="text" 
+                placeholder="Identify Shard..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest focus:ring-4 focus:ring-accent-primary/10 transition-all shadow-2als italic"
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-accent-primary transition-colors" size={16} strokeWidth={2.5} />
+           </div>
+        </div>
+
+        <Card className="p-0 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-2als overflow-hidden">
+           <AdminTable 
+              columns={columns} 
+              data={filteredLogs} 
+              loading={false}
+           />
+        </Card>
+
       </div>
-
-      <FilterBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={[
-            { id: 'ALL', label: 'Global Audit Registry' },
-            { id: 'AUTHORIZED', label: 'Secure Access' },
-            { id: 'SECUREOVERRIDE', label: 'Admin Overrides' },
-            { id: 'INTRUSIONALERT', label: 'Threat Mitigation' }
-        ]}
-      />
-
-      <AdminTable columns={columns} data={logs} />
-    </div>
+    </AdminPage>
   );
 }
-
-function StatMini({ title, value, status, icon: Icon }) {
-  const colors = {
-    Success: 'text-emerald-500',
-    Neutral: 'text-accent-primary',
-    Failure: 'text-rose-500'
-  }
-  return (
-    <Card className={`p-8 bg-white dark:bg-slate-900/40 border-none rounded-[40px] shadow-sm flex flex-col items-center justify-center text-center space-y-4 group hover:shadow-xl hover:-translate-y-1 transition-all`}>
-        <div className={`w-14 h-14 rounded-2xl bg-bg-base dark:bg-white/5 flex items-center justify-center ${colors[status]} group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
-           {Icon && <Icon size={24}/>}
-        </div>
-        <div className="space-y-1">
-           <h4 className="text-2xl font-black italic tracking-tighter leading-none dark:text-white uppercase">{value}</h4>
-           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{title}</p>
-        </div>
-    </Card>
-  )
-}
-

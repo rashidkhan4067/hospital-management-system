@@ -95,8 +95,8 @@ const AuditPage                = lazy(() => import('@/features/management/pages/
 const DepartmentsPage          = lazy(() => import('@/features/management/pages/Departments'));
 const RulesPage                = lazy(() => import('@/features/management/pages/Rules'));
 const StructurePage            = lazy(() => import('@/features/management/pages/Structure'));
-const NotificationSettingsPage = lazy(() => import('@/features/management/pages/Alerts'));  // placeholder
-const SystemHealthPage         = lazy(() => import('@/features/management/pages/Structure')); // placeholder
+const NotificationSettingsPage = lazy(() => import('@/features/management/pages/GatewaySettings'));
+const SystemHealthPage         = lazy(() => import('@/features/management/pages/SystemHealth'));
 
 // ─── Feature: Public ─────────────────────────────────────────────────────────
 const LandingPage         = lazy(() => import('@/features/public/pages/LandingPage'));
