@@ -18,8 +18,8 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       try {
         const [apptsRes, docsRes] = await Promise.all([
-          apiClient.get('/appointments/'),
-          apiClient.get('/doctors/')
+          apiClient.get('appointments/'),
+          apiClient.get('doctors/')
         ]);
         const apptsData = Array.isArray(apptsRes.data) ? apptsRes.data : apptsRes.data.results || [];
         setAppointments(apptsData);

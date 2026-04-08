@@ -1,82 +1,114 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, TrendingUp, Users } from 'lucide-react';
-import { Card } from '@/components/primitives';
+import { Building2, TrendingUp, Users, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, UnifiedSkeleton } from '@/components/primitives';
+import { useDepartmentStats } from '../hooks/useDepartmentStats';
 
 /**
  * 🏢 Department Performance Matrix
- * Customized to be a high-fidelity 'Section Distribution' shard.
+ * Highly interactive, data-driven section density shard.
  */
-const DepartmentStats = ({ onNavigate }) => {
-  const depts = [
-    { name: 'Cardiology', load: 82, color: '#06b6d4', icon: 'CD' },
-    { name: 'Pediatrics', load: 45, color: '#10b981', icon: 'PD' },
-    { name: 'Orthopedics', load: 68, color: '#f59e0b', icon: 'OR' },
-    { name: 'Neurology',  load: 91, color: '#ef4444', icon: 'NL' },
-  ];
+const DepartmentStats = memo(({ onNavigate }) => {
+  const navigate = useNavigate();
+  const { departments, loading, error } = useDepartmentStats();
+
+  // 🛰️ Navigation Matrix
+  const handleDeptClick = (deptId) => {
+    navigate(`/admin/departments?section=${deptId}`);
+  };
+
+  if (loading) {
+    return (
+      <Card className="p-8 rounded-[2.5rem] bg-[#1a1d23] border border-white/5 h-[400px] flex flex-col gap-6">
+        <UnifiedSkeleton height="h-20" />
+        <div className="flex-1 space-y-8 mt-4">
+           {[1, 2, 3, 4].map(i => (
+             <div key={i} className="space-y-4">
+                <UnifiedSkeleton height="h-3" width="w-2/3" />
+                <UnifiedSkeleton height="h-2" />
+             </div>
+           ))}
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="relative p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-slate-800 border border-white/5 shadow-2xl h-full flex flex-col group overflow-hidden">
-      
+    <Card className="relative p-8 rounded-[2.5rem] bg-[#1a1d23] border border-white/5 shadow-2xl h-[400px] flex flex-col group overflow-hidden transition-all duration-700 hover:shadow-accent-primary/10">
       {/* 🌌 Atmospheric Glow */}
-      <div className="absolute -top-10 -right-10 w-48 h-48 bg-sky-500/10 blur-[80px] rounded-full group-hover:scale-150 transition-transform duration-1000" />
+      <div className="absolute -top-10 -right-10 w-48 h-48 bg-sky-500/10 blur-[80px] rounded-full" />
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 sm:mb-8 border-b border-white/5 pb-4 sm:pb-5 relative z-10">
-        <div className="flex items-center gap-2 sm:gap-3">
-           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl bg-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner group-hover:rotate-6 transition-transform">
-             <Building2 size={16} className="sm:w-5 sm:h-5" />
+      {/* Header Intelligence */}
+      <div className="flex items-center justify-between mb-8 pb-5 border-b border-white/5 relative z-10">
+        <div className="flex items-center gap-4">
+           <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner group-hover:rotate-6 transition-transform duration-500">
+             <Building2 size={24} />
            </div>
            <div>
-             <h3 className="text-[11px] sm:text-sm font-black uppercase italic tracking-tighter text-white leading-none">Dept Load</h3>
-             <p className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/30 mt-0.5 sm:mt-1">Section Distribution Matrix</p>
+             <h3 className="text-lg font-bold text-white uppercase tracking-tight leading-none">Dept Load</h3>
+             <p className="text-[10px] font-black text-sky-400/60 uppercase tracking-[0.3em] mt-1.5 italic">Section Distribution Matrix</p>
            </div>
         </div>
-        <button onClick={onNavigate} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-sky-400 hover:border-sky-400/30 transition-all border-none">
-           <TrendingUp size={14} className="sm:w-4 sm:h-4" />
+        <button 
+          onClick={() => navigate('/admin/departments')} 
+          className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:text-sky-400 transition-all border-none"
+        >
+           <TrendingUp size={16} />
         </button>
       </div>
 
-      {/* Dept List */}
-      <div className="flex-1 flex flex-col justify-between space-y-5 sm:space-y-6 relative z-10">
-        {depts.map((dept, i) => (
+      {/* 📊 Distribution Registry */}
+      <div className="flex-1 flex flex-col justify-between py-2 relative z-10">
+        {departments.map((dept, i) => (
           <div 
-            key={i}
-            className="space-y-2.5 sm:space-y-3"
+            key={dept.id} 
+            onClick={() => handleDeptClick(dept.id)}
+            className="space-y-3 p-1 rounded-xl hover:bg-white/5 transition-all cursor-pointer group/row"
           >
             <div className="flex justify-between items-end px-1">
-              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest text-white/50 flex items-center gap-2 sm:gap-2.5">
-                <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-lg" style={{ backgroundColor: dept.color, boxShadow: `0 0 10px ${dept.color}88` }} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/50 flex items-center gap-3">
+                <span 
+                    className="w-2.5 h-2.5 rounded-full" 
+                    style={{ backgroundColor: dept.color, boxShadow: `0 0 10px ${dept.color}88` }} 
+                />
                 {dept.name}
               </span>
-              <span className="text-[11px] sm:text-[14px] font-black text-white tabular-nums tracking-tighter leading-none">
-                {dept.load}%
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black text-white tabular-nums tracking-tighter">
+                    {dept.load}%
+                </span>
+                <ChevronRight size={12} className="text-white/20 group-hover/row:text-sky-400 group-hover/row:translate-x-1 transition-all" />
+              </div>
             </div>
             
-            <div className="h-2 sm:h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10">
-              <div 
-                style={{ width: `${dept.load}%`, backgroundColor: dept.color }}
-                className="h-full rounded-full transition-all duration-1000 shadow-[0_0_15px_-3px_rgba(0,0,0,0.5)] relative"
-              >
-                <div className="absolute inset-0 bg-white/30 blur-[1px] rounded-full opacity-50" />
-              </div>
+            <div className="h-2 w-full bg-[#2d323b] rounded-full overflow-hidden border border-white/5">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${dept.load}%` }}
+                transition={{ duration: 1, delay: i * 0.1, ease: "easeOut" }}
+                style={{ backgroundColor: dept.color }}
+                className="h-full rounded-full relative"
+              />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-8 pt-4 sm:pt-5 border-t border-white/5 flex items-center justify-between relative z-10">
-         <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-white/5 flex items-center justify-center text-white/30">
-                <Users size={12} className="sm:w-3.5 sm:h-3.5" />
+      {/* ── Operations Footer ── */}
+      <div className="mt-8 pt-5 border-t border-white/5 flex items-center justify-between relative z-10">
+         <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30">
+                <Users size={14} />
             </div>
-            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/30">Staff Count: 124</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Registry: 124 Units</span>
          </div>
-         <span className="px-2 sm:px-3 py-1 bg-sky-500/10 text-sky-400 text-[7px] sm:text-[8px] font-black uppercase tracking-widest rounded-full border border-sky-500/20 italic">Node: Optimal</span>
+         <span className="px-3 py-1 bg-sky-500/10 text-sky-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-sky-500/20 italic">Node: Optimal</span>
       </div>
     </Card>
   );
-};
+});
+
+DepartmentStats.displayName = 'DepartmentStats';
 
 export default DepartmentStats;

@@ -18,7 +18,7 @@ export const useWards = () => {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await api.get('/wards/wards/stats/');
+            const res = await api.get('wards/wards/stats/');
             setData(res.data);
             setError(null);
         } catch (err) {

@@ -10,7 +10,7 @@ class FinanceService {
    */
   async getTransactions(params = {}) {
     try {
-      const response = await api.get('/finance/transactions/', { params });
+      const response = await api.get('finance/transactions/', { params });
       return response.data;
     } catch (error) {
       console.error('Failed to translate transaction matrix:', error);
@@ -22,7 +22,7 @@ class FinanceService {
    * Fetch clinical invoices linked to patient encounters.
    */
   async getInvoices(params = {}) {
-    const response = await api.get('/finance/invoices/', { params });
+    const response = await api.get('finance/invoices/', { params });
     return response.data;
   }
 
@@ -30,7 +30,7 @@ class FinanceService {
    * Process a payment for a specific invoice.
    */
   async payInvoice(invoiceId, paymentData) {
-    const response = await api.post(`/finance/invoices/${invoiceId}/pay/`, paymentData);
+    const response = await api.post(`finance/invoices/${invoiceId}/pay/`, paymentData);
     return response.data;
   }
 
@@ -38,7 +38,7 @@ class FinanceService {
    * Generate a base invoice from an appointment completion.
    */
   async generateFromAppointment(appointmentId, fee = 50) {
-    const response = await api.post('/finance/invoices/from-appointment/', {
+    const response = await api.post('finance/invoices/from-appointment/', {
       appointment_id: appointmentId,
       consultation_fee: fee,
     });
@@ -49,7 +49,7 @@ class FinanceService {
    * Add a specific line item to an invoice.
    */
   async addItem(invoiceId, itemData) {
-    const response = await api.post(`/finance/invoices/${invoiceId}/add-item/`, itemData);
+    const response = await api.post(`finance/invoices/${invoiceId}/add-item/`, itemData);
     return response.data;
   }
 
@@ -57,7 +57,7 @@ class FinanceService {
    * Orchestrate insurance claims propagation.
    */
   async getClaims() {
-    const response = await api.get('/finance/claims/');
+    const response = await api.get('finance/claims/');
     return response.data;
   }
 }

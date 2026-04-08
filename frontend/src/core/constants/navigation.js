@@ -88,9 +88,9 @@ export const ADMIN_NAV = [
       { to: '/admin/patients',    label: 'Patients (EMR)',   icon: HeartPulse },
       { to: '/admin/patients/add', label: 'Add Patient',    icon: UserPlus },
       { to: '/admin/doctors',     label: 'Doctors',          icon: Stethoscope },
-      { to: '/admin/opd-queue',   label: 'OPD Queue',        icon: ClipboardList },
-      { to: '/admin/wards',       label: 'Ward & Beds',      icon: BedDouble },
-      { to: '/admin/admissions',  label: 'Admissions',       icon: ClipboardPlus },
+      { to: '/admin/patients?view=queue',      label: 'OPD Queue',        icon: ClipboardList },
+      { to: '/admin/patients?is_admitted=true', label: 'Ward & Beds',      icon: BedDouble },
+      { to: '/admin/patients?view=admissions', label: 'Admissions',       icon: ClipboardPlus },
       { to: '/admin/lab',         label: 'Laboratory',       icon: FlaskConical },
       { to: '/admin/pharmacy',    label: 'Pharmacy',         icon: Droplets },
     ]

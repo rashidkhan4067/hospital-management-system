@@ -140,25 +140,37 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         return serializer.save()
 
     @action(detail=False, methods=["get"])
-    def queue(self, request):
+    def today(self, request):
         """
-        GET /api/v1/appointments/queue/
-        Returns today's appointments in order of start time.
+        GET /api/v1/appointments/today/
+        Returns ALL appointments for the current calendar date.
         """
         from django.utils import timezone
         today = timezone.localdate()
         
-        # We only want scheduled or confirmed appointments for today
         qs = self.get_queryset().filter(
-            appointment_date=today,
-            status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED]
+            appointment_date=today
         ).order_by('start_time')
         
-        # For a real queue, we might want to add a 'queue_number' 
-        # but for now, we'll just return the ordered list.
         serializer = AppointmentSerializer(qs, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=["get"])
+    def queue(self, request):
+        """
+        GET /api/v1/appointments/queue/
+        Returns today's appointments in order of start time for OPD.
+        """
+        from django.utils import timezone
+        today = timezone.localdate()
+        
+        qs = self.get_queryset().filter(
+            appointment_date=today,
+            status__in=['pending', 'confirmed']
+        ).order_by('start_time')
+        
+        serializer = AppointmentSerializer(qs, many=True)
+        return Response(serializer.data)
     @action(detail=True, methods=["patch"])
     def cancel(self, request, pk=None):
         """

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LayoutGrid, MoreHorizontal, UserCircle, Activity, ShieldAlert, Database, Calendar, Plus, Zap, ShieldCheck } from 'lucide-react';
 import { Card, Badge, Button, PageHeader } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +16,9 @@ import { DepartmentThroughputShard, UnitEfficiencyShard, TopologyMatrixShard } f
  * 🏥 Clinical Unit Shard Matrix — Premium Evolution
  */
 export default function DepartmentMatrix() {
+  const [searchParams] = useSearchParams();
+  const sectionId = searchParams.get('section');
+  
   const { departments, loading, refresh, createDepartment, updateDepartment } = useAdminSystem();
   const { addNotification } = useUI();
   
@@ -48,10 +52,17 @@ export default function DepartmentMatrix() {
     }
   };
 
-  const filteredDepts = departments.filter(d => 
-    (d.name.toLowerCase().includes(searchTerm.toLowerCase()) || (d.code && d.code.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-    (activeTab === 'ALL' || (activeTab === 'ACTIVE' ? d.is_active : !d.is_active))
-  );
+  // 🧬 Filter Logic with Shard Deep-Linking
+  const filteredDepts = React.useMemo(() => {
+    return departments.filter(d => {
+      // 🛰️ Strict Node Filtering via Deep Link
+      if (sectionId && d.id !== sectionId) return false;
+      
+      const searchMatch = d.name.toLowerCase().includes(searchTerm.toLowerCase()) || (d.code && d.code.toLowerCase().includes(searchTerm.toLowerCase()));
+      const tabMatch = activeTab === 'ALL' || (activeTab === 'ACTIVE' ? d.is_active : !d.is_active);
+      return searchMatch && tabMatch;
+    });
+  }, [departments, searchTerm, activeTab, sectionId]);
 
   const kpis = [
     { title: "Total Shards", value: loading ? "..." : departments.length, icon: Database, trend: "+2", trendType: "neutral" },

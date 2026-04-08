@@ -16,6 +16,10 @@ class ClinicalMetric(models.Model):
     # Growth metrics (% change from previous node)
     patient_growth_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     
+    # 🧠 Intelligence Bookings
+    voice_bookings = models.IntegerField(default=0)
+    web_bookings = models.IntegerField(default=0)
+    
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

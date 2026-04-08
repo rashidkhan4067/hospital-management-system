@@ -10,7 +10,7 @@ class PatientService {
    */
   async getPatients(params = {}) {
     try {
-      const response = await api.get('/patients/profiles/', { params });
+      const response = await api.get('patients/profiles/', { params });
       return response.data;
     } catch (error) {
       console.error('Failed to propagate patient registry:', error);
@@ -19,11 +19,20 @@ class PatientService {
   }
 
   /**
+   * 🕒 Clinical Activity Feed
+   * Returns the most recently acquired or updated clinical identities.
+   */
+  async getRecentPatients() {
+    const response = await api.get('patients/profiles/recent/');
+    return response.data;
+  }
+
+  /**
    * Retrieve a deep clinical shard for a specific patient ID.
    */
   async getPatientDetail(id) {
     try {
-      const response = await api.get(`/patients/profiles/${id}/`);
+      const response = await api.get(`patients/profiles/${id}/`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch clinical record for patient ${id}:`, error);
@@ -36,7 +45,7 @@ class PatientService {
    */
   async createPatient(patientData) {
     try {
-      const response = await api.post('/patients/profiles/', patientData);
+      const response = await api.post('patients/profiles/', patientData);
       return response.data;
     } catch (error) {
       console.error('Failed to initialize patient identity:', error);
@@ -49,7 +58,7 @@ class PatientService {
    */
   async updatePatient(id, patientData) {
     try {
-      const response = await api.patch(`/patients/profiles/${id}/`, patientData);
+      const response = await api.patch(`patients/profiles/${id}/`, patientData);
       return response.data;
     } catch (error) {
       console.error(`Failed to refactor clinical shard for patient ${id}:`, error);
@@ -62,7 +71,7 @@ class PatientService {
    */
   async deletePatient(id) {
     try {
-      const response = await api.delete(`/patients/profiles/${id}/`);
+      const response = await api.delete(`patients/profiles/${id}/`);
       return response.data;
     } catch (error) {
       console.error(`Failed to terminate clinical record for patient ${id}:`, error);
@@ -74,7 +83,7 @@ class PatientService {
    * Fetch clinical observations (Lab Results, Vitals, History).
    */
   async getClinicalRecords(params = {}) {
-    const response = await api.get('/patients/records/', { params });
+    const response = await api.get('patients/records/', { params });
     return response.data;
   }
 }

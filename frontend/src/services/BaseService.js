@@ -7,6 +7,7 @@ import apiClient from './apiClient';
 export default class BaseService {
   constructor(endpoint) {
     this.endpoint = endpoint;
+    this.client = apiClient;
   }
 
   /**

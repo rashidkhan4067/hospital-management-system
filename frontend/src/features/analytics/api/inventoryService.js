@@ -7,7 +7,7 @@ import BaseService from '@/services/BaseService';
  */
 class InventoryService extends BaseService {
   constructor() {
-    super('/inventory/items/');
+    super('inventory/items/');
   }
 
   /**

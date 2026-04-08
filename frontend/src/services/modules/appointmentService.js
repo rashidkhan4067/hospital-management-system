@@ -6,23 +6,23 @@ import api from '../apiClient';
  */
 const AppointmentService = {
   // 🛰 Primary Result Matrix
-  getAll: (filters = {}) => api.get('/appointments/', { params: filters }),
+  getAll: (filters = {}) => api.get('appointments/', { params: filters }),
   
   // 🔬 Diagnostic Shard
-  getById: (id) => api.get(`/appointments/${id}/`),
+  getById: (id) => api.get(`appointments/${id}/`),
   
   // 📝 Protocol Modification
-  create: (data) => api.post('/appointments/', data),
+  create: (data) => api.post('appointments/', data),
   
   // 🛡 Node Synchronization
-  update: (id, data) => api.patch(`/appointments/${id}/`, data),
+  update: (id, data) => api.patch(`appointments/${id}/`, data),
   
   // 🚫 Node Termination
-  delete: (id) => api.delete(`/appointments/${id}/`),
+  delete: (id) => api.delete(`appointments/${id}/`),
 
   // 📉 Clinical Intelligence Shards
-  getStats: () => api.get('/appointments/stats/').then(r => r.data),
-  getQueue: () => api.get('/appointments/queue/').then(r => r.data),
+  getStats: () => api.get('appointments/stats/').then(r => r.data),
+  getQueue: () => api.get('appointments/queue/').then(r => r.data),
 };
 
 export default AppointmentService;

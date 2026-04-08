@@ -21,6 +21,9 @@ const PatientsPage      = lazy(() => import('@/features/patients/pages/PatientsP
 const AppointmentsPage  = lazy(() => import('@/features/appointments/pages/AppointmentsPage'));
 const DoctorsPage       = lazy(() => import('@/features/doctors/pages/DoctorsPage'));
 
+// ─── MANAGEMENT NODE ───
+const DepartmentsPage = lazy(() => import('@/features/management/pages/Departments'));
+
 export const APP_ROUTES = [
     {
         path: '/admin',
@@ -28,6 +31,13 @@ export const APP_ROUTES = [
         requireAuth: true,
         requireAdmin: true,
         title: 'Global Hub'
+    },
+    {
+        path: '/admin/departments',
+        element: DepartmentsPage,
+        requireAuth: true,
+        requireAdmin: true,
+        title: 'Clinical Matrix'
     },
     {
         path: '/admin/appointments',

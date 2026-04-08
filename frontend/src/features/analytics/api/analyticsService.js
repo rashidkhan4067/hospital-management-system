@@ -1,4 +1,5 @@
 import BaseService from '@/services/BaseService';
+import apiClient from '@/services/apiClient';
 
 /**
  * 🏥 Analytics Service (OOPS: Inheritance)
@@ -6,23 +7,23 @@ import BaseService from '@/services/BaseService';
  */
 class AnalyticsService extends BaseService {
   constructor() {
-    super('/analytics/');
+    super('analytics/');
   }
 
   /**
    * Retrieves clinical trends for charts.
    */
   async getClinicalTrends() {
-    const response = await this.getAll({ category: 'clinical' });
-    return response.results || response;
+    const response = await apiClient.get(`${this.endpoint}clinical/`);
+    return response.data;
   }
 
   /**
    * Retrieves financial trends.
    */
   async getFinancialTrends() {
-    const response = await this.getAll({ category: 'financial' });
-    return response.results || response;
+    const response = await apiClient.get(`${this.endpoint}financial/`);
+    return response.data;
   }
 
   /**
@@ -65,7 +66,7 @@ class AnalyticsService extends BaseService {
    * Fetches the real-time system pulse for the dashboard KPIs.
    */
   async getExecutiveSummary() {
-    const response = await this.client.get(`${this.endpoint}pulse/`);
+    const response = await apiClient.get(`${this.endpoint}pulse/`);
     return response.data;
   }
 

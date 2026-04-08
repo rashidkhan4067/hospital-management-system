@@ -11,6 +11,7 @@ export { default as Modal } from './Modal';
 export { default as Avatar } from './Avatar';
 export { default as Alert } from './Alert';
 export { default as Skeleton } from './Skeleton';
+export { default as UnifiedSkeleton } from './UnifiedSkeleton';
 export { default as EmptyState } from './EmptyState';
 export { default as PageHeader } from './PageHeader';
 export { default as AdminTable } from './AdminTable';

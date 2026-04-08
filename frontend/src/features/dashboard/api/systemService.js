@@ -6,7 +6,7 @@ import BaseService from '@/services/BaseService';
  */
 class SystemService extends BaseService {
   constructor() {
-    super('/system/');
+    super('system/');
   }
 
   /**

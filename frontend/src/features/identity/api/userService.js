@@ -6,7 +6,7 @@ import BaseService from '@/services/BaseService';
  */
 class UserService extends BaseService {
   constructor() {
-    super('/auth/users/');
+    super('auth/users/');
   }
 
   /**

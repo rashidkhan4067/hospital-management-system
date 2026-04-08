@@ -31,6 +31,8 @@ class GlobalIntelligencePulse(views.APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request):
-        PulseEngine.sync_daily_node() # Keep historical models updated
-        metrics = PulseEngine.get_realtime_metrics()
-        return response.Response(metrics)
+        try:
+            metrics = PulseEngine.get_realtime_metrics()
+            return response.Response(metrics)
+        except Exception as e:
+            return response.Response({"error": str(e)}, status=500)

@@ -7,7 +7,7 @@ import api from '@/services/apiClient';
  */
 class AIService extends BaseService {
   constructor() {
-    super('/ai/');
+    super('ai/');
   }
 
   /**

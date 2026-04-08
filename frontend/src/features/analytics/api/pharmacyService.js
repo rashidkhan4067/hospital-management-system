@@ -9,7 +9,7 @@ const PharmacyService = {
      * Retrieves the entire clinical inventory list.
      */
     getInventory: async () => {
-        const response = await api.get('/pharmacy/inventory/');
+        const response = await api.get('pharmacy/inventory/');
         return response.data;
     },
 
@@ -41,7 +41,7 @@ const PharmacyService = {
      * Identifies critical stock items for reorder warnings.
      */
     getCriticalStock: async () => {
-        const response = await api.get('/pharmacy/inventory/critical_stock/');
+        const response = await api.get('pharmacy/inventory/critical_stock/');
         return response.data;
     }
 };

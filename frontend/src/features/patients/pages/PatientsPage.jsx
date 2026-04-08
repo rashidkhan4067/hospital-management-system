@@ -10,7 +10,7 @@ import {
   Heart,
 } from 'lucide-react';
 import { Badge, Button, TableActions, PageHeader, FilterBar } from '@/components/primitives';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import AdminTable from '@/components/primitives/AdminTable';
 import AdminPage from '@/layouts/AdminPage';
 import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
@@ -38,18 +38,55 @@ import { useAdminStats } from '@/features/dashboard/hooks/useStats';
 export default function AdminPatients({ autoOpenAdd = false }) {
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // UI State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('ALL');
+  // URL State Nodes - Single Source of Truth
+  const searchTerm = searchParams.get('q') || '';
+  const viewParam = searchParams.get('view')?.toUpperCase();
+  const isAdmittedParam = searchParams.get('is_admitted');
+  
+  // Resolve activeTab from multiple possible source params
+  let activeTab = 'ALL';
+  if (viewParam === 'QUEUE') activeTab = 'QUEUE';
+  else if (viewParam === 'ADMISSIONS' || viewParam === 'ADMITTED' || isAdmittedParam === 'true') activeTab = 'ADMITTED';
+  else if (viewParam === 'OUTPATIENTS' || viewParam === 'STABLE') activeTab = 'STABLE';
+
+  // Reactive Setters (URL Driven)
+  const setSearchTerm = (val) => {
+    setSearchParams(prev => {
+      if (val) prev.set('q', val); else prev.delete('q');
+      return prev;
+    }, { replace: true });
+  };
+
+  const setActiveTab = (val) => {
+    setSearchParams(prev => {
+      if (val === 'ALL') {
+         prev.delete('view');
+         prev.delete('is_admitted');
+      } else if (val === 'ADMITTED') {
+         prev.set('is_admitted', 'true');
+         prev.delete('view');
+      } else {
+         prev.set('view', val.toLowerCase());
+         prev.delete('is_admitted');
+      }
+      return prev;
+    }, { replace: true });
+  };
+
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(autoOpenAdd);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Data
-  const { patients, loading: patientsLoading, refresh } = useAdminPatients();
+  // Data - Mapping internal activeTab to Backend Registry Keys
+  const fetchFilters = {};
+  if (activeTab === 'ADMITTED') fetchFilters.is_admitted = 'true';
+  if (searchTerm) fetchFilters.search = searchTerm;
+
+  const { patients, loading: patientsLoading, refresh } = useAdminPatients(fetchFilters);
   const { stats: statsSummary, loading: statsLoading } = useAdminStats();
   const loading = patientsLoading || statsLoading;
 
@@ -88,9 +125,7 @@ export default function AdminPatients({ autoOpenAdd = false }) {
 
   const openRecord = (patient) => {
      navigate(`/admin/patients/${patient.id}`);
-  };
-
-  // Filtered list
+  };  // Filtered list
   const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
       const matchesSearch =
@@ -98,8 +133,8 @@ export default function AdminPatients({ autoOpenAdd = false }) {
         p.id?.toString().includes(searchTerm) ||
         p.phone?.includes(searchTerm);
 
-      if (activeTab === 'CRITICAL') return matchesSearch && p.is_admitted;
-      if (activeTab === 'STABLE') return matchesSearch && !p.is_admitted;
+      if (activeTab === 'ADMITTED') return matchesSearch && p.is_admitted;
+      if (activeTab === 'STABLE' || activeTab === 'QUEUE') return matchesSearch && !p.is_admitted;
       return matchesSearch;
     });
   }, [patients, searchTerm, activeTab]);
@@ -130,7 +165,7 @@ export default function AdminPatients({ autoOpenAdd = false }) {
         pillIcon={Users}
         actions={[
           { title: 'New Intake', subtitle: 'Register Patient', icon: UserPlus, onClick: () => setIsAddModalOpen(true) },
-          { title: 'Live Admissions', subtitle: `${admitted} Admitted Now`, icon: Activity, onClick: () => setActiveTab('CRITICAL') }
+          { title: 'Live Admissions', subtitle: `${admitted} Admitted Now`, icon: Activity, onClick: () => setActiveTab('ADMITTED') }
         ]}
       />
 
@@ -140,7 +175,7 @@ export default function AdminPatients({ autoOpenAdd = false }) {
          newThisMonth={newPatients} 
          activeToday={admitted} 
          loading={loading} 
-      />
+       />
 
       {/* ── Integrated Commands ── */}
       <FilterBar 
@@ -152,10 +187,9 @@ export default function AdminPatients({ autoOpenAdd = false }) {
         tabs={[
           { id: 'ALL',      label: 'All Patients' },
           { id: 'STABLE',   label: 'Outpatients' },
-          { id: 'CRITICAL', label: 'Admitted' },
+          { id: 'ADMITTED', label: 'Admitted' },
         ]}
       />
-
       {/* ── Primary Data Matrix (Blueprint Alignment) ── */}
       <PatientTable
         data={filteredPatients}

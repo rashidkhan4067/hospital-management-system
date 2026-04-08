@@ -7,7 +7,7 @@ import apiClient from '@/services/apiClient';
  */
 class AppointmentService extends BaseService {
   constructor() {
-    super('/appointments/');
+    super('appointments/');
   }
 
   /**
@@ -23,13 +23,16 @@ class AppointmentService extends BaseService {
   }
 
   /**
-   * 📋 OPD Queue Fetcher
-   * Fetches the current session's appointment queue for the outpatient department.
+   * 📅 Daily Schedule Mirror
+   * Fetches all appointments registered for the current session.
    */
-  async getQueue() {
-    const response = await apiClient.get(`${this.endpoint}queue/`);
+  async getTodaysAppointments() {
+    const response = await apiClient.get(`${this.endpoint}today/`);
     return response.data;
   }
+
+  /**
+   * 📋 OPD Queue Fetcher
 
   async cancel(id, reason) {
     return super.update(id, { 

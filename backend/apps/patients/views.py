@@ -1,4 +1,6 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import PatientProfile, ClinicalRecord
 from .serializers import PatientProfileSerializer, PatientCreateSerializer, ClinicalRecordSerializer
@@ -20,6 +22,16 @@ class PatientViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return PatientCreateSerializer
         return PatientProfileSerializer
+
+    @action(detail=False, methods=["get"])
+    def recent(self, request):
+        """
+        GET /api/v1/patients/profiles/recent/
+        Returns the top clinical shards for the latest patient acquisitions.
+        """
+        qs = self.get_queryset()[:5]
+        serializer = PatientProfileSerializer(qs, many=True)
+        return Response(serializer.data)
 
     def get_permissions(self):
         """

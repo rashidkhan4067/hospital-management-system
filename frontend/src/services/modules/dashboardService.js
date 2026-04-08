@@ -1,4 +1,4 @@
-import api from '../apiClient';
+import apiClient from '../apiClient';
 
 /**
  * 📊 Al Shifaa Dashboard Intelligence Service
@@ -6,13 +6,13 @@ import api from '../apiClient';
  */
 const DashboardService = {
   // 🛰 Primary Operational Shards
-  getDashboardStats: () => api.get('/dashboard/stats/').then(r => r.data),
+  getDashboardStats: () => apiClient.get('dashboard/executive/summary/').then(r => r.data),
   
   // 📋 Appointments Operational Summary
-  getAppointmentsSummary: () => api.get('/dashboard/appointments-summary/').then(r => r.data),
+  getAppointmentsSummary: () => apiClient.get('dashboard/appointments-summary/').then(r => r.data),
   
   // 🏥 Ward & Bed Allocation Matrix
-  getWardStats: () => api.get('/dashboard/ward-stats/').then(r => r.data),
+  getWardStats: () => apiClient.get('dashboard/ward-stats/').then(r => r.data),
 };
 
 export default DashboardService;

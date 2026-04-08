@@ -9,7 +9,7 @@ const LaboratoryService = {
      * Retrieves all available laboratory tests and pricing.
      */
     getTests: async () => {
-        const response = await api.get('/lab/tests/');
+        const response = await api.get('lab/tests/');
         return response.data;
     },
 
@@ -17,7 +17,7 @@ const LaboratoryService = {
      * Retrieves clinical finding snapshots (patient reports).
      */
     getResults: async () => {
-        const response = await api.get('/lab/results/');
+        const response = await api.get('lab/results/');
         return response.data;
     },
 
@@ -25,7 +25,7 @@ const LaboratoryService = {
      * Commits a new diagnostic finding node to the patient's record.
      */
     createResult: async (data) => {
-        const response = await api.post('/lab/results/', data);
+        const response = await api.post('lab/results/', data);
         return response.data;
     }
 };

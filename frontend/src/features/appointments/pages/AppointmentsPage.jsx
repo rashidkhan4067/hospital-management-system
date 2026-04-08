@@ -39,9 +39,26 @@ export default function AppointmentsPage() {
    const [searchParams, setSearchParams] = useSearchParams();
    const [isModalOpen, setIsModalOpen] = useState(false);
 
-   // URL State Nodes
-   const searchTerm = searchParams.get('q') || '';
-   const activeTab = searchParams.get('status') || 'ALL';
+   // URL State Nodes - Single Source of Truth
+   const status      = searchParams.get('status') || 'ALL';
+   const date        = searchParams.get('date');
+   const priority    = searchParams.get('priority');
+   const searchTerm  = searchParams.get('q') || '';
+
+   // 📡 Synchronized Server State - Auto-refetch on param change
+   const { data, isLoading: loading, error, refetch: refresh } = useAdminAppointments({ 
+      status: status === 'ALL' ? undefined : status.toLowerCase(),
+      date,
+      priority
+   });
+
+   const { 
+      selectedAppointment, isDrawerOpen, 
+      handleStatusUpdate, handleViewDetail, handleCloseDrawer 
+   } = useAppointmentOperations(addNotification);
+
+   const appointments = data?.appointments || [];
+   const stats = data?.stats || null;
 
    // Reactive Setters (URL Driven)
    const setSearchTerm = (val) => {
@@ -58,38 +75,23 @@ export default function AppointmentsPage() {
       }, { replace: true });
    };
 
-   // 📡 Synchronized Server State
-   const { data, isLoading: loading, error, refetch: refresh } = useAdminAppointments({ 
-      status: activeTab === 'ALL' ? undefined : activeTab.toLowerCase() 
-   });
-   const { 
-      selectedAppointment, isDrawerOpen, 
-      handleStatusUpdate, handleViewDetail, handleCloseDrawer 
-   } = useAppointmentOperations(addNotification);
-
-   const appointments = data?.appointments || [];
-   const stats = data?.stats || null;
-
    // ─── Filter Matrix ───
    const filteredAppointments = useMemo(() => {
-      if (import.meta.env.DEV) {
-          // Sync check node
-      }
       return appointments.filter(a => {
          const patientName = a.patient?.full_name || '';
          const doctorName = a.doctor?.full_name || '';
-         const status = a.status?.toUpperCase();
+         const apptStatus = a.status?.toUpperCase();
          
          const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                                doctorName.toLowerCase().includes(searchTerm.toLowerCase());
                                
-         const matchesTab = activeTab === 'ALL' || 
-                            status === activeTab || 
-                            (activeTab === 'SCHEDULED' && status === 'PENDING');
+         const matchesTab = status === 'ALL' || 
+                            apptStatus === status || 
+                            (status === 'SCHEDULED' && apptStatus === 'PENDING');
 
          return matchesSearch && matchesTab;
       });
-   }, [appointments, searchTerm, activeTab]);
+   }, [appointments, searchTerm, status]);
 
    return (
       <AdminPage>
@@ -185,7 +187,7 @@ export default function AppointmentsPage() {
                <FilterBar 
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  activeTab={activeTab}
+                  activeTab={status}
                   setActiveTab={setActiveTab}
                   placeholder="Search patient, doctor, or ID..."
                   tabs={[

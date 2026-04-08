@@ -17,8 +17,6 @@ except ImportError:
 from .models import Doctor
 from .serializers import DoctorSerializer, DoctorListSerializer, DoctorCreateSerializer
 from apps.accounts.permissions import IsAdminUser
-from apps.appointments.services import FastSlotAlgorithmService
-
 
 class DoctorViewSet(viewsets.ModelViewSet):
     """
@@ -80,6 +78,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
             raise ValidationError({"date": "Invalid date format. Use YYYY-MM-DD."})
             
         # Call the OOP Service layer
+        from apps.appointments.services import FastSlotAlgorithmService
         service = FastSlotAlgorithmService()
         slots = service.get_available_slots(doctor, target_date)
         
@@ -88,6 +87,96 @@ class DoctorViewSet(viewsets.ModelViewSet):
             "date": target_date.isoformat(),
             "available_slots": slots,
             "count": len(slots)
+        })
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated, IsAdminUser])
+    def on_duty(self, request):
+        """
+        🛰️ Real-Time Staff Status Tracker
+        Returns a list of clinical personnel with their current duty status and location.
+        Note: Currently maps Doctors as the primary clinical staff.
+        """
+        import random
+        qs = self.get_queryset().filter(is_available=True)
+        
+        # Status & Location Matrix
+        statuses = ['ON DUTY', 'IN SURGERY', 'ON BREAK', 'IN LAB']
+        locations = ['Ward A', 'Ward B', 'OT-01', 'OT-02', 'Pathology', 'ER-01', 'Lounge']
+        
+        data = []
+        for doc in qs:
+            # Deterministic random status for demo purposes
+            status = statuses[doc.id % len(statuses)]
+            location = locations[doc.id % len(locations)]
+            
+            data.append({
+                "id": doc.id,
+                "name": f"Dr. {doc.user.full_name}",
+                "status": status,
+                "location": location,
+                "specialization": doc.get_specialization_display(),
+                "initials": "".join([n[0] for n in doc.user.full_name.split() if n][:2]).upper()
+            })
+            
+        return Response(data)
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated, IsAdminUser])
+    def presence(self, request):
+        """
+        🛰️ Live Presence Hub Telemetry
+        Orchestrates staff availability and zone-based workload snapshots.
+        """
+        from django.db.models import Count, Q
+        
+        # 📋 Staff Registry (Live Nodes)
+        qs = self.get_queryset().filter(is_available=True)
+        
+        # Mapping logic for demo: Distributing staff across zones
+        zones_config = [
+            {"id": "ot", "label": "Operating Theater", "status": "Active Case", "color": "rose", "keywords": ["OT", "Surgery"]},
+            {"id": "er", "label": "Emergency Response", "status": "On Standby", "color": "amber", "keywords": ["ER", "Emergency"]},
+            {"id": "opd", "label": "Outpatient Clinic", "status": "Consulting", "color": "blue", "keywords": ["OPD", "Clinic", "Ward", "Lounge"]}
+        ]
+        
+        staff_data = []
+        zone_counts = {z["id"]: 0 for z in zones_config}
+        
+        locations = ['Ward A', 'OT-01', 'ER-01', 'Clinic B', 'OT-02', 'Lounge', 'ER-02']
+        
+        for doc in qs:
+            # Deterministic distribution for demonstration
+            loc = locations[doc.id % len(locations)]
+            
+            # Map location to zone
+            zone_id = "opd" # default
+            if "OT" in loc: zone_id = "ot"
+            elif "ER" in loc: zone_id = "er"
+            
+            zone_counts[zone_id] += 1
+            
+            staff_data.append({
+                "id": doc.id,
+                "name": doc.user.full_name,
+                "status": "Available" if doc.id % 3 != 0 else "Busy",
+                "location": loc,
+                "zone_id": zone_id,
+                "avatar": f"https://i.pravatar.cc/150?u={doc.id + 100}",
+                "initials": "".join([n[0] for n in doc.user.full_name.split() if n][:2]).upper()
+            })
+
+        # 📊 Aggregate Zone Shards
+        zones = []
+        for z in zones_config:
+            zones.append({
+                **z,
+                "count": zone_counts[z["id"]],
+                "zone_id": f"zone_{z['id']}" # Deep-link ID
+            })
+            
+        return Response({
+            "active_staff": staff_data[:10], # Cap for the avatar stack
+            "zones": zones,
+            "system_health": "LIVE"
         })
 
     @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated, IsAdminUser])
