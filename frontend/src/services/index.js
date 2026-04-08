@@ -9,3 +9,4 @@ export { default as BaseService } from './BaseService';
 // 🏥 Domain Services
 export { default as AppointmentService } from './modules/appointmentService';
 export { default as UserService } from './modules/userService';
+export { default as DashboardService } from './modules/dashboardService';
