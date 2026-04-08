@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Shield, CheckCircle2, ChevronRight, Activity } from 'lucide-react';
 import { register as registerService } from '@/features/auth/api/authService';
-import { useForm } from '@/shared/hooks';
-import { Input, Button, Alert } from '@/shared/components/ui';
+import { useForm } from '@/hooks';
+import { Input, Button, Alert } from '@/components/primitives';
 
 /**
  * 📝 RegisterForm - Clinical Admission Hub

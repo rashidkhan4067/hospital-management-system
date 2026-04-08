@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, Stethoscope, ChevronRight, XCircle, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { motion } from 'framer-motion';
 
 const AppointmentRow = ({ appointment, onCancel, index }) => {

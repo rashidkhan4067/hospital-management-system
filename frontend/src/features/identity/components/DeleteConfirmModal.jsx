@@ -7,7 +7,7 @@ import {
     Fingerprint,
     Shield, Briefcase, Users as UsersIcon, Stethoscope
 } from 'lucide-react';
-import { Modal, Button } from '@/shared/components/ui';
+import { Modal, Button } from '@/components/primitives';
 
 /**
  * ☢️ Identity Termination Protocol Shard

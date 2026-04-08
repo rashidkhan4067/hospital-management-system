@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { Badge, Card } from '@/shared/components/ui';
+import { Badge, Card } from '@/components/primitives';
 
 const mockDistribution = [
     { name: 'Approved', value: 65, color: '#14B8A6' },

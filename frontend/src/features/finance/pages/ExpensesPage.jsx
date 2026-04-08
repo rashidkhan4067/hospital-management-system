@@ -10,10 +10,10 @@ import {
    Card,
    PageHeader,
    FilterBar 
-} from '@/shared/components/ui';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import AdminPage from '@/shared/components/layout/AdminPage';
+} from '@/components/primitives';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import AdminPage from '@/layouts/AdminPage';
 
 // Modular Expense Components
 import ExpenseTable from '../components/expenses/ExpenseTable';

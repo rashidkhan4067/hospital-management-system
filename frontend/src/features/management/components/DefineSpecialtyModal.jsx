@@ -8,7 +8,7 @@ import {
   Type,
   FileText
 } from 'lucide-react';
-import { Button, Badge, Modal } from '@/shared/components/ui';
+import { Button, Badge, Modal } from '@/components/primitives';
 import { useUI } from '@/core/ui/UIContext';
 
 /**

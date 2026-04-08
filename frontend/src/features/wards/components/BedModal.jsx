@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 import { BedIcon, Save, X, Plus, ShieldCheck, Zap, Hospital, AlertCircle, Info } from 'lucide-react';
 
 /**

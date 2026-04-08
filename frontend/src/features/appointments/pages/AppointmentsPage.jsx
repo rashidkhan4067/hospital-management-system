@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
    Calendar, Plus, Clock, UserCheck, AlertCircle, Eye, CheckCircle, XCircle,
    Download, Trash2, Edit3, Mic, Activity
@@ -10,9 +11,9 @@ import {
    PageHeader,
    TableActions,
    FilterBar 
-} from '@/shared/components/ui';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+} from '@/components/primitives';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 
 // Feature components
 import AppointmentsTable from '@/features/appointments/components/AppointmentsTable';
@@ -24,9 +25,9 @@ import ClinicalIntelligenceHub from '@/features/appointments/components/Clinical
 
 import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 import AppointmentService from '@/features/appointments/api/appointmentService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useAdminAppointments, useAppointmentOperations } from '@/features/appointments/hooks/useAppointments';
-import AdminPage from '@/shared/components/layout/AdminPage';
+import AdminPage from '@/layouts/AdminPage';
 
 
 /**
@@ -35,15 +36,39 @@ import AdminPage from '@/shared/components/layout/AdminPage';
  */
 export default function AppointmentsPage() {
    const { addNotification } = useNotifications();
-   const [searchTerm, setSearchTerm] = useState('');
-   const [activeTab, setActiveTab] = useState('ALL');
+   const [searchParams, setSearchParams] = useSearchParams();
    const [isModalOpen, setIsModalOpen] = useState(false);
 
-   const { appointments, stats, loading, refresh } = useAdminAppointments();
+   // URL State Nodes
+   const searchTerm = searchParams.get('q') || '';
+   const activeTab = searchParams.get('status') || 'ALL';
+
+   // Reactive Setters (URL Driven)
+   const setSearchTerm = (val) => {
+      setSearchParams(prev => {
+         if (val) prev.set('q', val); else prev.delete('q');
+         return prev;
+      }, { replace: true });
+   };
+
+   const setActiveTab = (val) => {
+      setSearchParams(prev => {
+         prev.set('status', val);
+         return prev;
+      }, { replace: true });
+   };
+
+   // 📡 Synchronized Server State
+   const { data, isLoading: loading, error, refetch: refresh } = useAdminAppointments({ 
+      status: activeTab === 'ALL' ? undefined : activeTab.toLowerCase() 
+   });
    const { 
       selectedAppointment, isDrawerOpen, 
       handleStatusUpdate, handleViewDetail, handleCloseDrawer 
-   } = useAppointmentOperations(refresh, addNotification);
+   } = useAppointmentOperations(addNotification);
+
+   const appointments = data?.appointments || [];
+   const stats = data?.stats || null;
 
    // ─── Filter Matrix ───
    const filteredAppointments = useMemo(() => {

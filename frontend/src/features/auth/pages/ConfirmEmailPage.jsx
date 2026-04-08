@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { BadgeCheck, ShieldAlert, Loader2, Key } from 'lucide-react';
 import axios from 'axios';
-import { Card, Alert, Button } from '@/shared/components/ui';
+import { Card, Alert, Button } from '@/components/primitives';
 
 export default function ConfirmEmailPage() {
   const [params] = useSearchParams();

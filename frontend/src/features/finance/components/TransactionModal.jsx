@@ -1,6 +1,6 @@
 import React from 'react';
 import { Activity, ShieldCheck, Stethoscope, Briefcase, Users as UsersIcon } from 'lucide-react';
-import { Modal } from '@/shared/components/ui';
+import { Modal } from '@/components/primitives';
 
 /**
  * 💎 High-Fidelity Transaction Modal (Global Shard)

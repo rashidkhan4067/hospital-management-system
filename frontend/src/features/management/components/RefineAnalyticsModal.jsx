@@ -10,7 +10,7 @@ import {
     Clock,
     Zap
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 🧹 Refine Matrix Modal

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { motion } from 'framer-motion';
 
 /**

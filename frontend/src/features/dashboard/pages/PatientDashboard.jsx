@@ -3,7 +3,7 @@ import PatientWelcome from '../components/patient/PatientWelcome';
 import UpcomingAppointmentCard from '../components/patient/UpcomingAppointmentCard';
 import PatientQuickActions from '../components/patient/PatientQuickActions';
 import HealthTipsWidget from '../components/patient/HealthTipsWidget';
-import { PageHeader } from '@/shared/components/ui';
+import { PageHeader } from '@/components/primitives';
 import { motion } from 'framer-motion';
 
 const containerVariants = {

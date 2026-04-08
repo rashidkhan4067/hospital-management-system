@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 const mockData = [
    { month: 'JAN', billed: 450000, collected: 410000 },

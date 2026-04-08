@@ -1,6 +1,6 @@
 import React from 'react';
 import { CreditCard, User, Hash, Clock, DollarSign, Activity, ArrowRight, ShieldCheck } from 'lucide-react';
-import { Badge } from '@/shared/components/ui';
+import { Badge } from '@/components/primitives';
 
 /**
  * 💹 TransactionDetailsCard

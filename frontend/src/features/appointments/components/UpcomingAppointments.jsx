@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, MapPin, XCircle, Bell, ChevronRight } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * 🛰 UpcomingAppointments — Compact visit cards

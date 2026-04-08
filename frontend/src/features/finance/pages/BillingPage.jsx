@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { 
   CreditCard, Download, Plus, TrendingUp, Zap, Banknote, History
 } from 'lucide-react';
-import { Button, PageHeader, FilterBar } from '@/shared/components/ui';
+import { Button, PageHeader, FilterBar } from '@/components/primitives';
 
 // ─── Shared Layout Components ───
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // ─── Finance Modular Shards ───
 import BillingSidebar from '@/features/finance/components/BillingSidebar';

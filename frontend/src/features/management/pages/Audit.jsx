@@ -21,14 +21,14 @@ import {
   Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PageHeader, Button, Card, Badge, Avatar } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { PageHeader, Button, Card, Badge, Avatar } from '@/components/primitives';
+import AdminTable from '@/components/primitives/AdminTable';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 import { useAdminSystem } from '@/features/management/hooks/useSystem';
-import PageLoader from '@/shared/components/common/Loading';
+import PageLoader from '@/components/composed/Loading';
 
 /**
  * 🔒 Security Audit Matrix

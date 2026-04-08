@@ -13,7 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
-import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
+import { PageHeader, Button, Card, Badge } from '@/components/primitives';
 import { motion } from 'framer-motion';
 
 /**

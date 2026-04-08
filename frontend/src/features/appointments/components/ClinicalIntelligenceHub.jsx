@@ -1,7 +1,7 @@
 import React from 'react';
 import { Activity, Clock, Users, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 const mockChartData = [
    { time: '08:00', load: 12, wait: 15 },

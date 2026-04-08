@@ -8,7 +8,7 @@ import {
   Briefcase,
   Users as UsersIcon
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 import { useAdminDoctors } from '@/features/doctors/hooks/useDoctors';
 
 /**

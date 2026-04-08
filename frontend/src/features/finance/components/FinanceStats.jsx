@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrendingUp, CreditCard, Receipt, AlertCircle } from 'lucide-react';
-import { StatsCard } from '@/shared/components/ui';
+import { StatsCard } from '@/components/primitives';
 
 export default function FinanceStats({ metrics, loading }) {
     const stats = [

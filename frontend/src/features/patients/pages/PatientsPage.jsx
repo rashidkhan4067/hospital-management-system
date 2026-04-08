@@ -9,12 +9,12 @@ import {
   Users,
   Heart,
 } from 'lucide-react';
-import { Badge, Button, TableActions, PageHeader, FilterBar } from '@/shared/components/ui';
+import { Badge, Button, TableActions, PageHeader, FilterBar } from '@/components/primitives';
 import { useNavigate } from 'react-router-dom';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import AdminTable from '@/components/primitives/AdminTable';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 
 // Modularized Clinical Components
 import PatientTable from '../components/list/PatientTable';
@@ -25,7 +25,7 @@ import EditPatientModal from '../components/emr/modals/EditPatientModal';
 // Modals & Identity
 import DeleteConfirmModal from '@/features/identity/components/DeleteConfirmModal';
 import UserService from '@/features/identity/api/userService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Data Hooks
 import { useAdminPatients } from '@/features/patients/hooks/usePatients';

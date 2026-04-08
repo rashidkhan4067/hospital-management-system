@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Activity, SlidersHorizontal, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import appointmentService from '@/features/appointments/api/appointmentService';
-import { PageHeader, Card, Badge, Button } from '@/shared/components/ui';
+import { PageHeader, Card, Badge, Button } from '@/components/primitives';
 import AppointmentRow from '../components/patient/AppointmentRow';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function UserAppointmentsPage() {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Users } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * Row 3 Right — OPDQueue

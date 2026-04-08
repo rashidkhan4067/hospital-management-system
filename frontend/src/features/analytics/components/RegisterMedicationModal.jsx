@@ -5,7 +5,7 @@ import {
   Calendar,
   Layers
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 💊 Register Medication Modal Shard

@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { BarChart as BarChartIcon, Activity, Clock, Globe, TrendingUp } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { UI_TOKENS } from '@/core/config/UI';
 import SanaAIAnalyticsCard from '@/features/analytics/components/SanaAIAnalyticsCard';
 

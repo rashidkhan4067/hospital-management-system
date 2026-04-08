@@ -16,12 +16,12 @@ import {
   LayoutGrid,
   Settings
 } from 'lucide-react';
-import { Badge, Button, PageHeader, Card, TableActions, FilterBar } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import { Badge, Button, PageHeader, Card, TableActions, FilterBar } from '@/components/primitives';
+import AdminTable from '@/components/primitives/AdminTable';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 import ProvisionSupplyShardModal from '@/features/analytics/components/ProvisionSupplyShardModal';
-import AdminPage from '@/shared/components/layout/AdminPage';
+import AdminPage from '@/layouts/AdminPage';
 import { useNavigate } from 'react-router-dom';
 
 import { useAdminInventory } from '@/features/analytics/hooks/useInventory';

@@ -3,7 +3,7 @@ import {
    X, User, Phone, Mail, MapPin, Calendar, Clock, Clipboard, 
    Activity, History, FileText, CheckCircle, XCircle 
 } from 'lucide-react';
-import { Badge, Button } from '@/shared/components/ui';
+import { Badge, Button } from '@/components/primitives';
 
 /**
  * 🛰 AppointmentDrawer — Slide-in medical visit details

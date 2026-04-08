@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { 
   Clock, Sun, Moon, Sunrise, Users, 
   MapPin, CheckCircle, AlertCircle, ChevronLeft, 

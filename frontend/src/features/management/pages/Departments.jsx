@@ -1,14 +1,14 @@
 import React from 'react';
 import { LayoutGrid, MoreHorizontal, UserCircle, Activity, ShieldAlert, Database, Calendar, Plus, Zap, ShieldCheck } from 'lucide-react';
-import { Card, Badge, Button, PageHeader } from '@/shared/components/ui';
+import { Card, Badge, Button, PageHeader } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminSystem } from '@/features/management/hooks/useSystem';
 import { useUI } from '@/core/ui/UIContext';
 import DepartmentModal from '@/features/management/components/DepartmentModal';
-import FilterBar from '@/shared/components/ui/FilterBar';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import FilterBar from '@/components/primitives/FilterBar';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 import { DepartmentThroughputShard, UnitEfficiencyShard, TopologyMatrixShard } from '../components/DepartmentShards';
 
 /**

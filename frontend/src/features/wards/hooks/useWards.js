@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api from '@/core/api/apiClient';
+import api from '@/services/apiClient';
 
 /**
  * 🏥 WARD SYSTEM HOOK

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Download, Receipt, Eye, Printer, FileText } from 'lucide-react';
-import { TableActions } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
+import { TableActions } from '@/components/primitives';
+import AdminTable from '@/components/primitives/AdminTable';
 
 /**
  * 📊 Transaction Matrix Shard

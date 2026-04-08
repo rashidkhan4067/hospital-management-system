@@ -1,12 +1,12 @@
 import React from 'react';
-import LandingHero from '@/shared/components/common/LandingHero';
-import LandingSpecialists from '@/shared/components/common/LandingSpecialists';
-import LandingAIAgent from '@/shared/components/common/LandingAIAgent';
-import LandingBookingPreview from '@/shared/components/common/LandingBookingPreview';
-import LandingStats from '@/shared/components/common/LandingStats';
-import LandingProcess from '@/shared/components/common/LandingProcess';
-import PageContainer from '@/shared/components/common/PageContainer';
-import SEO from '@/shared/components/common/SEO';
+import LandingHero from '@/components/composed/LandingHero';
+import LandingSpecialists from '@/components/composed/LandingSpecialists';
+import LandingAIAgent from '@/components/composed/LandingAIAgent';
+import LandingBookingPreview from '@/components/composed/LandingBookingPreview';
+import LandingStats from '@/components/composed/LandingStats';
+import LandingProcess from '@/components/composed/LandingProcess';
+import PageContainer from '@/components/composed/PageContainer';
+import SEO from '@/components/composed/SEO';
 
 /**
  * 🏥 Al Shifaa Clinic Landing Page

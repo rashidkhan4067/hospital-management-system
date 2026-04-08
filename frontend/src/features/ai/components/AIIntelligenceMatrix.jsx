@@ -1,6 +1,6 @@
 import React from 'react';
 import { Cpu, Activity } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import ConfigSelect from './ConfigSelect';
 
 export default function AIIntelligenceMatrix({ config, setConfig }) {

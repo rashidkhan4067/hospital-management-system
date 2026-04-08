@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Calendar, Clock, ArrowRight, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button, Card } from '@/shared/components/ui';
+import { Button, Card } from '@/components/primitives';
 import { useNavigate } from 'react-router-dom';
 
 const BookingSuccess = ({ doctor, date, slot }) => {

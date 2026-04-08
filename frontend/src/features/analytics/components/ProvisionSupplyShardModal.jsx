@@ -7,7 +7,7 @@ import {
   Tag,
   Truck
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 📦 Provision Supply Shard Modal

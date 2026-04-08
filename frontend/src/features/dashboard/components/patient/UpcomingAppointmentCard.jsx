@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Calendar, Stethoscope, XCircle } from 'lucide-react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 
 const UpcomingAppointmentCard = ({ appointment, onCancel }) => {
   if (!appointment) return null;

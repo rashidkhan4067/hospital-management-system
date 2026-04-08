@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatsCard } from '@/shared/components/ui';
+import { StatsCard } from '@/components/primitives';
 
 /**
  * 📊 Professional SaaS Stat Matrix

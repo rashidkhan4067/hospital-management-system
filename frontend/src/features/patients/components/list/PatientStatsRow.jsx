@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, UserPlus, Zap } from 'lucide-react';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 /**
  * 📊 PatientStatsRow

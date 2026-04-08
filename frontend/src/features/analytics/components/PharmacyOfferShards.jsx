@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button } from '@/shared/components/ui';
+import { Card, Button } from '@/components/primitives';
 import { AlertTriangle, Tag, Calculator, ArrowRight, Percent, Zap, Wallet, CheckCircle } from 'lucide-react';
 
 /**

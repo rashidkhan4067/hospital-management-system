@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mic, Activity, Zap } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * 🛰 SanaVoiceBooking — Compact dark themed voice widget

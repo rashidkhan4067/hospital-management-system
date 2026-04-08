@@ -6,10 +6,10 @@ import {
 } from 'lucide-react';
 import { 
    Badge, Button, Card, PageHeader, FilterBar 
-} from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+} from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // Advanced Ward Shards
 import WardCard from '../components/WardCard';

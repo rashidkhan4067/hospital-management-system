@@ -1,8 +1,8 @@
 import React from 'react';
 import { Edit2 } from 'lucide-react';
-import AdminTable from '@/shared/components/ui/AdminTable';
+import AdminTable from '@/components/primitives/AdminTable';
 import PatientRow from './PatientRow';
-import { Badge } from '@/shared/components/ui';
+import { Badge } from '@/components/primitives';
 
 /**
  * 📊 PatientTable

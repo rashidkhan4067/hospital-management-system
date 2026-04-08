@@ -10,7 +10,7 @@ import {
   RefreshCw,
   AlertTriangle
 } from 'lucide-react';
-import { PageHeader, Button } from '@/shared/components/ui';
+import { PageHeader, Button } from '@/components/primitives';
 import AIIntelligenceMatrix from '@/features/ai/components/AIIntelligenceMatrix';
 import AIInterfaceProtocols from '@/features/ai/components/AIInterfaceProtocols';
 import AINodeStatusCard from '@/features/ai/components/AINodeStatusCard';

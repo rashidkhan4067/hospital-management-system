@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { BarChart3 } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * 💹 Revenue Flux Diagnostic Shard

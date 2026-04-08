@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Cpu as Brain, Binary, Database, Microscope, Boxes } from 'lucide-react';
-import { Badge, Button } from '@/shared/components/ui';
-import PageContainer from '@/shared/components/common/PageContainer';
-import SEO from '@/shared/components/common/SEO';
+import { Badge, Button } from '@/components/primitives';
+import PageContainer from '@/components/composed/PageContainer';
+import SEO from '@/components/composed/SEO';
 
 /**
  * 🛠️ ClinicalTechPage - Performance Optimized Edition

@@ -3,8 +3,8 @@ import { Mail, ArrowLeft, Send, Sparkles, CheckCircle, Heart, ShieldCheck, Activ
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/core/auth/AuthContext';
-import { Input, Button, Badge, Alert } from '@/shared/components/ui';
-import api from '@/core/api/apiClient';
+import { Input, Button, Badge, Alert } from '@/components/primitives';
+import api from '@/services/apiClient';
 
 /**
  * 🔑 ForgotPasswordPage - Sleek Horizontal Split Hub (V6.1)

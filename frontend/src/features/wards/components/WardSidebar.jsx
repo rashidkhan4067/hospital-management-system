@@ -1,9 +1,9 @@
 import React from 'react';
 import { BED_STATUS } from '../constants/wardConstants';
-import { Card, Button } from '@/shared/components/ui';
+import { Card, Button } from '@/components/primitives';
 import { Plus, LayoutGrid, ArrowRightLeft, Activity, Zap, AlertCircle } from 'lucide-react';
-import SanaVoiceBooking from '@/shared/components/common/SanaVoiceBooking';
-import UnifiedProtocolShard from '@/shared/components/common/UnifiedProtocolShard';
+import SanaVoiceBooking from '@/components/composed/SanaVoiceBooking';
+import UnifiedProtocolShard from '@/components/composed/UnifiedProtocolShard';
 
 /**
  * 🛰 WARD SIDEBAR SHARD

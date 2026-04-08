@@ -3,7 +3,7 @@ import {
   Droplets, Stethoscope, Briefcase, Activity, 
   CheckCircle, XCircle, Eye, Edit3, Trash2, User 
 } from 'lucide-react';
-import { Badge, Button } from '@/shared/components/ui';
+import { Badge, Button } from '@/components/primitives';
 
 /**
  * 🏢 UserIdentityTable — High-fidelity identity matrix

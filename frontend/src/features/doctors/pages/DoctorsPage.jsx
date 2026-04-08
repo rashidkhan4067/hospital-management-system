@@ -10,18 +10,18 @@ import {
   Settings,
   Edit2
 } from 'lucide-react';
-import { Badge, Button, Card, PageHeader, TableActions, FilterBar } from '@/shared/components/ui';
+import { Badge, Button, Card, PageHeader, TableActions, FilterBar } from '@/components/primitives';
 import { useNavigate } from 'react-router-dom';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import AdminTable from '@/components/primitives/AdminTable';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 import AdjustShiftModal from '@/features/doctors/components/AdjustShiftModal';
 import AddDoctorModal from '../components/list/AddDoctorModal';
 import EditDoctorModal from '../components/record/EditDoctorModal';
 import UserService from '@/features/identity/api/userService';
 import { useUI } from '@/core/ui/UIContext';
 import { useAdminDoctors } from '@/features/doctors/hooks/useDoctors';
-import AdminPage from '@/shared/components/layout/AdminPage';
+import AdminPage from '@/layouts/AdminPage';
 
 /**
  * 🧛 Specialist Physician Hub (Doctor Management)

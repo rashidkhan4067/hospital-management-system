@@ -10,7 +10,7 @@ import {
   DollarSign,
   AlertCircle
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 import { useAdminPatients } from '@/features/patients/hooks/usePatients';
 
 /**

@@ -7,7 +7,7 @@ import {
     FileText,
     Zap
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 import { useAppointmentForm } from '../hooks/useAppointmentForm';
 
 /**

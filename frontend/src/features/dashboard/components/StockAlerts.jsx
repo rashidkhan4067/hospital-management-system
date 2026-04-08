@@ -1,6 +1,6 @@
 import React from 'react';
 import { Package, AlertTriangle, ShoppingCart, AlertCircle } from 'lucide-react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { motion } from 'framer-motion';
 
 const StockAlerts = ({ inventory = [

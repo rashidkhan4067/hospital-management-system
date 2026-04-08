@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Calendar, Clock, CreditCard, ShieldCheck, ArrowRight, User, Stethoscope, CheckCircle2 } from 'lucide-react';
-import { Button, Card, Badge } from '@/shared/components/ui';
+import { Button, Card, Badge } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
 import DoctorService from '@/features/doctors/api/doctorService';
 import AppointmentService from '@/features/appointments/api/appointmentService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 import BookingSuccess from '../components/patient/BookingSuccess';
 
 const steps = [

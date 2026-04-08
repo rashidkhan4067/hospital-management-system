@@ -1,7 +1,7 @@
 import React from 'react';
-import { PageHeader, Badge, Card } from '@/shared/components/ui';
+import { PageHeader, Badge, Card } from '@/components/primitives';
 import { Sparkles, History, Bot, Zap, ShieldCheck } from 'lucide-react';
-import SanaAIChat from '@/shared/components/common/SanaAIChat';
+import SanaAIChat from '@/components/composed/SanaAIChat';
 
 /**
  * 🛰️ Unified Sana Neural Experience

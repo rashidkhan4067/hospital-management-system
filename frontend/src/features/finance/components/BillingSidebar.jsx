@@ -1,11 +1,11 @@
 import React from 'react';
-import { Card, Button } from '@/shared/components/ui';
+import { Card, Button } from '@/components/primitives';
 import { 
     Plus, CreditCard, Receipt, FileText, 
     ShieldCheck, Zap, Activity, Filter,
     Download, PieChart, TrendingUp
 } from 'lucide-react';
-import UnifiedProtocolShard from '@/shared/components/common/UnifiedProtocolShard';
+import UnifiedProtocolShard from '@/components/composed/UnifiedProtocolShard';
 
 /**
  * 🛰 BILLING SIDEBAR SHARD

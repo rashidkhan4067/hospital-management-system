@@ -4,13 +4,13 @@ import {
   Briefcase, Activity, Plus, History, Star, Users
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageHeader, Button, Badge, Card } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { PageHeader, Button, Badge, Card } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 import DoctorService from '@/features/doctors/api/doctorService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // ── Modular Practitioner Shards ──────────────────────────────────────────────
 import DoctorProfileCard from '../components/record/DoctorProfileCard';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Receipt, User, DollarSign, Calendar, Briefcase, FileText } from 'lucide-react';
-import { Button } from '@/shared/components/ui';
+import { Button } from '@/components/primitives';
 import TransactionModal from './TransactionModal';
 
 /**

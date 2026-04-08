@@ -8,9 +8,9 @@ import {
   RefreshCw,
   Sparkles
 } from 'lucide-react';
-import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import SanaAIChat from '@/shared/components/common/SanaAIChat';
+import { PageHeader, Button, Card, Badge } from '@/components/primitives';
+import AdminTable from '@/components/primitives/AdminTable';
+import SanaAIChat from '@/components/composed/SanaAIChat';
 import { aiService } from '@/features/ai/api/aiService';
 
 /**

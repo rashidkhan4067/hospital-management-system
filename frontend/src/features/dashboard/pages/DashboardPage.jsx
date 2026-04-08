@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Calendar, Stethoscope, TrendingUp, UserPlus, Plus } from 'lucide-react';
 
 // ── Modals
@@ -8,12 +8,12 @@ import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 
 // ── Data Hooks
 import { useAdminAnalytics } from '@/features/analytics/hooks/useAnalytics';
-import analyticsService from '@/features/analytics/api/analyticsService';
+import { useDashboardActivity } from '@/features/dashboard/hooks/useDashboardActivity';
 
 // ── Layout & Shared UI
-import AdminPage from '@/shared/components/layout/AdminPage';
-import { PageHeader, Card, Button } from '@/shared/components/ui';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import { AdminPage } from '@/layouts';
+import { PageHeader, Card, Button } from '@/components/primitives';
+import { UnifiedHeroCTA } from '@/components/composed';
 
 // ── Dashboard Feature Components
 import MetricCards from '@/features/dashboard/components/MetricCards';
@@ -39,32 +39,16 @@ import SystemHealthCard from '@/features/dashboard/components/SystemHealthCard';
  */
 export default function AdminDashboard({ propAppointments }) {
     const navigate = useNavigate();
-    const [currentTime, setCurrentTime] = useState(new Date());
-    const [auditLogs, setAuditLogs] = useState([]);
-    const { pulse, clinicalTrends, financialTrends, loading, refresh } = useAdminAnalytics();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentDept = searchParams.get('dept') || 'All';
+    
+    const { pulse, clinicalTrends, loading, refresh } = useAdminAnalytics();
+    
+    // 🎣 Consolidated Activity & Telemetry Logic
+    const { currentTime, auditLogs } = useDashboardActivity(refresh);
 
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
-
-    // ── Fetch Audit / Activity ────────────────────────────────────────────────
-    const fetchAudit = useCallback(async () => {
-        try {
-            const audit = await analyticsService.getSystemAudit();
-            setAuditLogs(audit.results?.slice(0, 6).map(l => ({
-                title: l.event,
-                time: new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                node: l.status,
-                status: 'Success'
-            })) || []);
-        } catch (err) { console.warn('[Dashboard]: Activity fetch failed', err); }
-    }, []);
-
-    useEffect(() => {
-        fetchAudit();
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        const autoRefresh = setInterval(() => refresh(), 45000);
-        return () => { clearInterval(timer); clearInterval(autoRefresh); };
-    }, [refresh, fetchAudit]);
 
     // ── KPI Cards ────────────────────────────────────────────────────────────
     const kpiMetrics = useMemo(() => [
@@ -96,7 +80,17 @@ export default function AdminDashboard({ propAppointments }) {
                 subtitle={<>Welcome, <span className="text-accent-primary">{pulse?.user?.displayName?.split(' ')[0] || 'Administrator'}</span> • System Protocols Nominal</>}
                 status="Live System"
                 actions={
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
+                        <select 
+                            value={currentDept}
+                            onChange={(e) => setSearchParams({ dept: e.target.value })}
+                            className="bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 ring-accent-primary/20 transition-all cursor-pointer"
+                        >
+                            <option value="All">All Nodes</option>
+                            <option value="Cardiology">Cardiology</option>
+                            <option value="Neurology">Neurology</option>
+                            <option value="Gastro">Gastroenterology</option>
+                        </select>
                         <Button 
                             onClick={() => setIsVisitModalOpen(true)}
                             className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-accent-primary/90 hover:scale-105 transition-all shadow-lg shadow-accent-primary/25 border-none"

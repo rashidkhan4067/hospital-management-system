@@ -1,49 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AnalyticsService from '@/features/analytics/api/analyticsService';
 
 /**
  * ⚡ ADMIN ANALYTICS HOOK
  * Encourages separation of concerns by encapsulating complex aggregation and load states.
+ * Powered by TanStack Query for unified server-state synchronization.
  */
 export const useAdminAnalytics = () => {
-    const [clinicalTrends, setClinicalTrends] = useState([]);
-    const [financialTrends, setFinancialTrends] = useState([]);
-    const [pulse, setPulse] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const fetchAnalytics = useCallback(async () => {
-        setLoading(true);
-        try {
+    const query = useQuery({
+        queryKey: ['analytics', 'admin'],
+        queryFn: async () => {
             const [clinical, financial, pulseData] = await Promise.all([
                 AnalyticsService.getClinicalTrends(),
                 AnalyticsService.getFinancialTrends(),
                 AnalyticsService.getGlobalPulse()
             ]);
             
-            setClinicalTrends(clinical.results || clinical);
-            setFinancialTrends(financial.results || financial);
-            setPulse(pulseData);
-            setError(null);
-        } catch (err) {
-            setError('System could not propagate analytics shards.');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+            return {
+                clinicalTrends: clinical.results || clinical,
+                financialTrends: financial.results || financial,
+                pulse: pulseData
+            };
+        },
+        staleTime: 1000 * 60 * 5, // 5 min
+    });
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [fetchAnalytics]);
-
-    return { 
-        clinicalTrends, 
-        financialTrends, 
-        pulse, 
-        loading, 
-        error, 
-        refresh: fetchAnalytics 
+    return {
+        ...query,
+        clinicalTrends: query.data?.clinicalTrends || [],
+        financialTrends: query.data?.financialTrends || [],
+        pulse: query.data?.pulse || null,
+        loading: query.isLoading,
+        refresh: query.refetch
     };
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Eye, CheckCircle, XCircle, Clock, Wallet, Truck, User, ArrowUpRight, ArrowDownRight, Tag } from 'lucide-react';
-import { Badge, Button } from '@/shared/components/ui';
+import { Badge, Button } from '@/components/primitives';
 
 /**
  * 🛰 ExpenseTable — High-fidelity fiscal outflow matrix

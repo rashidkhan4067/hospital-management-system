@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Image as ImageIcon, ShieldCheck, Zap, Stethoscope, Briefcase, Users as UsersIcon } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 📁 UploadReportModal

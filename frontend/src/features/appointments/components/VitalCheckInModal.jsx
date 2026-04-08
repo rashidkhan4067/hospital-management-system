@@ -3,7 +3,7 @@ import {
     Activity, Heart, Thermometer, Droplets, Info, 
     Save, X, Check 
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * ⚡ VITAL CHECK-IN MODAL

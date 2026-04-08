@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { Star, Download, FileText, ChevronRight, Zap, Users, ClipboardCheck, BarChart3 } from 'lucide-react';
 
 /**

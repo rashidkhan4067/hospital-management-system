@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserPlus, User, Droplets, MapPin, Phone, Mail, Lock, Stethoscope, Briefcase, Users as UsersIcon } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 import { useAddUserForm } from '@/features/identity/hooks/useAddUserForm';
 
 /**

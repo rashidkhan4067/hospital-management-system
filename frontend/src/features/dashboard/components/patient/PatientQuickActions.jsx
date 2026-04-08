@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlusCircle, Mic, FileText, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 const PatientQuickActions = ({ onSanaToggle }) => {
   const navigate = useNavigate();

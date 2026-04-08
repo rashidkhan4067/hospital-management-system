@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { Droplets, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
 
 /**

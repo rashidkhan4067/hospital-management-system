@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mail, ArrowRight, CheckCircle, RefreshCcw } from 'lucide-react';
-import { Card, Badge, Alert, Button } from '@/shared/components/ui';
+import { Card, Badge, Alert, Button } from '@/components/primitives';
 import { Link } from 'react-router-dom';
 
 export default function VerifyEmailPage() {

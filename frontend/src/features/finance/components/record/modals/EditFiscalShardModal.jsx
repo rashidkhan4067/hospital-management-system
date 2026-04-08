@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Edit3, DollarSign, Activity, CreditCard, ShieldCheck, Stethoscope, Briefcase, Users as UsersIcon } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 🛠 EditFiscalShardModal

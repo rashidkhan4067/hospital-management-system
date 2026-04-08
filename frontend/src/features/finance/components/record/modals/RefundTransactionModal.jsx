@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RefreshCcw, ShieldCheck, AlertTriangle, DollarSign, Activity, Stethoscope, Briefcase, Users as UsersIcon } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * ☢️ RefundTransactionModal

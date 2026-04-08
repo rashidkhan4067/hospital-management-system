@@ -4,12 +4,12 @@ import {
   ClipboardList, Pill, Stethoscope, Upload, Users, Heart,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, PageHeader, Badge, Card } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import { Button, PageHeader, Badge, Card } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 
 import patientService from '@/features/patients/api/patientService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // ── Modular EMR Shards ───────────────────────────────────────────────────────
 import PatientProfileCard from '../components/emr/PatientProfileCard';

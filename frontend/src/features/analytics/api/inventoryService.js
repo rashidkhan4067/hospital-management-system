@@ -1,5 +1,5 @@
-import api from '@/core/api/apiClient';
-import BaseService from '@/core/api/BaseService';
+import api from '@/services/apiClient';
+import BaseService from '@/services/BaseService';
 
 /**
  * 📦 Inventory Service (OOPS: Inheritance)

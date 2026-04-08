@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button, Modal } from '@/shared/components/ui';
+import { Card, Button, Modal } from '@/components/primitives';
 import { Hospital, Map, Layers, Save, X, Plus, Zap, AlertCircle, LayoutGrid } from 'lucide-react';
 
 /**

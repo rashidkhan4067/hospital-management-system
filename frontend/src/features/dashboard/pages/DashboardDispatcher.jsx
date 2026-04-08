@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import apiClient from '@/core/api/apiClient';
+import apiClient from '@/services/apiClient';
 import { useAuth } from '@/core/auth/AuthContext';
 import { ROLES } from '@/core/constants';
 import PatientDashboard from '@/features/dashboard/pages/PatientDashboard';

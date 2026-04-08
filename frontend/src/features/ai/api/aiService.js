@@ -1,5 +1,5 @@
-import BaseService from '@/core/api/BaseService';
-import api from '@/core/api/apiClient';
+import BaseService from '@/services/BaseService';
+import api from '@/services/apiClient';
 
 /**
  * 🤖 AI Service (OOPS: Inheritance)

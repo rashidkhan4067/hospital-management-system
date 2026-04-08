@@ -1,6 +1,6 @@
 import React from 'react';
 import { Activity, Wallet, ArrowUpRight, TrendingDown } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * 🛰 ExpenseVisualShards — Aesthetic fiscal telemetry

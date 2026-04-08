@@ -5,10 +5,10 @@ import {
   Wallet, Tag, ArrowRight, Printer, Share2, ShieldCheck, Clock
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, PageHeader, Badge, Card } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { Button, PageHeader, Badge, Card } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // ── Modular Expense Shards ──────────────────────────────────────────────────
 import ExpenseDetailsCard from '../components/record/ExpenseDetailsCard';

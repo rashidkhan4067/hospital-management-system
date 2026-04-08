@@ -3,7 +3,7 @@ import {
     ArrowRightLeft, BedIcon, Activity, Heart, Save, AlertCircle, 
     Hospital, MapPin, ClipboardList, Zap, User
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 🛰 TRANSFER MODAL

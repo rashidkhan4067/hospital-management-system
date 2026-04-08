@@ -9,8 +9,8 @@ import {
   Search,
   RefreshCw
 } from 'lucide-react';
-import { Badge, Button, PageHeader, StatsCard, Card } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
+import { Badge, Button, PageHeader, StatsCard, Card } from '@/components/primitives';
+import AdminTable from '@/components/primitives/AdminTable';
 import { aiService } from '@/features/ai/api/aiService';
 
 /**

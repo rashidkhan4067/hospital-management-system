@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Activity, Zap, Filter } from 'lucide-react';
-import SpecialistCard from '@/shared/components/common/SpecialistCard';
-import SpecialistDetailModal from '@/shared/components/common/SpecialistDetailModal';
-import { Button } from '@/shared/components/ui';
-import PageContainer from '@/shared/components/common/PageContainer';
-import SEO from '@/shared/components/common/SEO';
+import SpecialistCard from '@/components/composed/SpecialistCard';
+import SpecialistDetailModal from '@/components/composed/SpecialistDetailModal';
+import { Button } from '@/components/primitives';
+import PageContainer from '@/components/composed/PageContainer';
+import SEO from '@/components/composed/SEO';
 
 /**
  * 🏙️ DoctorsPage - Ultra-Premium Responsive Edition

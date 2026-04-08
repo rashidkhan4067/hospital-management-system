@@ -18,10 +18,10 @@ import {
   Cpu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { PageHeader, Button, Card, Badge } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // ─── SHARD COMPONENTS ────────────────────────────────────────────────────────
 

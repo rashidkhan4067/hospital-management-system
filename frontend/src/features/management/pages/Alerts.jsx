@@ -13,14 +13,14 @@ import {
   AlertTriangle,
   History
 } from 'lucide-react';
-import { PageHeader, Button, Card } from '@/shared/components/ui';
+import { PageHeader, Button, Card } from '@/components/primitives';
 import ConfigMatrix from '@/features/management/components/ConfigMatrix';
 import PropagationHistory from '@/features/management/components/PropagationHistory';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useAdminSystem } from '@/features/management/hooks/useSystem';
 import { useUI } from '@/core/ui/UIContext';
-import PageLoader from '@/shared/components/common/Loading';
+import PageLoader from '@/components/composed/Loading';
 
 /**
  * 📡 Global Alert Propagation Shard

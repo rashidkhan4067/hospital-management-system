@@ -5,10 +5,10 @@ import {
   FileText, Zap, TrendingUp, BarChart3, Banknote, Receipt, Plus
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageHeader, Button, Badge, Card } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { PageHeader, Button, Badge, Card } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // ── Modular Billing Shards ──────────────────────────────────────────────────
 import BillingItemsTable from '../components/record/BillingItemsTable';
@@ -17,7 +17,7 @@ import TransactionAuditTrail from '../components/record/TransactionAuditTrail';
 
 // ── Hooks & Services ────────────────────────────────────────────────────────
 import financeService from '@/features/finance/api/financeService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 /**
  * 💹 Billing Record Hub

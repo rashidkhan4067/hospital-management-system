@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { useNavigate } from 'react-router-dom';
 
 const PatientDoctorCard = ({ doctor }) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { Sparkles, CheckCircle, BrainCircuit, Activity, Cpu } from 'lucide-react';
 import { UI_TOKENS, BREAKPOINTS } from '@/core/config/UI';
 

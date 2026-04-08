@@ -14,15 +14,15 @@ import {
   Dna,
   History
 } from 'lucide-react';
-import { Badge, Button, PageHeader, Card, FilterBar, AdminTable } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { Badge, Button, PageHeader, Card, FilterBar, AdminTable } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // Specialized Laboratory Standardized Shards
 import RequestTestModal from '@/features/analytics/components/RequestTestModal';
-import LaboratoryIntelligenceShard from '@/shared/components/common/LaboratoryIntelligenceShard';
-import UnifiedProtocolShard from '@/shared/components/common/UnifiedProtocolShard';
+import LaboratoryIntelligenceShard from '@/components/composed/LaboratoryIntelligenceShard';
+import UnifiedProtocolShard from '@/components/composed/UnifiedProtocolShard';
 
 import { useAdminLab } from '@/features/analytics/hooks/useLab';
 import { useUI } from '@/core/ui/UIContext';

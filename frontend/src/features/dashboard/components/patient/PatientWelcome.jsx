@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, User, Clock } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 const PatientWelcome = ({ user, stats }) => {
   const today = new Date().toLocaleDateString('en-US', {

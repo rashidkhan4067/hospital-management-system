@@ -1,5 +1,5 @@
-import BaseService from '@/core/api/BaseService';
-import apiClient from '@/core/api/apiClient';
+import BaseService from '@/services/BaseService';
+import apiClient from '@/services/apiClient';
 
 /**
  * 📅 Appointment Service (OOPS: Inheritance)

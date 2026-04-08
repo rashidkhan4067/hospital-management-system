@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { Wallet, Calendar, User, Tag, FileText, ChevronRight, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
 
 /**

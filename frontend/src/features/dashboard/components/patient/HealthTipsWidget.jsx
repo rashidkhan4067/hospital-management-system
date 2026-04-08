@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Activity, Droplets, Zap, ShieldCheck } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const HealthTipsWidget = () => {

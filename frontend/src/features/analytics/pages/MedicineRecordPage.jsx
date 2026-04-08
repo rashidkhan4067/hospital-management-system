@@ -11,10 +11,10 @@ import {
   Trash2
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
+import { PageHeader, Button, Card, Badge } from '@/components/primitives';
 import { motion } from 'framer-motion';
 import { inventoryService } from '@/features/analytics/api/inventoryService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 /**
  * 📦 Medicine Detail Page

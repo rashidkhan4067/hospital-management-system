@@ -22,8 +22,8 @@ import {
   Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, Button, Input, Badge, Avatar } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
+import { Card, Button, Input, Badge, Avatar } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
 
 // ─── Mock Data Shards ────────────────────────────────────────────────────────
 

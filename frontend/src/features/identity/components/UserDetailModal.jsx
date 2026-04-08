@@ -13,7 +13,7 @@ import {
     HeartPulse,
     Fingerprint
 } from 'lucide-react';
-import { Modal, Badge } from '@/shared/components/ui';
+import { Modal, Badge } from '@/components/primitives';
 
 /**
  * 👤 Identity Detail Shard

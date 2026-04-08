@@ -3,7 +3,7 @@ import {
     UserPlus, Search, BedIcon, Activity, Heart, Save, 
     User, Hospital, ClipboardList, Zap, Calendar, MapPin
 } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 
 /**
  * 🏥 ADMISSION MODAL

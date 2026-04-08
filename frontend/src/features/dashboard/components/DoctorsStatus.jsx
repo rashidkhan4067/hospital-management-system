@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, UserCheck } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * 👨‍⚕️ On-Duty Registry Shard

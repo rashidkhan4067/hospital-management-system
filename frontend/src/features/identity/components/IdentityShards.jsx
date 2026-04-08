@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { 
   Users, Stethoscope, Briefcase, Activity, Zap, 
   ShieldCheck, PieChart as PieIcon, ArrowUpRight, 

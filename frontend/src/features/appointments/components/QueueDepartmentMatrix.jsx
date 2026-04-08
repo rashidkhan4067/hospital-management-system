@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, LayoutGrid, ArrowRight, UserCheck } from 'lucide-react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 
 /**
  * 🏥 QueueDepartmentMatrix — High-density Personnel Hub

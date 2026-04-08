@@ -7,10 +7,10 @@ import {
   Button, 
   PageHeader, 
   FilterBar 
-} from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+} from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 
 // 🏗️ SHARED IDENTITY COMPONENTS
 import UserIdentityTable from '../components/UserIdentityTable';

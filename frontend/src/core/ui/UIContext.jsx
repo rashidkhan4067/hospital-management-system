@@ -14,6 +14,10 @@ export const UIProvider = ({ children }) => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  
+  // Global Telemetry Sinks
+  const [globalLoading, setGlobalLoading] = useState(false);
+  const [globalError, setGlobalError] = useState(null);
 
   // Save Sidebar State
   useEffect(() => {
@@ -79,7 +83,11 @@ export const UIProvider = ({ children }) => {
     toggleMobileMenu,
     notifications,
     addNotification,
-    removeNotification
+    removeNotification,
+    globalLoading,
+    setGlobalLoading,
+    globalError,
+    setGlobalError
   }), [
     isSanaActive, 
     isMobile, 
@@ -90,7 +98,9 @@ export const UIProvider = ({ children }) => {
     toggleSidebarCollapse, 
     toggleMobileMenu, 
     addNotification, 
-    removeNotification
+    removeNotification,
+    globalLoading,
+    globalError
   ]);
 
   return (

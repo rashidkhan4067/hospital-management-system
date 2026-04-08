@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { CreditCard, Download } from 'lucide-react';
-import { Button, PageHeader } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import FilterBar from '@/shared/components/ui/FilterBar';
+import { Button, PageHeader } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import FilterBar from '@/components/primitives/FilterBar';
 
 // 🏗️ MODULAR FINANCE SHARDS
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 import TransactionTable from '@/features/finance/components/TransactionTable';
 import ProvisionTransactionModal from '@/features/finance/components/ProvisionTransactionModal';
 import ReceiptModal from '@/features/finance/components/ReceiptModal';
@@ -18,7 +18,7 @@ import { useAdminStats } from '@/features/dashboard/hooks/useStats';
 import { useAdminPatients } from '@/features/patients/hooks/usePatients';
 import { useUI } from '@/core/ui/UIContext';
 import { useFinanceForm } from '../hooks/useFinanceForm';
-import { exportToCSV } from '@/shared/utils/exportUtils';
+import { exportToCSV } from '@/utils/exportUtils';
 
 import { useNavigate } from 'react-router-dom';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Clock, CheckCircle, XCircle, MoreHorizontal } from 'lucide-react';
-import { Card, Badge } from '@/shared/components/ui';
+import { Card, Badge } from '@/components/primitives';
 
 /**
  * Row 3 Left — TodayAppointments

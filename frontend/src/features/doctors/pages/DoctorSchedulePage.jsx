@@ -10,9 +10,9 @@ import {
   ChevronLeft,
   Filter
 } from 'lucide-react';
-import { PageHeader, Button, Card, Badge } from '@/shared/components/ui';
-import AdminTable from '@/shared/components/ui/AdminTable';
-import FilterBar from '@/shared/components/ui/FilterBar';
+import { PageHeader, Button, Card, Badge } from '@/components/primitives';
+import AdminTable from '@/components/primitives/AdminTable';
+import FilterBar from '@/components/primitives/FilterBar';
 import AdjustShiftModal from '@/features/doctors/components/AdjustShiftModal';
 import { doctorService } from '@/features/doctors/api/doctorService';
 import { useAdminDoctors } from '@/features/doctors/hooks/useDoctors';

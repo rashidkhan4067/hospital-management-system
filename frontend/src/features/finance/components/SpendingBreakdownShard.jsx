@@ -1,6 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { PieChart as PieIcon } from 'lucide-react';
 
 const mockData = [

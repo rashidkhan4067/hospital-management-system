@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { 
     Calendar, Clock, User, Stethoscope, 
     Video, MapPin, Hash, CheckCircle2 

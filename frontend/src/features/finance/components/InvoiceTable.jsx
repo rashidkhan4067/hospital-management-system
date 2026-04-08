@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, AdminTable } from '@/shared/components/ui';
+import { Badge, AdminTable } from '@/components/primitives';
 import { Receipt, FileText } from 'lucide-react';
 
 /**

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Plus, ShieldCheck, Stethoscope, RefreshCw, Database, Type, FileText, Briefcase, Users as UsersIcon
 } from 'lucide-react';
-import { Button, Badge, Modal } from '@/shared/components/ui';
+import { Button, Badge, Modal } from '@/components/primitives';
 import { useUI } from '@/core/ui/UIContext';
 
 /**

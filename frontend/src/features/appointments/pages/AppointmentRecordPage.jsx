@@ -5,10 +5,10 @@ import {
   FileText, Activity, Users, Video
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageHeader, Button, Badge, Card } from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import { PageHeader, Button, Badge, Card } from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // ── Modular Appointment Shards ──────────────────────────────────────────────
 import AppointmentSummaryCard from '../components/record/AppointmentSummaryCard';
@@ -16,7 +16,7 @@ import AppointmentTimeline from '../components/record/AppointmentTimeline';
 
 // ── Hooks & Services ────────────────────────────────────────────────────────
 import appointmentService from '@/features/appointments/api/appointmentService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 /**
  * 🛰 Appointment Record Page

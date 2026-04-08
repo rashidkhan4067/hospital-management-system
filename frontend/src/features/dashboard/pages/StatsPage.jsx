@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAdminAnalytics } from '@/features/analytics/hooks/useAnalytics';
 import { UI_TOKENS } from '@/core/config/UI';
 import { useTheme } from '@/core/theme/ThemeContext';
 
 // ── Layout & Shared UI
-import AdminPage from '@/shared/components/layout/AdminPage';
-import { PageHeader, Card, Button, FilterBar } from '@/shared/components/ui';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+import AdminPage from '@/layouts/AdminPage';
+import { PageHeader, Card, Button, FilterBar } from '@/components/primitives';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // 📉 Chart Shards (Internal Imports for better flow)
 import {
@@ -37,6 +38,9 @@ const mockTrend = (days) =>
  * High-fidelity restoration to eliminate all vertical blank spaces.
  */
 export default function StatsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentDept = searchParams.get('dept') || 'All';
+  
   const { pulse, clinicalTrends, financialTrends, loading } = useAdminAnalytics();
   const { accentColor } = useTheme();
   const [range, setRange] = useState('7d');
@@ -77,9 +81,21 @@ export default function StatsPage() {
           subtitle="Real-time Analytical Shards & Data Visualization"
           status="Master Protocol"
           actions={
-            <Button className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-2 border-none">
-              <Download size={16} strokeWidth={3} /> Export Hub
-            </Button>
+            <div className="flex items-center gap-4">
+              <select 
+                value={currentDept}
+                onChange={(e) => setSearchParams({ dept: e.target.value })}
+                className="bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 ring-accent-primary/20 transition-all cursor-pointer text-slate-800 dark:text-white"
+              >
+                <option value="All">All Nodes</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Gastro">Gastroenterology</option>
+              </select>
+              <Button className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-2 border-none">
+                <Download size={16} strokeWidth={3} /> Export Hub
+              </Button>
+            </div>
           }
         />
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge, Button } from '@/shared/components/ui';
+import { Card, Badge, Button } from '@/components/primitives';
 import { 
   Shield, ShieldCheck, Key, Lock, Eye, 
   Edit3, Trash2, ShieldAlert, Check, X,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell, Zap } from 'lucide-react';
-import { Badge } from '@/shared/components/ui';
+import { Badge } from '@/components/primitives';
 import { motion } from 'framer-motion';
 
 export default function AlertCard({ alert, index }) {

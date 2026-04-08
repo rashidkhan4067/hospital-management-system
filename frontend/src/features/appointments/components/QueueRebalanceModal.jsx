@@ -9,7 +9,7 @@ import {
     X,
     MessageSquare
 } from 'lucide-react';
-import { Button, Modal, Card } from '@/shared/components/ui';
+import { Button, Modal, Card } from '@/components/primitives';
 
 /**
  * ⚡ QUEUE REBALANCE MODAL

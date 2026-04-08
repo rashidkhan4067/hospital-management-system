@@ -4,7 +4,7 @@ import { ShieldCheck, Heart, Activity, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
 import LoginForm from '@/features/auth/components/LoginForm';
-import PageContainer from '@/shared/components/common/PageContainer';
+import PageContainer from '@/components/composed/PageContainer';
 
 /**
  * 🔓 LoginPage - Sleek Horizontal Split Hub

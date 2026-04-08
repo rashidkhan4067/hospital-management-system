@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/shared/components/ui';
+import { Button } from '@/components/primitives';
 import { UserCheck, Stethoscope } from 'lucide-react';
 
 /**

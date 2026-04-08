@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, Stethoscope, Briefcase, Activity } from 'lucide-react';
-import { StatsCard } from '@/shared/components/ui';
+import { StatsCard } from '@/components/primitives';
 
 export default function UsersStats({ loading, users }) {
   const stats = [

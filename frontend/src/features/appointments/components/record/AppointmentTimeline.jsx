@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { Clock, CheckCircle2, History, Zap, Activity } from 'lucide-react';
 
 /**

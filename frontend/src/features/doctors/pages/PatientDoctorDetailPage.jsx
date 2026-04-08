@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Calendar, Clock, CreditCard, ShieldCheck, ArrowRight } from 'lucide-react';
-import { Button, Card, Badge } from '@/shared/components/ui';
+import { Button, Card, Badge } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
 import DoctorBio from '../components/patient/DoctorBio';
 import { AvailabilityCalendar, SlotPicker } from '../components/patient/AvailabilityCalendar';
 import DoctorService from '@/features/doctors/api/doctorService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function PatientDoctorDetailPage() {
   const { id } = useParams();

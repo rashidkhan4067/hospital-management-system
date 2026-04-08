@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Eye, ShieldAlert, Edit2, Trash2, Fingerprint } from 'lucide-react';
-import { Badge, TableActions } from '@/shared/components/ui';
+import { Badge, TableActions } from '@/components/primitives';
 
 export function useUsersColumns({ openDetails, openEdit, handleToggleStatus, openDelete }) {
   return useMemo(() => [

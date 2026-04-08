@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, DollarSign, Clock, ShieldCheck, Star } from 'lucide-react';
-import { Card, Badge } from '@/shared/components/ui';
+import { Card, Badge } from '@/components/primitives';
 
 const DoctorBio = ({ doctor }) => {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageHeader, Card } from '@/shared/components/ui';
+import { PageHeader, Card } from '@/components/primitives';
 import { Construction } from 'lucide-react';
 
 export default function DoctorDashboard() {

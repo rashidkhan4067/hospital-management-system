@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { Card, Button } from '@/shared/components/ui';
+import { Card, Button } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AvailabilityCalendar = ({ selectedDate, onDateSelect, availableDays = ['Monday', 'Wednesday', 'Friday'] }) => {

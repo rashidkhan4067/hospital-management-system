@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Wallet, Tag, Calendar, User, FileText, CheckCircle, Zap } from 'lucide-react';
-import { Button, Card } from '@/shared/components/ui';
+import { Button, Card } from '@/components/primitives';
 
 /**
  * 🌌 ExpenseModal — Fiscal Entry Node

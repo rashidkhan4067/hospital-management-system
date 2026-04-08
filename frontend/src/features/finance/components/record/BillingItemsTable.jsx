@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { Card } from '@/components/primitives';
 import { Receipt, DollarSign, Activity } from 'lucide-react';
 
 /**

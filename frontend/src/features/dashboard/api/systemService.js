@@ -1,4 +1,4 @@
-import BaseService from '@/core/api/BaseService';
+import BaseService from '@/services/BaseService';
 
 /**
  * 🛰️ Global System Service (OOPS: Inheritance)

@@ -1,4 +1,4 @@
-import api from '@/core/api/apiClient';
+import api from '@/services/apiClient';
 
 export const login = async (credentials) => {
   const response = await api.post('auth/login/', credentials);

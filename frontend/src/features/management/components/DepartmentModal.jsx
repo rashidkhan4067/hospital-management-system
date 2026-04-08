@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutGrid, Fingerprint, Activity, ShieldCheck, Database, Zap } from 'lucide-react';
-import { Modal, Button, Input } from '@/shared/components/ui';
+import { Modal, Button, Input } from '@/components/primitives';
 
 /**
  * 🏥 Clinical Unit Shard Generation Modal

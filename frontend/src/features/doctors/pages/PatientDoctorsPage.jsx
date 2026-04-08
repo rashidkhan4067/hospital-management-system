@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PatientSearchBar from '../components/patient/PatientSearchBar';
 import PatientDoctorGrid from '../components/patient/PatientDoctorGrid';
 import { useAdminDoctors } from '@/features/doctors/hooks/useDoctors';
-import AdminPage from '@/shared/components/layout/AdminPage';
+import AdminPage from '@/layouts/AdminPage';
 
 /**
  * 🧛 Specialist Marketplace (Patient Edition)

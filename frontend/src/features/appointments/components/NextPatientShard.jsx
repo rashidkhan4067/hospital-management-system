@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlayCircle, Users, Clock, Zap, ArrowRight, UserCheck } from 'lucide-react';
-import { Card, Button } from '@/shared/components/ui';
+import { Card, Button } from '@/components/primitives';
 
 /**
  * ⚡ NextPatientShard — The Command Node for Queue Flow

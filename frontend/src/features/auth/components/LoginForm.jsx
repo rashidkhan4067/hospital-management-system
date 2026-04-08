@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Mail, Lock, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { login as loginService } from '@/features/auth/api/authService';
-import { useForm } from '@/shared/hooks';
-import { Input, Button, Alert } from '@/shared/components/ui';
+import { useForm } from '@/hooks';
+import { Input, Button, Alert } from '@/components/primitives';
 
 /**
  * 🔓 LoginForm - Clinical High-Fidelity Hub

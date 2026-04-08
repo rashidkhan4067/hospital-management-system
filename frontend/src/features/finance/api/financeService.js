@@ -1,4 +1,4 @@
-import api from '@/core/api/apiClient';
+import api from '@/services/apiClient';
 
 /**
  * 💳 CLINICAL FINANCE & BILLING SERVICE

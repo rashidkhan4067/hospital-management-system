@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge } from '@/shared/components/ui';
+import { Card, Badge } from '@/components/primitives';
 
 /**
  * 🕵️ Audit Flux Diagnostic Shard

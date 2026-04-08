@@ -6,10 +6,10 @@ import {
 } from 'lucide-react';
 import { 
    Badge, Button, Card, PageHeader, FilterBar, AdminTable 
-} from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+} from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 import { useWards } from '../hooks/useWards';
 import { ADMISSION_STATUS } from '../constants/wardConstants';
 import AdmissionModal from '../components/AdmissionModal';

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Mic, Square, Volume2, Sparkles, History, ArrowRight, Activity, Zap } from 'lucide-react';
-import { Card, Button, Badge } from '@/shared/components/ui';
+import { Card, Button, Badge } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceWaves from '../components/patient/VoiceWaves';
 import { aiService } from '@/features/ai/api/aiService';

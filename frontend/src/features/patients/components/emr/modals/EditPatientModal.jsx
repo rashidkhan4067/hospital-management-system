@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { User, Droplets, MapPin, Phone, Mail, Lock, ShieldCheck, Edit3, Stethoscope, Briefcase, Users as UsersIcon } from 'lucide-react';
-import { Button, Modal } from '@/shared/components/ui';
+import { Button, Modal } from '@/components/primitives';
 import patientService from '@/features/patients/api/patientService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 /**
  * 🛠 EditPatientModal

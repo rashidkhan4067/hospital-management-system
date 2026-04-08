@@ -11,7 +11,7 @@ import {
   Lock,
   Globe
 } from 'lucide-react';
-import { Modal, Badge, Button } from '@/shared/components/ui';
+import { Modal, Badge, Button } from '@/components/primitives';
 
 /**
  * 🕵️ Financial Audit Detail Shard

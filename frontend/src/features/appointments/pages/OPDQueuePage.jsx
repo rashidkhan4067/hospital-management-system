@@ -5,10 +5,10 @@ import {
 } from 'lucide-react';
 import { 
    Badge, Button, Card, PageHeader, FilterBar 
-} from '@/shared/components/ui';
-import AdminPage from '@/shared/components/layout/AdminPage';
-import UnifiedHeroCTA from '@/shared/components/common/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/shared/components/common/UnifiedKpiGrid';
+} from '@/components/primitives';
+import AdminPage from '@/layouts/AdminPage';
+import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
+import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 
 // Reusing existing components for DRY-ness
 import AppointmentsTable from '@/features/appointments/components/AppointmentsTable';
@@ -25,7 +25,7 @@ import BookVisitModal from '@/features/appointments/components/BookVisitModal';
 
 import { useOPDQueue, useAppointmentOperations } from '../hooks/useAppointments';
 import appointmentService from '../api/appointmentService';
-import { useNotifications } from '@/shared/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 /**
  * 📋 OPD QUEUE MANAGEMENT HUB

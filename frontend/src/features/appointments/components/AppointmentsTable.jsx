@@ -1,6 +1,6 @@
 import React from 'react';
 import { Eye, CheckCircle, XCircle, Clock, Calendar, Users, MapPin, Globe, Mic } from 'lucide-react';
-import { Badge, Button } from '@/shared/components/ui';
+import { Badge, Button } from '@/components/primitives';
 
 /**
  * 🛰 AppointmentsTable — High-density clinical visit matrix

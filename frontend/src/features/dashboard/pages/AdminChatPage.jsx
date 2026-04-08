@@ -12,9 +12,9 @@ import {
   Info,
   ChevronLeft
 } from 'lucide-react';
-import { PageHeader, Card, Badge } from '@/shared/components/ui';
+import { PageHeader, Card, Badge } from '@/components/primitives';
 import { motion, AnimatePresence } from 'framer-motion';
-import AdminPage from '@/shared/components/layout/AdminPage'; // ✨ THE BASE FILE
+import AdminPage from '@/layouts/AdminPage'; // ✨ THE BASE FILE
 
 /**
  * 🛰️ Clinical Communication Hub (Admin-Doctor Messenger)

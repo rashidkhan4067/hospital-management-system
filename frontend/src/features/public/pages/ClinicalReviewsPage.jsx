@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Quote, Heart, ShieldCheck, Activity, User, MessageCircle } from 'lucide-react';
-import { Badge } from '@/shared/components/ui';
-import PageContainer from '@/shared/components/common/PageContainer';
-import SEO from '@/shared/components/common/SEO';
+import { Badge } from '@/components/primitives';
+import PageContainer from '@/components/composed/PageContainer';
+import SEO from '@/components/composed/SEO';
 
 /**
  * 🌟 ClinicalReviewsPage - Patient Success Stories & Metrics

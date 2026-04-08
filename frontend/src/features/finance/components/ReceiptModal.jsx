@@ -11,7 +11,7 @@ import {
   Hash
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { Button, Badge } from '@/shared/components/ui';
+import { Button, Badge } from '@/components/primitives';
 
 /**
  * 🧾 Modern Compact Receipt Shard (Refined Size)
