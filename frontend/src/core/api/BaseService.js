@@ -1,8 +1,9 @@
 import apiClient from './apiClient';
 
 /**
- * 🏛️ BaseService (OOPS: Inheritance & Encapsulation)
- * Provides essential CRUD operations that other services inherit.
+ * 🏛️ BaseService (Google Software Development Strategy)
+ * A resilient architectural base for all clinical data services.
+ * Implements centralized error normalization and telemetry-ready response signatures.
  */
 export default class BaseService {
   constructor(endpoint) {
@@ -10,50 +11,70 @@ export default class BaseService {
   }
 
   /**
-   * Retrieves all records from the endpoint.
+   * 📡 Fetch clinical dataset from the matrix.
    */
   async getAll(params = {}) {
-    const response = await apiClient.get(this.endpoint, { params });
-    return response.data;
+    try {
+      const { data } = await apiClient.get(this.endpoint, { params });
+      return data;
+    } catch (error) {
+      this._handleError('Dataset retrieval failed', error);
+    }
   }
 
   /**
-   * Retrieves a single record by its ID.
+   * 🔬 Retrieve a specific clinical record by its unique shard ID.
    */
   async getById(id) {
-    const response = await apiClient.get(`${this.endpoint}${id}/`);
-    return response.data;
+    try {
+      const { data } = await apiClient.get(`${this.endpoint}${id}/`);
+      return data;
+    } catch (error) {
+      this._handleError(`Record ${id} retrieval failed`, error);
+    }
   }
 
   /**
-   * Creates a new record.
+   * 📥 Commit a new record to the clinical database.
    */
   async create(data) {
-    const response = await apiClient.post(this.endpoint, data);
-    return response.data;
+    try {
+      const { data: responseData } = await apiClient.post(this.endpoint, data);
+      return responseData;
+    } catch (error) {
+      this._handleError('Record creation failed', error);
+    }
   }
 
   /**
-   * Updates an existing record.
+   * 📝 Perform a surgical patch update on a clinical unit.
    */
   async update(id, data) {
-    const response = await apiClient.patch(`${this.endpoint}${id}/`, data);
-    return response.data;
+    try {
+      const { data: responseData } = await apiClient.patch(`${this.endpoint}${id}/`, data);
+      return responseData;
+    } catch (error) {
+      this._handleError(`Record ${id} update failed`, error);
+    }
   }
 
   /**
-   * Deletes a record.
+   * ☣️ Terminal deletion of a clinical shard.
    */
   async delete(id) {
-    const response = await apiClient.delete(`${this.endpoint}${id}/`);
-    return response.data;
+    try {
+      const { data } = await apiClient.delete(`${this.endpoint}${id}/`);
+      return data;
+    } catch (error) {
+      this._handleError(`Record ${id} deletion failed`, error);
+    }
   }
 
   /**
-   * 📊 DSA: Quick Indexing
-   * Converts a list of records into a Map for O(1) lookups.
+   * 🛠️ Internal Error Normalization Logic
    */
-  createIndex(data, key = 'id') {
-    return new Map(data.map(item => [item[key], item]));
+  _handleError(context, error) {
+    console.error(`🚨 [BaseService] ${context}:`, error);
+    throw error;
   }
 }

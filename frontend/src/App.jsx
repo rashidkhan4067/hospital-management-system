@@ -5,7 +5,6 @@ import { LazyMotion, domMax } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // ─── Core ────────────────────────────────────────────────────────────────────
-import { ThemeProvider } from '@/core/theme/ThemeContext';
 import { UIProvider } from '@/core/ui/UIContext';
 import { useAuth } from '@/core/auth/AuthContext';
 import { APP_ROUTES, AUTH_ROUTES } from '@/core/routes/routes';
@@ -36,51 +35,54 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// ─── App Dispatcher ───
-const DashboardDispatcher = lazy(() => import('@/features/dashboard/pages/DashboardDispatcher'));
-
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <QueryClientProvider client={queryClient}>
         <UIProvider>
           <TeleSystem>
-            <ThemeProvider>
-              <LazyMotion features={domMax} strict>
-                <Suspense fallback={<Loading />}>
-                  <Routes>
-                    
-                    {/* 🔐 AUTH CLUSTER */}
-                    <Route element={<AuthLayout />}>
-                      {AUTH_ROUTES.map(route => (
-                        <Route key={route.path} path={route.path} element={<PublicRoute><route.element /></PublicRoute>} />
-                      ))}
-                    </Route>
+            <LazyMotion features={domMax} strict>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  
+                  {/* 🔐 AUTH CLUSTER */}
+                  <Route element={<AuthLayout />}>
+                    {AUTH_ROUTES.map(route => (
+                      <Route key={route.path} path={route.path} element={<PublicRoute><route.element /></PublicRoute>} />
+                    ))}
+                  </Route>
 
-                    {/* 🏥 PROTECTED CLUSTER */}
-                    <Route element={<ProtectedRoute />}>
-                      <Route element={<AppLayout />}>
-                        
-                        {/* 🏢 GLOBAL ADMIN CLUSTER */}
-                        <Route element={<ProtectedRoute requireAdmin={true} />}>
-                          {APP_ROUTES.map(route => (
-                            <Route key={route.path} path={route.path} element={<route.element />} />
-                          ))}
-                        </Route>
-
-                        {/* Dispatcher (Root) */}
-                        <Route path="/dashboard" element={<DashboardDispatcher />} />
+                  {/* 🏥 PROTECTED CLUSTER */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<AppLayout />}>
+                      
+                      {/* 🏢 GLOBAL ADMIN CLUSTER (Surgical Nesting) */}
+                      <Route path="/admin">
+                         <Route element={<ProtectedRoute requireAdmin={true} />}>
+                            {APP_ROUTES.map(route => (
+                              <Route 
+                                key={route.path || 'index'} 
+                                index={route.path === ''}
+                                path={route.path !== '' ? route.path : undefined} 
+                                element={<route.element />} 
+                              />
+                            ))}
+                         </Route>
                       </Route>
-                    </Route>
 
-                    <Route path="*" element={<Navigate to="/login" replace />} />
-                  </Routes>
-                </Suspense>
-              </LazyMotion>
-            </ThemeProvider>
+                      {/* 📟 OPERATIONAL DASHBOARD (Fallback/General) */}
+                      <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+                    </Route>
+                  </Route>
+
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+              </Suspense>
+            </LazyMotion>
           </TeleSystem>
         </UIProvider>
       </QueryClientProvider>
     </GoogleOAuthProvider>
   );
 }
+

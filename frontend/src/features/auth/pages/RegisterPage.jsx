@@ -1,104 +1,76 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Heart, Activity, UserPlus, Globe, Zap, ArrowRight, LayoutGrid } from 'lucide-react';
+import { Activity, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
 import RegisterForm from '@/features/auth/components/RegisterForm';
+import { Card } from '@/components/primitives';
 
 /**
- * 📝 RegisterPage - Sleek Horizontal Split Hub (V6.1)
- * Features: Mobile-optimized (Hide sidebar), Dynamic Home/Dashboard routing.
+ * 📝 RegisterPage - Google Enterprise 'Create Account' Archetype
+ * Implements the Material 3 centralized authentication terminal.
  */
 export default function RegisterPage() {
   const [error, setError] = useState(null);
-  const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 lg:p-10 bg-[#f8f9fc] selection:bg-[#007aff] selection:text-white relative">
-      
-      {/* 🚀 Floating Command Links (Top Right) */}
-      <div className="absolute top-8 right-8 z-[100] flex items-center gap-4">
-          <Link to="/" className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-[#1d1d1f] hover:bg-slate-50 transition-all shadow-sm">
-             <Heart size={18} />
-          </Link>
-          {isAuthenticated && (
-            <Link to="/dashboard" className="h-10 px-6 bg-[#1d1d1f] text-white rounded-xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
-               Command Hub <LayoutGrid size={14} />
-            </Link>
-          )}
-      </div>
-
-      {/* 🏛️ Letterbox Split Monolith */}
+    <div className="min-h-screen bg-white md:bg-[#F8F9FA] flex flex-col items-center justify-center p-4 md:p-6 italic">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[1150px] lg:h-[720px] bg-white rounded-[32px] lg:rounded-[40px] shadow-[0_80px_160px_-40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row border border-slate-50/50"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[650px]"
       >
-          {/* 🏔️ Sidebar - Clinical Identity (Hidden on Mobile) */}
-          <div className="hidden lg:flex lg:w-[40%] flex-col bg-[#007aff] text-white overflow-hidden">
-              <div className="h-[40%] lg:h-[45%] w-full relative overflow-hidden group">
-                  <img 
-                    src="/assets/images/auth-sidebar.png" 
-                    alt="Clinical Admission"
-                    className="w-full h-full object-cover grayscale-[10%] contrast-[1.05] group-hover:scale-110 transition-transform duration-[3s]"
-                  />
-                  <div className="absolute inset-0 bg-blue-600/10 mix-blend-overlay"></div>
-              </div>
-
-              <div className="flex-1 p-8 lg:p-12 flex flex-col justify-center relative">
-                   <div className="absolute top-[-20px] left-[-20px] w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
-                   
-                   <div className="flex items-center gap-3 mb-6 lg:mb-10">
-                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-xl">
-                         <Heart size={16} fill="white" className="text-white" />
-                      </div>
-                      <span className="text-[10px] font-black tracking-[0.4em] uppercase">Al Shifaa</span>
-                   </div>
-
-                   <div className="space-y-4 relative z-10">
-                      <h2 className="text-3xl lg:text-[2.6rem] font-black tracking-tighter leading-[0.9] italic uppercase">
-                         Establish <br /> <span className="opacity-40">Clinical Profile.</span>
-                      </h2>
-                      <div className="w-12 h-1 bg-white/20"></div>
-                      <p className="text-xs font-medium leading-relaxed opacity-70 max-w-[200px]">
-                         Join the clinical federation to access unified diagnostic units instantly.
-                      </p>
-                   </div>
-              </div>
-          </div>
-
-          {/* 📄 Auth Section - Highnd Form Hub */}
-          <div className="w-full lg:w-[60%] bg-white p-8 lg:p-14 pt-24 lg:pt-24 pb-16 lg:pb-16 flex flex-col overflow-y-auto no-scrollbar">
-              <div className="w-full max-w-[420px] mx-auto space-y-12">
-                  <header className="space-y-3">
-                      <div className="flex items-center gap-2 mb-1">
-                         <div className="p-1 bg-[#007aff]/5 text-[#007aff] rounded-lg">
-                            <UserPlus size={16} />
-                         </div>
-                         <span className="text-[8px] font-black uppercase tracking-[0.5em] text-[#007aff]">Protocol Start</span>
-                      </div>
-                  </header>
-
-                  {error && (
-                    <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-in fade-in duration-500">
-                        <Activity size={14} className="text-red-500" />
-                        <p className="text-[9px] font-black uppercase tracking-widest text-red-600 leading-none">{error}</p>
+        <Card variant="outlined" className="p-8 md:p-12 flex flex-col items-center bg-white shadow-none md:shadow-sm">
+          {/* 🏛️ Brand Payload */}
+          <div className="flex flex-col items-center gap-4 mb-8 w-full">
+             <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1A73E8] to-[#64B5F6] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                        <Activity size={24} />
                     </div>
-                  )}
-
-                  <RegisterForm setError={setError} />
-
-                  <footer className="pt-8 border-t border-slate-50">
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#86868b] flex items-center justify-between">
-                        Already Profiled? 
-                        <Link to="/login" className="text-[#007aff] hover:opacity-70 transition-opacity whitespace-nowrap">
-                            Join Session <ArrowRight size={12} className="inline ml-1" />
-                        </Link>
-                     </p>
-                  </footer>
-              </div>
+                    <span className="text-2xl font-black text-slate-900 tracking-tighter italic">Al Shifa</span>
+                </div>
+                <div className="text-right">
+                    <h1 className="text-2xl font-semibold text-[#202124] tracking-tight leading-tight">Create your account</h1>
+                    <p className="text-sm text-[#3C4043] font-medium">to continue to Health Intelligence Hub</p>
+                </div>
+             </div>
           </div>
+
+          {/* 📟 Intelligence Enrollment Port (Form) */}
+          <div className="w-full">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                  <ShieldCheck size={16} className="text-red-500" />
+                  <p className="text-[11px] font-bold text-red-600 uppercase tracking-widest leading-none">{error}</p>
+              </div>
+            )}
+
+            <RegisterForm setError={setError} />
+          </div>
+
+          {/* 🧾 Account Registry Redirection */}
+          <div className="w-full flex items-center justify-between mt-10 p-0">
+            <Link 
+              to="/login" 
+              className="text-sm font-bold text-[#1a73e8] hover:bg-blue-50 px-3 py-2 rounded-lg transition-all"
+            >
+              Sign in instead
+            </Link>
+          </div>
+        </Card>
+
+        {/* 🗺️ Global Footer Cluster (Enterprise Standard) */}
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 px-2 not-italic">
+            <div className="flex items-center gap-6">
+                <span className="text-[11px] font-bold text-[#5F6368] cursor-pointer hover:text-slate-900">English (United Kingdom)</span>
+            </div>
+            <div className="flex items-center gap-6">
+                <Link className="text-[11px] font-bold text-[#5F6368] hover:text-slate-900 transition-colors">Help</Link>
+                <Link className="text-[11px] font-bold text-[#5F6368] hover:text-slate-900 transition-colors">Privacy</Link>
+                <Link className="text-[11px] font-bold text-[#5F6368] hover:text-slate-900 transition-colors">Terms</Link>
+            </div>
+        </div>
       </motion.div>
     </div>
   );

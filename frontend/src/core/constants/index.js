@@ -1,9 +1,9 @@
 /**
- * @file constants/index.js
- * @description Centralized app constants for roles, routes, and UI defaults.
+ * 🛰️ Shifaa HMS Global Constants
+ * Centralized registry for roles, routes, and clinical identity tokens.
  */
 
-export const APPLICATION_NAME = "Al Shifaa Clinic";
+export const APPLICATION_NAME = "Shifaa HMS";
 
 export const ROLES = {
   ADMIN: 'admin',

@@ -8,11 +8,11 @@ import { motion } from 'framer-motion';
  */
 const AdminPage = ({ children, className = '', fullHeight = false, ...props }) => {
   return (
-    <div 
-      className={`matrix-container ${fullHeight ? 'h-[calc(100vh-100px)] flex flex-col p-0 overflow-hidden' : 'py-5 px-3 sm:px-6'} ${className}`}
+    <div
+      className={`matrix-container ${fullHeight ? 'h-[calc(100vh-100px)] flex flex-col p-0 overflow-hidden' : 'py-8'} ${className}`}
       {...props}
     >
-      <div className={`flex flex-col ${fullHeight ? 'h-full gap-0' : 'gap-6 sm:gap-8'}`}>
+      <div className={`flex flex-col ${fullHeight ? 'h-full gap-0' : 'gap-8 sm:gap-10'}`}>
         {children}
       </div>
     </div>

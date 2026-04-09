@@ -9,8 +9,16 @@ import presenceService from '../../../services/modules/presenceService';
 export const useActivePersonnel = () => {
     const { data, isLoading, error } = useQuery({
         queryKey: ['staff', 'live-presence'],
-        queryFn: () => presenceService.getLivePresenceData(),
-        refetchInterval: 10000, // 10s Live Polling
+        queryFn: async () => {
+            try {
+                const res = await presenceService.getLivePresenceData();
+                return res || { active_staff: [], zones: [] };
+            } catch (e) {
+                return { active_staff: [], zones: [] };
+            }
+        },
+        placeholderData: (previousData) => previousData,
+        refetchInterval: 10000, 
         staleTime: 5000,
     });
 
@@ -21,3 +29,4 @@ export const useActivePersonnel = () => {
         error
     };
 };
+

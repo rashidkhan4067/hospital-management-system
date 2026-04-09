@@ -12,9 +12,8 @@ const ForgotPasswordPage  = lazy(() => import('@/features/auth/pages/ForgotPassw
 const ResetPasswordPage   = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
 
 // ─── CORE NODE ───
-const DashboardDispatcher = lazy(() => import('@/features/dashboard/pages/DashboardDispatcher'));
 const AdminDashboardPage  = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
-const StatsPage           = lazy(() => import('@/features/dashboard/pages/StatsPage'));
+const AnalyticsPage       = lazy(() => import('@/features/analytics/pages/AnalyticsPage'));
 
 // ─── CLINICAL NODE ───
 const PatientsPage      = lazy(() => import('@/features/patients/pages/PatientsPage'));
@@ -26,46 +25,46 @@ const DepartmentsPage = lazy(() => import('@/features/management/pages/Departmen
 
 export const APP_ROUTES = [
     {
-        path: '/admin',
+        path: '', // Index route for /admin
         element: AdminDashboardPage,
         requireAuth: true,
         requireAdmin: true,
         title: 'Global Hub'
     },
     {
-        path: '/admin/departments',
+        path: 'departments',
         element: DepartmentsPage,
         requireAuth: true,
         requireAdmin: true,
         title: 'Clinical Matrix'
     },
     {
-        path: '/admin/appointments',
+        path: 'appointments',
         element: AppointmentsPage,
         requireAuth: true,
         requireAdmin: true,
         title: 'Clinical Scheduling'
     },
     {
-        path: '/admin/analytics',
-        element: StatsPage,
-        requireAuth: true,
-        requireAdmin: true,
-        title: 'Diagnostic Analytics'
-    },
-    {
-        path: '/admin/patients',
+        path: 'patients',
         element: PatientsPage,
         requireAuth: true,
         requireAdmin: true,
         title: 'Registry Matrix'
     },
     {
-        path: '/admin/doctors',
+        path: 'doctors',
         element: DoctorsPage,
         requireAuth: true,
         requireAdmin: true,
         title: 'Practitioner Hub'
+    },
+    {
+        path: 'analytics',
+        element: AnalyticsPage,
+        requireAuth: true,
+        requireAdmin: true,
+        title: 'Command Intelligence'
     }
 ];
 

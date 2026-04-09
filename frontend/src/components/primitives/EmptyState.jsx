@@ -1,30 +1,38 @@
 import React from 'react';
-import { Ghost } from 'lucide-react';
-import Card from './Card';
-import Button from './Button';
+import { Button } from './index';
 
+/**
+ * 🍃 EmptyState (Google Standard Onboarding)
+ * Used when a clinical dataset (Patients, Appointments) is null.
+ * Features a high-focus focal point and a primary action trigger.
+ */
 export default function EmptyState({ 
-  icon: Icon = Ghost, 
-  title = "Nothing to see here", 
-  message = "Your medical record is empty or no matches found.",
-  actionText,
-  onAction,
-  className = "" 
+  title = "No records found",
+  message = "This database shard is currently disconnected or empty.", 
+  icon: Icon,
+  actionLabel,
+  onAction
 }) {
   return (
-    <Card className={`empty-state-card glass-panel flex flex-col items-center justify-center p-16 text-center border-dashed border-2 border-white/5 opacity-80 ${className}`}>
-      <div className="p-8 rounded-full bg-blue-500/5 mb-8 animate-va-bounce-slow">
-        <Icon size={64} className="text-blue-400 opacity-20" />
+    <div className="flex flex-col items-center justify-center p-16 text-center animate-in fade-in zoom-in duration-500">
+      <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6 border border-slate-100 shadow-inner">
+        {Icon ? (
+          <Icon className="w-10 h-10 text-slate-300" />
+        ) : (
+          <div className="w-10 h-10 bg-slate-200 rounded-lg animate-pulse" />
+        )}
       </div>
-      <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">{title}</h3>
-      <p className="max-w-md mx-auto text-sm font-semibold text-gray-500 uppercase tracking-widest leading-relaxed mb-10 italic">
+      
+      <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-2">{title}</h3>
+      <p className="text-sm text-slate-500 font-medium max-w-[280px] leading-relaxed mb-10">
         {message}
       </p>
-      {actionText && onAction && (
-        <Button onClick={onAction} className="min-w-[200px] py-4 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/20 rounded-full font-extrabold uppercase tracking-[0.2em] transition-all">
-          {actionText}
+
+      {actionLabel && (
+        <Button onClick={onAction} className="px-10 h-14 text-xs font-bold uppercase tracking-widest">
+          {actionLabel}
         </Button>
       )}
-    </Card>
+    </div>
   );
 }

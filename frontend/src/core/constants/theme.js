@@ -1,72 +1,72 @@
 /**
- * @file constants/theme.js
- * @description Design tokens for the Al Shifaa Clinic UI.
+ * 🎨 Material 3 Design Tokens (Google Standard)
+ * Rebuilt for Shifaa HMS: Transitioned from legacy 'Deep Navy' project to M3 Clean Light Architecture.
  */
 
 export const COLORS = {
-  // Primary - Vibrant & Trustworthy
+  // 🛰️ Primary - Google Blue (Core Action)
   primary: {
-    main: '#6366f1', // Indigo
-    light: '#818cf8',
-    dark: '#4f46e5',
-    glow: 'rgba(99, 102, 241, 0.4)',
+    main: '#1a73e8', 
+    light: '#e8f0fe',
+    dark: '#174ea6',
+    container: '#d2e3fc',
+    onContainer: '#174ea6',
   },
   
-  // Secondary - Modern & Calm
+  // 🌿 Secondary - Clinical Teal
   secondary: {
-    main: '#0ea5e9', // Sky Blue
-    light: '#38bdf8',
-    dark: '#0284c7',
-    glow: 'rgba(14, 165, 233, 0.4)',
+    main: '#00838f',
+    light: '#e0f2f1',
+    dark: '#005662',
+    container: '#b2ebf2',
+    onContainer: '#005662',
   },
 
-  // Success - Healthy & Positive
+  // ✅ Success - Diagnostic Green
   success: {
-    main: '#10b981', // Emerald
-    light: '#34d399',
-    dark: '#059669',
-    glow: 'rgba(16, 185, 129, 0.4)',
+    main: '#1e8e3e',
+    light: '#e6f4ea',
+    dark: '#137333',
   },
 
-  // Warning - Attention Required
+  // ⚠️ Warning - Triage Amber
   warning: {
-    main: '#f59e0b', // Amber
-    light: '#fbbf24',
-    dark: '#d97706',
-    glow: 'rgba(245, 158, 11, 0.4)',
+    main: '#f9ab00',
+    light: '#fef7e0',
+    dark: '#ea8600',
   },
 
-  // Error - Critical
+  // 🚨 Error - Critical Red
   error: {
-    main: '#ef4444', // Red
-    light: '#f87171',
-    dark: '#dc2626',
-    glow: 'rgba(239, 68, 68, 0.4)',
+    main: '#d93025',
+    light: '#feeced',
+    dark: '#a50e0e',
   },
 
-  // Surfaces & Backgrounds
+  // ☁️ Surfaces & Elevation (Material 3 Spec)
   background: {
-    base: '#0f172a',    // Deep Navy
-    surface: 'rgba(30, 41, 59, 0.6)', // Glassy surface
-    card: 'rgba(15, 23, 42, 0.8)',
+    base: '#F8F9FA',      // Google Surface Neutral
+    surface: '#FFFFFF',   // Card Surface
+    outline: '#DADCE0',   // Border Variant
+    scrim: 'rgba(32, 33, 36, 0.4)',
+  },
+
+  // 📝 Typography Neutrals
+  text: {
+    primary: '#202124',   // High Emphasis
+    secondary: '#5f6368', // Medium Emphasis
+    tertiary: '#80868b',  // Low Emphasis/Icons
   }
 };
 
-export const GRADIENTS = {
-  primary: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-  secondary: 'linear-gradient(135deg, #0ea5e9 0%, #2dd4bf 100%)',
-  surface: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-  text: 'linear-gradient(to right, #ffffff, #94a3b8)',
+export const RADII = {
+  card: '24px',
+  dialog: '28px',
+  input: '12px',
+  button: '100px', // M3 Pill shape
 };
 
-export const GLASS = {
-  panel: 'backdrop-filter: blur(12px) saturate(180%); background-color: rgba(17, 25, 40, 0.75); border: 1px solid rgba(255, 255, 255, 0.125);',
-  card: 'backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);',
-};
-
-export const ANIMATIONS = {
-  enter: 'animate-enter',
-  pulse: 'animate-pulse',
-  bounce: 'animate-bounce',
-  spin: 'va-spin', // custom spin from index.css
+export const SHADOWS = {
+  elevation1: '0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)',
+  elevation2: '0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15)',
 };

@@ -1,33 +1,43 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.5, 
-      ease: [0.25, 0.1, 0.25, 1.0] 
-    } 
-  }
-};
 
 /**
- * Common Card component with glassmorphism and motion support
+ * 🧱 Material 3 Card (Enterprise Spec)
+ * The fundamental surface primitive for all clinical data sharding.
+ * Follows the high-density 'Flat Surface' rule from Google Cloud Console.
  */
-export const Card = ({ children, className = '', ...props }) => {
-  const isMatrix = className.includes('matrix-card');
-  
+export default function Card({ 
+  children, 
+  className = '', 
+  padded = true, 
+  variant = 'flat', // flat, tonal, outlined, elevator
+  onClick 
+}) {
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'tonal':
+        return 'bg-[#E8F0FE] border-transparent';
+      case 'outlined':
+        return 'bg-white border-[#DADCE0]';
+      case 'elevator':
+        return 'bg-white border-transparent shadow-xl shadow-slate-200/50';
+      case 'flat':
+      default:
+        return 'bg-white border-[#DADCE0]';
+    }
+  };
+
   return (
     <div 
-      className={`${!isMatrix ? "glass-panel" : ""} w-full ${className}`.trim()} 
-      {...props}
+      onClick={onClick}
+      className={`
+        rounded-3xl border transition-all duration-300
+        ${padded ? 'p-6 md:p-8' : 'p-0'}
+        ${getVariantStyles()}
+        ${onClick ? 'cursor-pointer hover:border-[#1A73E8] active:scale-[0.99]' : ''}
+        ${className}
+      `}
     >
       {children}
     </div>
   );
-};
-
-export default Card;
-
+}

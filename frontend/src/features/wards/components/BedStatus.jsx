@@ -1,156 +1,159 @@
-import React, { memo } from 'react';
-import { motion } from 'framer-motion';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { LayoutGrid, RefreshCw, Activity, CheckCircle2, ShieldAlert } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { LayoutGrid, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/primitives';
+import DashboardCard from '@/features/dashboard/components/DashboardCard';
+import EmptyState from '@/features/dashboard/components/EmptyState';
 import { useBedStatus } from '../hooks/useBedStatus';
+import { useTheme } from '@/core/theme/ThemeContext';
 
 /**
  * 🛏️ BedStatus (Dynamic Capacity Monitor)
- * Visualizes systemic bed availability and occupancy rates using high-fidelity donuts.
- * Orchestrates real-time spatial telemetry from the ward registry.
  */
 const BedStatus = memo(() => {
+    // 🛰️ Systemic Status Monitor Initialized
+    const [statusFilter, setStatusFilter] = useState('all');
     const navigate = useNavigate();
+    const { accentColor } = useTheme();
     const { 
         chartData, 
+        wards: rawWards = [],
+        stats,
         totalBeds, 
-        availableCount, 
-        occupiedCount, 
         occupancyRate, 
-        isLoading, 
-        error 
-    } = useBedStatus();
+        isLoading
+    } = useBedStatus(statusFilter);
 
-    /**
-     * 🦴 SKELETON MONITOR
-     * Layout-accurate pulsing donut and metrics.
-     */
-    if (isLoading) {
-        return (
-            <Card className="rounded-[2.5rem] bg-white/50 dark:bg-slate-900/10 border border-slate-100 dark:border-white/5 backdrop-blur-xl shadow-xl p-7 space-y-6 h-full min-h-[300px]">
-                <div className="flex justify-between items-center">
-                    <div className="h-6 w-32 bg-slate-200 dark:bg-white/5 rounded-full animate-pulse" />
-                    <div className="h-4 w-16 bg-slate-100 dark:bg-white/5 rounded-full animate-pulse" />
-                </div>
-                <div className="flex-1 flex items-center justify-center py-6">
-                    <div className="w-40 h-40 rounded-full border-[10px] border-slate-100 dark:border-white/5 animate-pulse flex items-center justify-center">
-                        <div className="h-4 w-12 bg-slate-200 dark:bg-white/5 rounded-full" />
-                    </div>
-                </div>
-            </Card>
-        );
-    }
+    // 🧠 Priority Intelligence: Pin critical wards (zero free beds) to top
+    const wards = React.useMemo(() => {
+        return [...rawWards].sort((a, b) => {
+            if (a.available === 0 && b.available > 0) return -1;
+            if (a.available > 0 && b.available === 0) return 1;
+            return 0;
+        });
+    }, [rawWards]);
 
-    if (error) {
-        return (
-            <Card className="rounded-[2.5rem] bg-rose-500/5 border border-rose-500/20 p-7 text-center space-y-4 h-full">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">
-                    <RefreshCw size={24} className="animate-spin" />
-                </div>
-                <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-widest italic">Spatial Logic Lost</h3>
-                <p className="text-[8px] text-rose-400/60 font-bold uppercase tracking-widest px-4">Failed to synchronize clinical bed telemetry.</p>
-            </Card>
-        );
-    }
+    const hasCritical = wards.some(ward => ward.available === 0);
 
     return (
-        <Card className="rounded-[2.5rem] bg-white/50 dark:bg-slate-900/10 border border-slate-100 dark:border-white/5 backdrop-blur-xl shadow-xl flex flex-col group/bed overflow-hidden h-full">
-            
-            {/* 👽 Mission HUD: Capacity Header */}
-            <div className="px-7 pt-7 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-500">
-                        <LayoutGrid size={20} />
-                    </div>
-                    <div>
-                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] italic text-slate-800 dark:text-white leading-none">Bed Capacity</h4>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
-                            <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                            Live Ward Status
-                        </p>
-                    </div>
-                </div>
-                <div className="px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-[9px] font-black text-sky-500 uppercase tracking-widest border border-slate-200 dark:border-white/10">
-                    OCCUPANCY: {occupancyRate}
-                </div>
-            </div>
-
-            {/* 🥯 DONUT VISUALIZATION ENGINE */}
-            <div 
-                className="flex-1 relative min-h-[160px] cursor-pointer"
-                onClick={() => navigate('/admin/wards')}
-            >
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">TOTAL</span>
-                    <span className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter">
-                        {totalBeds}
-                    </span>
-                </div>
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={chartData}
-                            innerRadius={55}
-                            outerRadius={75}
-                            paddingAngle={8}
-                            dataKey="value"
-                            startAngle={90}
-                            endAngle={450}
-                            animationDuration={1500}
+        <DashboardCard 
+            title="Ward Inventory" 
+            subtitle="Clinical Capacity Monitor"
+            icon={LayoutGrid}
+            loading={isLoading && wards.length === 0}
+            scrollable
+            fadingEdges
+            badge="TELEMETRY ACTIVE"
+            alert={hasCritical}
+            alertLevel="critical"
+            actions={
+                <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl">
+                    {['all', 'available', 'occupied'].map((f) => (
+                        <button 
+                            key={f}
+                            onClick={(e) => { e.stopPropagation(); setStatusFilter(f); }}
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all ${statusFilter === f ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-400 font-medium'}`}
                         >
-                            {chartData.map((entry, index) => (
-                                <Cell 
-                                    key={index} 
-                                    fill={entry.color} 
+                            {f}
+                        </button>
+                    ))}
+                </div>
+            }
+            footer={
+                <button 
+                    onClick={() => navigate('/admin/wards')}
+                    className="w-full h-11 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-bold uppercase tracking-[0.2em] transition-all hover:brightness-110 shadow-xl flex items-center justify-center gap-3"
+                >
+                    Ward Management <LayoutGrid size={14} strokeWidth={3} />
+                </button>
+            }
+        >
+            <div className="flex flex-col h-full bg-white dark:bg-slate-900">
+                {(!wards || wards.length === 0) ? (
+                    <EmptyState 
+                        title="SYSTEM NOMINAL" 
+                        subtitle="Clinical capacity within parameters." 
+                        icon={Building2} 
+                    />
+                ) : (  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[10px] font-bold text-[#64748b] dark:text-slate-500 uppercase tracking-[0.3em] mb-1.5 opacity-60">Facility Load</span>
+                        <span className="text-4xl font-black text-[#0f172a] dark:text-white tabular-nums tracking-tighter leading-none">
+                            {occupancyRate || '0%'}
+                        </span>
+                    </div>
+                )}
+                {/* 🥯 DONUT VISUALIZATION ENGINE */}
+                <div 
+                    className="relative h-[180px] cursor-pointer mb-10 shrink-0"
+                    onClick={() => navigate('/admin/wards')}
+                >
+                    {chartData.length > 0 && (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={chartData}
+                                    innerRadius={70}
+                                    outerRadius={85}
+                                    paddingAngle={8}
+                                    dataKey="value"
+                                    startAngle={90}
+                                    endAngle={450}
+                                    animationDuration={1500}
                                     stroke="none"
-                                    className="transition-all duration-300 opacity-80 group-hover/bed:opacity-100"
-                                />
-                            ))}
-                        </Pie>
-                        <Tooltip 
-                            content={({ active, payload }) => {
-                                if (active && payload && payload.length) {
-                                    return (
-                                        <div className="bg-slate-900 border border-white/10 px-3 py-2 rounded-xl shadow-2xl backdrop-blur-md">
-                                            <p className="text-[10px] font-black text-white italic">{payload[0].name.toUpperCase()}</p>
-                                            <p className="text-[14px] font-black" style={{ color: payload[0].payload.color }}>{payload[0].value} BEDS</p>
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                                                {Math.round((payload[0].value / totalBeds) * 100)}% SHARE
-                                            </p>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            }}
-                        />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
+                                >
+                                    {chartData.map((entry, index) => (
+                                        <Cell 
+                                            key={index} 
+                                            fill={entry.color || '#cbd5e1'} 
+                                            className="transition-all duration-300 hover:brightness-110"
+                                        />
+                                    ))}
+                                </Pie>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
 
-            {/* 📊 KPI SHARD FOOTER */}
-            <div className="px-7 pb-7 space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 group/row cursor-pointer" onClick={() => navigate('/admin/wards?status=available')}>
-                    <div className="flex items-center gap-3">
-                        <CheckCircle2 size={16} className="text-emerald-500" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic group-hover/row:text-slate-600 transition-colors">Available</span>
-                    </div>
-                    <span className="text-xl font-black text-slate-800 dark:text-white tabular-nums group-hover/row:scale-110 transition-transform origin-right">{availableCount}</span>
+                {/* 🛡️ STICKY HEADER MATRIX */}
+                <div className="sticky top-0 z-20 bg-white dark:bg-slate-900 pb-4 mb-4 border-b border-slate-100 dark:border-white/5 flex justify-between px-2">
+                    <span className="text-[10px] font-black text-[#64748b] dark:text-slate-500 uppercase tracking-widest">Clinical Ward</span>
+                    <span className="text-[10px] font-black text-[#64748b] dark:text-slate-500 uppercase tracking-widest">Status</span>
                 </div>
-                
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-amber-500/5 border border-amber-500/10 group/row cursor-pointer" onClick={() => navigate('/admin/wards?status=occupied')}>
-                    <div className="flex items-center gap-3">
-                        <ShieldAlert size={16} className="text-amber-500" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic group-hover/row:text-slate-600 transition-colors">Occupied</span>
+
+                {/* 📋 WARD REGISTRY LIST */}
+                <AnimatePresence mode="popLayout" initial={false}>
+                    <div className="space-y-3">
+                        {wards.map((ward) => (
+                            <motion.div 
+                                key={ward.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center justify-between p-4 rounded-[24px] bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer group/row hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                                onClick={() => navigate(`/admin/wards?id=${ward.id}`)}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-3 h-3 rounded-full ${ward.available > 0 ? 'bg-emerald-500/20 ring-2 ring-emerald-500/50' : 'bg-rose-500 shadow-[0_0_12px_#f43f5e] ring-2 ring-rose-500/20 animate-pulse'}`} />
+                                    <div>
+                                        <p className="text-[12px] font-black text-[#0f172a] dark:text-white uppercase tracking-[0.1em] leading-none mb-1.5">{ward.name}</p>
+                                        <p className="text-[9px] font-bold text-[#64748b] dark:text-slate-500 uppercase tracking-widest">Capacity: {ward.occupied}/{ward.beds}</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end shrink-0">
+                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${ward.available > 5 ? 'bg-emerald-500/10 text-emerald-500' : ward.available > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                        {ward.available === 0 ? 'CRITICAL' : `${ward.available} FREE`}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
-                    <span className="text-xl font-black text-slate-800 dark:text-white tabular-nums group-hover/row:scale-110 transition-transform origin-right">{occupiedCount}</span>
-                </div>
+                </AnimatePresence>
             </div>
-        </Card>
+        </DashboardCard>
     );
 });
 
 BedStatus.displayName = 'BedStatus';
-
 export default BedStatus;

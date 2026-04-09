@@ -75,7 +75,7 @@ export const ADMIN_NAV = [
     category: 'Core Management',
     items: [
       { to: '/admin',           label: 'Dashboard',        icon: LayoutDashboard, end: true },
-      { to: '/admin/analytics', label: 'Analytics',        icon: BarChart3 },
+      { to: '/admin/analytics',  label: 'Intelligence',     icon: TrendingUp },
       { to: '/admin/appointments', label: 'Appointments',  icon: Calendar },
       { to: '/admin/chats',     label: 'Messages',         icon: MessageSquare },
     ]
