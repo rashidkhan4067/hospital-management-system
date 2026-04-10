@@ -29,7 +29,7 @@ export default function MaterialDialog({ isOpen, onClose, title, children, foote
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: M3_EASING }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/30 backdrop-blur-[2px]"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] dark:bg-black/60"
           />
 
           {/* Dialog Container */}
@@ -38,11 +38,11 @@ export default function MaterialDialog({ isOpen, onClose, title, children, foote
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3, ease: M3_EASING }}
-            className="relative w-full sm:max-w-[560px] bg-white rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            className="relative w-full sm:max-w-[560px] bg-surface-bright rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors duration-300"
           >
             {/* Header */}
             <header className="px-6 pt-6 pb-4">
-              <h2 className="text-[24px] font-medium text-slate-900 leading-tight">
+              <h2 className="text-[24px] font-medium text-text-main leading-tight transition-colors">
                 {title}
               </h2>
             </header>
@@ -58,14 +58,15 @@ export default function MaterialDialog({ isOpen, onClose, title, children, foote
                 <>
                   <button
                     onClick={onClose}
-                    className="px-6 py-2 text-sm font-medium text-[#1A73E8] hover:bg-[#1A73E8]/5 rounded-full transition-colors"
+                    className="px-6 py-2 text-sm font-semibold text-primary hover:bg-primary/5 rounded-full transition-colors"
                   >
                     Cancel
                   </button>
                   <button
-                    className="px-6 py-2 bg-[#E8F0FE] text-[#1967D2] text-sm font-medium rounded-full hover:bg-[#D2E3FC] transition-colors"
+                    onClick={onClose}
+                    className="px-6 py-2 bg-primary/15 text-primary text-sm font-bold rounded-full hover:bg-primary/25 transition-colors"
                   >
-                    Save
+                    Confirm
                   </button>
                 </>
               )}

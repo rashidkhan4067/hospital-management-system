@@ -18,8 +18,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/features': path.resolve(__dirname, './src/features'),
-      '@/services': path.resolve(__dirname, './src/services'),
       '@/layouts': path.resolve(__dirname, './src/layouts'),
+
       '@/primitives': path.resolve(__dirname, './src/components/primitives'),
       '@/composed': path.resolve(__dirname, './src/components/composed'),
       '@/core': path.resolve(__dirname, './src/core'),

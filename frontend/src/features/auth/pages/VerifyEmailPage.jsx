@@ -1,65 +1,71 @@
 import React from 'react';
-import { Mail, ArrowRight, CheckCircle, RefreshCcw } from 'lucide-react';
-import { Card, Badge, Alert, Button } from '@/components/primitives';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/primitives';
 
+/**
+ * 📧 VerifyEmailPage - Google 'Security Gate' Archetype (M3 Content Node)
+ */
 export default function VerifyEmailPage() {
+  const brandColors = {
+    blue: "#4285F4",
+    red: "#EA4335",
+    yellow: "#FBBC05",
+    green: "#34A853"
+  };
+
   return (
-    <div className="auth-page animate-enter">
-      <div className="auth-blob blob-1"></div>
-      <div className="auth-blob blob-2"></div>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center w-full"
+    >
+      {/* 🏛️ Google-Style Brand Header */}
+      <div className="flex flex-col items-center mb-8 text-center">
+        <div className="flex items-center mb-4 h-10">
+          <span className="text-3xl font-medium tracking-tight text-[#202124]">
+            <span style={{ color: brandColors.blue }}>S</span>
+            <span style={{ color: brandColors.red }}>h</span>
+            <span style={{ color: brandColors.yellow }}>i</span>
+            <span style={{ color: brandColors.blue }}>f</span>
+            <span style={{ color: brandColors.green }}>a</span>
+            <span style={{ color: brandColors.red }}>a</span>
+          </span>
+        </div>
+        
+        <h1 className="text-2xl font-normal text-[#202124] tracking-normal mb-2">
+          Verify your email
+        </h1>
+        <p className="text-base text-[#202124] font-normal mt-2 leading-relaxed">
+          We've sent a verification link to your email. Click the link to complete your Shifaa account setup.
+        </p>
+      </div>
 
-      <Card className="auth-card glass-panel max-w-md w-full">
-        <div className="auth-header text-center">
-            <div className="mx-auto w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 animate-pulse-slow">
-                <Mail className="text-blue-400" size={40} />
-            </div>
-            
-            <Badge icon={CheckCircle} className="badge-glow mb-4">
-                Registration Successful
-            </Badge>
-            
-            <h1 className="text-gradient font-extrabold tracking-tighter mb-2">Check Your Inbox</h1>
-            <p className="subtitle mb-8 text-gray-400">
-                We've sent a verification link to your email address. 
-                Please click the link to activate your account.
-            </p>
+      <div className="w-full space-y-8">
+        <div className="p-5 bg-[#F8F9FA] rounded-2xl text-left text-sm text-[#5F6368] space-y-3">
+          <p className="font-medium text-[#202124]">Didn't receive the email?</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>Check your spam folder</li>
+            <li>Wait a few minutes</li>
+            <li>Ensure the email address is correct</li>
+          </ul>
         </div>
 
-        <div className="space-y-6">
-            <Alert variant="info" className="text-sm bg-white/5 border-white/10 text-gray-300">
-                Security at Al Shifaa Clinic is our priority. Verification ensures that only real patients and staff can access our portal.
-            </Alert>
-
-            <div className="bg-blue-500/5 p-6 rounded-2xl border border-blue-500/10 space-y-4">
-                <p className="text-xs text-blue-300 font-semibold uppercase tracking-widest text-center">Didn't receive the email?</p>
-                <ul className="text-sm text-gray-400 space-y-2">
-                    <li className="flex items-start gap-2">
-                        <ArrowRight size={14} className="mt-1 flex-shrink-0 text-blue-400" />
-                        Check your spam or junk folder
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <ArrowRight size={14} className="mt-1 flex-shrink-0 text-blue-400" />
-                        Wait a few minutes (sometimes it takes time)
-                    </li>
-                </ul>
-                
-                <Button 
-                    variant="outline" 
-                    className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
-                    icon={RefreshCcw}
-                >
-                    RESEND VERIFICATION
-                </Button>
-            </div>
-
-            <div className="text-center pt-4">
-                <Link to="/login" className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors">
-                    Back to Sign In
-                </Link>
-            </div>
+        <div className="flex flex-col gap-4">
+           <Button 
+            variant="outline"
+            className="w-full h-12 rounded-full text-sm font-semibold border-[#dadce0] text-[#1a73e8] hover:bg-blue-50/50"
+           >
+             Resend email
+           </Button>
+           
+           <Link to="/login" className="w-full">
+              <Button className="w-full h-12 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] shadow-none">
+                Back to Sign in
+              </Button>
+           </Link>
         </div>
-      </Card>
-    </div>
+      </div>
+    </motion.div>
   );
 }

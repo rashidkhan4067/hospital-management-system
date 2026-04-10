@@ -30,7 +30,7 @@ export default function MaterialSideSheet({ isOpen, onClose, title, children, on
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: M3_EASING }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/30 backdrop-blur-[2px]"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] dark:bg-black/60"
           />
 
           {/* Side Sheet Content */}
@@ -39,24 +39,24 @@ export default function MaterialSideSheet({ isOpen, onClose, title, children, on
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.3, ease: M3_EASING }}
-            className="relative w-full md:w-[400px] h-screen bg-white md:rounded-l-[28px] shadow-2xl flex flex-col overflow-hidden"
+            className="relative w-full md:w-[400px] h-screen bg-surface-bright md:rounded-l-[28px] shadow-2xl flex flex-col overflow-hidden transition-colors duration-300"
           >
             {/* Header Bar */}
-            <header className="px-5 py-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+            <header className="px-5 py-4 flex items-center justify-between border-b border-outline/30 flex-shrink-0 transition-colors">
               <div className="flex items-center gap-3">
                 <button
                   onClick={onClose}
-                  className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+                  className="p-2 -ml-2 text-text-sub hover:bg-surface rounded-full transition-colors"
                 >
                   <X size={24} />
                 </button>
-                <h2 className="text-[18px] md:text-[20px] font-medium text-slate-900 truncate max-w-[200px] md:max-w-none">
+                <h2 className="text-[18px] md:text-[20px] font-medium text-text-main truncate max-w-[200px] md:max-w-none transition-colors">
                   {title}
                 </h2>
               </div>
               <button
                 onClick={onSave}
-                className="px-5 md:px-6 py-2 bg-[#1A73E8] text-white text-sm font-medium rounded-full hover:bg-[#1557b0] transition-colors shadow-sm"
+                className="px-5 md:px-6 py-2 bg-primary text-white text-sm font-bold rounded-full hover:shadow-lg transition-all shadow-sm active:scale-95"
               >
                 Save
               </button>

@@ -61,15 +61,15 @@ export const MetricCard = ({
   return (
     <Card 
       onClick={handleInteraction}
-      className={`p-4 md:p-5 min-h-[140px] md:min-h-[150px] bg-white border border-slate-200 rounded-[28px] flex flex-col justify-between transition-all group ${hasInteraction ? 'cursor-pointer hover:border-[#1A73E8] hover:shadow-xl hover:shadow-blue-500/5 active:scale-[0.98]' : ''} ${className}`}
+      className={`p-4 md:p-5 min-h-[140px] md:min-h-[150px] bg-surface-bright border border-outline rounded-[28px] flex flex-col justify-between transition-all group ${hasInteraction ? 'cursor-pointer hover:border-primary hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98]' : ''} ${className}`}
     >
       {/* ⬆️ Header Node */}
       <div className="flex items-center justify-between">
-        <div className={`w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-[#1A73E8] transition-colors ${hasInteraction ? 'group-hover:bg-[#1A73E8] group-hover:text-white' : ''}`}>
+        <div className={`w-8 h-8 rounded-xl bg-surface flex items-center justify-center text-primary transition-colors ${hasInteraction ? 'group-hover:bg-primary group-hover:text-white' : ''}`}>
           <Icon size={14} className="md:w-4 md:h-4" />
         </div>
         {trend && (
-          <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-black ${isUp ? 'bg-[#E6F4EA] text-[#137333]' : 'bg-[#FCE8E6] text-[#C5221F]'}`}>
+          <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-black ${isUp ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}`}>
             {isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
             {trend}
           </div>
@@ -78,13 +78,14 @@ export const MetricCard = ({
 
       {/* 📟 Central Value Node */}
       <div className="flex flex-col items-start justify-center my-1 md:my-2">
-        <h4 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 tabular-nums break-words">
+        <h4 className="text-xl md:text-2xl font-bold tracking-tight text-text-main tabular-nums break-words">
           {value}
         </h4>
-        <span className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">
+        <span className="text-[10px] md:text-[11px] font-bold text-text-sub uppercase tracking-widest leading-none mt-1">
           {label}
         </span>
       </div>
+
 
       {/* ⬇️ Sparkline / Extended Info */}
       <div className="w-full">

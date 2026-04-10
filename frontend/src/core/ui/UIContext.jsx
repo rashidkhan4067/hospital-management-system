@@ -12,12 +12,27 @@ export const UIProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : (window.innerWidth < 1280);
   });
 
+  // 🎨 Material 3 Theme Management
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('shifaa_theme');
+    return saved || 'light';
+  });
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   
   // Global Telemetry Sinks
   const [globalLoading, setGlobalLoading] = useState(false);
   const [globalError, setGlobalError] = useState(null);
+
+  // Apply Theme to Document Element
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.setAttribute('data-theme', theme);
+    if (theme === 'dark') root.classList.add('dark');
+    else root.classList.remove('dark');
+    localStorage.setItem('shifaa_theme', theme);
+  }, [theme]);
 
   // Save Sidebar State
   useEffect(() => {
@@ -87,7 +102,9 @@ export const UIProvider = ({ children }) => {
     globalLoading,
     setGlobalLoading,
     globalError,
-    setGlobalError
+    setGlobalError,
+    theme,
+    setTheme
   }), [
     isSanaActive, 
     isMobile, 
@@ -100,7 +117,8 @@ export const UIProvider = ({ children }) => {
     addNotification, 
     removeNotification,
     globalLoading,
-    globalError
+    globalError,
+    theme
   ]);
 
   return (

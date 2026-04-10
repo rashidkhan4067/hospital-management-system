@@ -1,0 +1,69 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CreditCard, Package, ShieldCheck, Activity } from 'lucide-react';
+
+export default function IntelligenceGateway() {
+  const navigate = useNavigate();
+
+  const GATEWAY_NODES = [
+    { 
+      id: 'finance', 
+      label: 'Financials', 
+      value: 'PKR 1.2M', 
+      sub: 'Outstanding Dues', 
+      icon: CreditCard, 
+      color: 'text-primary', 
+      link: '/admin/finance' 
+    },
+    { 
+      id: 'inventory', 
+      label: 'Pharmacy', 
+      value: '14 Items', 
+      sub: 'Below Threshold', 
+      icon: Package, 
+      color: 'text-warning', 
+      link: '/admin/inventory' 
+    },
+    { 
+      id: 'staff', 
+      label: 'Staffing', 
+      value: '42 Active', 
+      sub: 'Physicians On-Call', 
+      icon: ShieldCheck, 
+      color: 'text-success', 
+      link: '/admin/staff' 
+    },
+    { 
+      id: 'ops', 
+      label: 'Ops Health', 
+      value: '99.4%', 
+      sub: 'System Latency', 
+      icon: Activity, 
+      color: 'text-error', 
+      link: '/admin/settings' 
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      {GATEWAY_NODES.map((node) => (
+        <div 
+          key={node.id}
+          onClick={() => navigate(node.link)}
+          className="flex items-center gap-4 p-4 bg-surface-bright border border-outline rounded-2xl hover:border-outline-variant hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all group h-full duration-300"
+        >
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-surface group-hover:scale-110 transition-transform ${node.color}`}>
+            <node.icon size={20} />
+          </div>
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-text-sub uppercase tracking-widest transition-colors">{node.label}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black text-text-main truncate transition-colors">{node.value}</span>
+              <span className="text-[9px] font-medium text-text-sub truncate opacity-0 group-hover:opacity-100 transition-opacity">{node.sub}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

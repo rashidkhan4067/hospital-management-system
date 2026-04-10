@@ -77,7 +77,7 @@ export const ADMIN_NAV = [
       { to: '/admin',           label: 'Dashboard',        icon: LayoutDashboard, end: true },
       { to: '/admin/analytics',  label: 'Intelligence',     icon: TrendingUp },
       { to: '/admin/appointments', label: 'Appointments',  icon: Calendar },
-      { to: '/admin/chats',     label: 'Messages',         icon: MessageSquare },
+      { to: '/admin/messaging',  label: 'Operational Chat', icon: MessageSquare },
     ]
   },
 
@@ -85,7 +85,7 @@ export const ADMIN_NAV = [
   {
     category: 'Clinical',
     items: [
-      { to: '/admin/patients',    label: 'Patients (EMR)',   icon: HeartPulse },
+      { to: '/admin/patients',    label: 'Patients (EMR)',   icon: HeartPulse, end: true },
       { to: '/admin/patients/add', label: 'Add Patient',    icon: UserPlus },
       { to: '/admin/doctors',     label: 'Doctors',          icon: Stethoscope },
       { to: '/admin/patients?view=queue',      label: 'OPD Queue',        icon: ClipboardList },

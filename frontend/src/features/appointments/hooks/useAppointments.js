@@ -1,88 +1,56 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AppointmentService } from '@/services'; // 🛰 Import from Domain Service Hub
+import appointmentService from '../api/appointmentService';
 
 /**
- * 📅 ADMIN APPOINTMENT HOOK
- * Enforces real-time clinical scheduling propagation for the administrative hub.
- * Powered by TanStack Query & Centralized Domain Services.
+ * 🛰️ useAppointments (The Clinical Telemetry Orchestrator)
+ * Manages the caching lifecycle and real-time synchronization of appointment data.
  */
-export const useAdminAppointments = (filters = {}) => {
-    return useQuery({
-        queryKey: ['appointments', 'admin', filters],
-        queryFn: async () => {
-            const [apptsRes, statsRes] = await Promise.all([
-                AppointmentService.getAll(filters),
-                AppointmentService.getStats()
-            ]);
-            return {
-                appointments: apptsRes.data.results || apptsRes.data,
-                stats: statsRes
-            };
-        },
-        keepPreviousData: true,
-    });
-};
-
-/**
- * 📋 OPD QUEUE HOOK
- * Specifically tuned for the real-time patient flow matrix.
- */
-export const useOPDQueue = () => {
-    return useQuery({
-        queryKey: ['appointments', 'queue'],
-        queryFn: () => AppointmentService.getQueue(),
-        refetchInterval: 60000,
-    });
-};
-
-/**
- * 🏥 APPOINTMENT OPERATIONS HOOK
- * Isolated logic for updating appointment state across the medical matrix.
- */
-export const useAppointmentOperations = (addNotification) => {
+export function useAppointments(filters = {}) {
     const queryClient = useQueryClient();
-    const [selectedAppointment, setSelectedAppointment] = useState(null);
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    const updateMutation = useMutation({
-        mutationFn: ({ id, status }) => AppointmentService.update(id, { status }),
+    // 📡 Primary Telemetry Subscription
+    const query = useQuery({
+        queryKey: ['appointments', filters],
+        queryFn: () => appointmentService.fetchAppointments(filters),
+        staleTime: 60 * 1000, // 1 minute fresh state
+        refetchInterval: 30 * 1000, // 30s pulse sync
+    });
+
+    // 🟢 Mutation: Create (with Cache Invalidation)
+    const createMutation = useMutation({
+        mutationFn: ({ data, key }) => appointmentService.createAppointment(data, key),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['appointments'] });
-            if (addNotification) {
-                addNotification('Pulse Synchronized', 'Medical node updated across clinical matrix.', 'success');
-            }
-        },
-        onError: () => {
-            if (addNotification) {
-                addNotification('Matrix Error', 'Failed to update patient node.', 'error');
-            }
+            queryClient.invalidateQueries({ queryKey: ['clinical-telemetry'] }); // Sync dashboard
         }
     });
 
-    const handleStatusUpdate = (appt, status) => {
-        updateMutation.mutate({ id: appt.id, status });
-    };
+    // 🟡 Mutation: Patch (Update)
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }) => appointmentService.reschedule(id, data.date, data.time),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        }
+    });
 
-    const handleViewDetail = (appt) => {
-        setSelectedAppointment(appt);
-        setIsDrawerOpen(true);
-    };
-
-    const handleCloseDrawer = () => {
-        setIsDrawerOpen(false);
-        setSelectedAppointment(null);
-    };
+    // 🔴 Mutation: Finalize/Cancel
+    const statusMutation = useMutation({
+        mutationFn: ({ id, action, payload }) => {
+            if (action === 'cancel') return appointmentService.cancel(id, payload);
+            if (action === 'complete') return appointmentService.complete(id, payload);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['clinical-telemetry'] });
+        }
+    });
 
     return {
-        selectedAppointment,
-        isDrawerOpen,
-        handleStatusUpdate,
-        handleViewDetail,
-        handleCloseDrawer,
-        isUpdating: updateMutation.isLoading
+        ...query,
+        createAppointment: createMutation.mutateAsync,
+        updateAppointment: updateMutation.mutateAsync,
+        updateStatus: statusMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending
     };
-};
-
-export const useAppointments = useAdminAppointments;
-export default useAdminAppointments;
+}

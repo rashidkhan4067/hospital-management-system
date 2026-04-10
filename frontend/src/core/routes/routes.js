@@ -10,18 +10,20 @@ const LoginPage           = lazy(() => import('@/features/auth/pages/LoginPage')
 const RegisterPage        = lazy(() => import('@/features/auth/pages/RegisterPage'));
 const ForgotPasswordPage  = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 const ResetPasswordPage   = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
+const VerifyMagicLinkPage = lazy(() => import('@/features/auth/pages/VerifyMagicLinkPage'));
 
 // ─── CORE NODE ───
-const AdminDashboardPage  = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
-const AnalyticsPage       = lazy(() => import('@/features/analytics/pages/AnalyticsPage'));
+const AdminDashboardPage  = lazy(() => import('@/features/core_management/dashboard/pages/DashboardPage'));
+const AnalyticsPage       = lazy(() => import('@/features/core_management/analytics/pages/AnalyticsPage'));
+const MessagingPage       = lazy(() => import('@/features/core_management/messaging/pages/MessagingPage'));
 
 // ─── CLINICAL NODE ───
-const PatientsPage      = lazy(() => import('@/features/patients/pages/PatientsPage'));
-const AppointmentsPage  = lazy(() => import('@/features/appointments/pages/AppointmentsPage'));
-const DoctorsPage       = lazy(() => import('@/features/doctors/pages/DoctorsPage'));
+const PatientsPage      = lazy(() => import('@/features/clinical/patients/pages/PatientsPage'));
+const AppointmentsPage  = lazy(() => import('@/features/core_management/appointments/pages/AppointmentsPage'));
+const DoctorsPage       = lazy(() => import('@/features/clinical/doctors/pages/DoctorsPage'));
 
 // ─── MANAGEMENT NODE ───
-const DepartmentsPage = lazy(() => import('@/features/management/pages/Departments'));
+const DepartmentsPage = lazy(() => import('@/features/system/management/pages/Departments'));
 
 export const APP_ROUTES = [
     {
@@ -30,6 +32,13 @@ export const APP_ROUTES = [
         requireAuth: true,
         requireAdmin: true,
         title: 'Global Hub'
+    },
+    {
+        path: 'messaging',
+        element: MessagingPage,
+        requireAuth: true,
+        requireAdmin: true,
+        title: 'Operational Chat'
     },
     {
         path: 'departments',
@@ -71,5 +80,8 @@ export const APP_ROUTES = [
 export const AUTH_ROUTES = [
     { path: '/login', element: LoginPage },
     { path: '/register', element: RegisterPage },
-    { path: '/forgot-password', element: ForgotPasswordPage }
+    { path: '/forgot-password', element: ForgotPasswordPage },
+    { path: '/magic-link/verify', element: VerifyMagicLinkPage }
 ];
+
+

@@ -1,13 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Shield, CheckCircle2, ChevronRight, Activity } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { register as registerService } from '@/features/auth/api/authService';
-import { useForm } from '@/hooks';
-import { Input, Button, Alert } from '@/components/primitives';
+import { useForm } from '@/core/hooks';
+import { Input, Button } from '@/components/primitives';
 
 /**
- * 📝 RegisterForm - Clinical Admission Hub
- * Redesigned for High-Fidelity UI matching Landing Page.
+ * 📝 RegisterForm - Google 'Identity Enrollment' Port
+ * Implements the Material 3 low-friction authentication experience.
  */
 export default function RegisterForm({ setError: setParentError }) {
   const { formData, error, setError, loading, setLoading, handleChange } = useForm({ 
@@ -30,7 +29,7 @@ export default function RegisterForm({ setError: setParentError }) {
     handleLocalError('');
     
     if (formData.password !== formData.confirm_password) {
-      handleLocalError('Primary Key Mismatch: Passwords do not match');
+      handleLocalError('Passwords do not match');
       return;
     }
 
@@ -41,103 +40,101 @@ export default function RegisterForm({ setError: setParentError }) {
     } catch (err) {
       console.error('Registration error:', err);
       const errorData = err.response?.data;
-      if (errorData) {
-        const firstError = Object.values(errorData)[0];
-        handleLocalError(Array.isArray(firstError) ? firstError[0] : (typeof firstError === 'string' ? firstError : 'Admission Protocol Failed'));
-      } else {
-        handleLocalError('Network Rejection: Registration failed');
+      let errorMsg = 'Registration failed. Try again.';
+      if (typeof errorData === 'object') {
+        errorMsg = errorData.detail || Object.values(errorData)[0] || errorMsg;
       }
+      handleLocalError(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-12">
-      <form onSubmit={handleSubmit} className="space-y-10 group/form">
-        <div className="space-y-8">
-            <div className="grid grid-cols-2 gap-6">
-                <Input 
-                    label="First Entry"
-                    type="text" 
-                    name="first_name" 
-                    placeholder="Ahmed" 
-                    value={formData.first_name} 
-                    onChange={handleChange} 
-                    icon={User}
-                    required 
-                />
-                <Input 
-                    label="Last Entry"
-                    type="text" 
-                    name="last_name" 
-                    placeholder="Khan" 
-                    value={formData.last_name} 
-                    onChange={handleChange} 
-                    icon={User}
-                    required 
-                />
-            </div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full">
+      <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                  label="First name"
+                  type="text" 
+                  name="first_name" 
+                  autoComplete="given-name"
+                  value={formData.first_name} 
+                  onChange={handleChange} 
+                  required 
+              />
+              <Input 
+                  label="Last name"
+                  type="text" 
+                  name="last_name" 
+                  autoComplete="family-name"
+                  value={formData.last_name} 
+                  onChange={handleChange} 
+                  required 
+              />
+          </div>
 
+          <div className="space-y-1">
             <Input 
-                id="register-email"
-                label="Clinical ID (Email)"
+                label="Username or Email"
                 type="email" 
                 name="email" 
-                placeholder="patient@clinical.com" 
+                autoComplete="email"
                 value={formData.email} 
                 onChange={handleChange} 
-                icon={Mail}
                 required 
             />
-            
-            <div className="grid grid-cols-2 gap-6">
+            <p className="text-[12px] text-[#5F6368] leading-normal px-1">
+              You'll use this email to sign in to your Al Shifa account
+            </p>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input 
-                    label="Secure Key"
+                    label="Password"
                     type="password" 
                     name="password" 
-                    placeholder="••••••••" 
+                    autoComplete="new-password"
                     value={formData.password} 
                     onChange={handleChange} 
-                    icon={Lock}
                     required 
                 />
                 <Input 
-                    label="Verify Key"
+                    label="Confirm"
                     type="password" 
                     name="confirm_password" 
-                    placeholder="••••••••" 
+                    autoComplete="new-password"
                     value={formData.confirm_password} 
                     onChange={handleChange} 
-                    icon={Shield}
                     required 
                 />
             </div>
-        </div>
-
-        <Button 
-          type="submit" 
-          disabled={loading}
-          className="w-full h-20 rounded-[32px] bg-[#007aff] text-white font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 group/btn"
-        >
-          {loading ? (
-             <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.4s]"></div>
-             </div>
-          ) : (
-            <>
-              Confirm Admission <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-            </>
-          )}
-        </Button>
-      </form>
-
-      <div className="relative">
-         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-50"></div></div>
-         <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.6em] text-[#86868b] bg-white px-8 mx-auto w-fit">Clinical Federation sign-up</div>
+            <p className="text-[12px] text-[#5F6368] leading-normal px-1">
+              Use 8 or more characters with a mix of letters, numbers & symbols
+            </p>
+          </div>
       </div>
-    </div>
+
+
+      <div className="flex items-center justify-between mt-12 w-full">
+          <Link 
+            to="/login" 
+            className="text-sm font-semibold text-[#1a73e8] hover:bg-blue-50/50 px-3 py-2 rounded transition-colors"
+          >
+            Sign in instead
+          </Link>
+
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="px-8 h-10 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] shadow-none min-w-[100px]"
+          >
+            {loading ? "Creating..." : "Next"}
+          </Button>
+      </div>
+
+    </form>
   );
 }
+

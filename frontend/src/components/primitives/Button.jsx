@@ -17,11 +17,11 @@ export default function Button({
   const baseStyles = "inline-flex items-center justify-center gap-3 font-bold transition-all active:scale-[0.97] rounded-full whitespace-nowrap";
   
   const variants = {
-    filled: "bg-[#1a73e8] text-white hover:bg-[#1557b0] hover:shadow-md",
-    tonal: "bg-[#E8F0FE] text-[#1967D2] hover:bg-[#D2E3FC]",
-    outlined: "bg-white border border-[#dadce0] text-[#3c4043] hover:bg-[#F8F9FA]",
-    text: "bg-transparent text-[#1a73e8] hover:bg-[#1a73e8]/5",
-    danger: "bg-red-50 text-red-600 hover:bg-red-100"
+    filled: "bg-primary text-surface-bright hover:shadow-lg transition-all",
+    tonal: "bg-primary/15 text-primary hover:bg-primary/25",
+    outlined: "bg-surface-bright border border-outline text-text-main hover:bg-surface hover:border-outline-variant",
+    text: "bg-transparent text-primary hover:bg-primary/5",
+    danger: "bg-error/10 text-error hover:bg-error/20"
   };
 
   const sizes = {

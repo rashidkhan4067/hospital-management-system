@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/core/auth/AuthContext';
+import { useAuthStore } from '@/core/store/useAuthStore';
 import Loading from '@/components/composed/Loading';
 
 /**
@@ -8,7 +8,9 @@ import Loading from '@/components/composed/Loading';
  * Enforces atomic role-based authentication and clinical session validation.
  */
 const ProtectedRoute = ({ requireAdmin = false, requireDoctor = false }) => {
-  const { isAuthenticated, role, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuthStore();
+  const role = user?.role;
+
   
   // 🛰 Synchronizing Authentication Node
   if (loading) return <Loading />;

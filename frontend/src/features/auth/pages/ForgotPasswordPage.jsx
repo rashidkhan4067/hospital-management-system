@@ -1,159 +1,129 @@
 import React, { useState } from 'react';
-import { Mail, ArrowLeft, Send, Sparkles, CheckCircle, Heart, ShieldCheck, Activity, ArrowRight, LayoutGrid } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/core/auth/AuthContext';
-import { Input, Button, Badge, Alert } from '@/components/primitives';
-import api from '@/services/apiClient';
+import { Link } from 'react-router-dom';
+import { Input, Button } from '@/components/primitives';
+import api from '@/core/api/services/apiClient';
 
 /**
- * 🔑 ForgotPasswordPage - Sleek Horizontal Split Hub (V6.1)
- * Features: Mobile-optimized (Hide sidebar), Dynamic Home/Dashboard routing.
+ * 🔑 ForgotPasswordPage - Google 'Account Recovery' Archetype (M3 Content Node)
  */
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isSent, setIsSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { isAuthenticated } = useAuth();
+  const [error, setError] = useState(null);
+
+  const brandColors = {
+    blue: "#4285F4",
+    red: "#EA4335",
+    yellow: "#FBBC05",
+    green: "#34A853"
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      setError('Credentials Required');
+      setError('Enter an email address');
       return;
     }
     setLoading(true);
-    setError('');
+    setError(null);
     
     try {
       await api.post('auth/password/reset/', { email });
       setIsSent(true);
     } catch (err) {
-      setError(err.response?.data?.detail || err.response?.data?.error || 'Recovery Protocol Failed');
+      setError(err.response?.data?.detail || err.response?.data?.error || 'Account recovery failed. Try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 lg:p-10 bg-[#f8f9fc] selection:bg-[#007aff] selection:text-white relative">
-      
-      {/* 🚀 Floating Command Links (Top Right) */}
-      <div className="absolute top-8 right-8 z-[100] flex items-center gap-4">
-          <Link to="/" className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-[#1d1d1f] hover:bg-slate-50 transition-all shadow-sm">
-             <Heart size={18} />
-          </Link>
-          {isAuthenticated && (
-            <Link to="/dashboard" className="h-10 px-6 bg-[#1d1d1f] text-white rounded-xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
-               Command Hub <LayoutGrid size={14} />
-            </Link>
-          )}
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center w-full"
+    >
+      {/* 🏛️ Google-Style Brand Header */}
+      <div className="flex flex-col items-center mb-8">
+        <div className="flex items-center mb-4 h-10">
+          <span className="text-3xl font-medium tracking-tight text-[#202124]">
+            <span style={{ color: brandColors.blue }}>S</span>
+            <span style={{ color: brandColors.red }}>h</span>
+            <span style={{ color: brandColors.yellow }}>i</span>
+            <span style={{ color: brandColors.blue }}>f</span>
+            <span style={{ color: brandColors.green }}>a</span>
+            <span style={{ color: brandColors.red }}>a</span>
+          </span>
+        </div>
+        
+        <h1 className="text-2xl font-normal text-[#202124] tracking-normal text-center mb-2">
+          Account recovery
+        </h1>
+        <p className="text-base text-[#202124] font-normal text-center mb-10">
+          Confirm the email associated with your account
+        </p>
       </div>
 
-      {/* 🏛️ Letterbox Split Monolith */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[1150px] lg:h-[650px] bg-white rounded-[32px] lg:rounded-[40px] shadow-[0_80px_160px_-40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row border border-slate-50/50"
-      >
-          {/* 🏔️ Sidebar - Clinical Identity (Hidden on Mobile) */}
-          <div className="hidden lg:flex lg:w-[40%] flex-col bg-[#007aff] text-white overflow-hidden">
-              <div className="h-[45%] lg:h-[50%] w-full relative overflow-hidden group">
-                  <img 
-                    src="/assets/images/auth-sidebar.png" 
-                    alt="Clinical Recovery"
-                    className="w-full h-full object-cover grayscale-[10%] contrast-[1.05] group-hover:scale-110 transition-transform duration-[3s]"
-                  />
-                  <div className="absolute inset-0 bg-blue-600/10 mix-blend-overlay"></div>
-              </div>
-
-              <div className="flex-1 p-8 lg:p-12 flex flex-col justify-center relative">
-                   <div className="flex items-center gap-3 mb-6 lg:mb-10">
-                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-xl">
-                         <Heart size={16} fill="white" className="text-white" />
-                      </div>
-                      <span className="text-[10px] font-black tracking-[0.4em] uppercase">Al Shifaa</span>
-                   </div>
-
-                   <div className="space-y-4 relative z-10">
-                      <h2 className="text-3xl lg:text-[2.6rem] font-black tracking-tighter leading-[0.9] italic uppercase">
-                         Account <br /> <span className="opacity-40">Recovery.</span>
-                      </h2>
-                      <div className="w-12 h-1 bg-white/20"></div>
-                      <p className="text-xs font-medium leading-relaxed opacity-70 max-w-[200px]">
-                         Establish identity verification to reset your clinical master key.
-                      </p>
-                   </div>
-              </div>
+      {/* 📟 Form Port */}
+      <div className="w-full">
+        {error && (
+          <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center text-[10px] text-white">!</div>
+              <p className="text-sm font-medium text-red-600">{error}</p>
           </div>
+        )}
 
-          {/* 📄 Auth Section */}
-          <div className="w-full lg:w-[60%] bg-white p-8 lg:p-14 pt-24 lg:pt-24 pb-16 lg:pb-16 flex flex-col overflow-y-auto no-scrollbar">
-              <div className="w-full max-w-[420px] mx-auto space-y-10">
-                  <header className="space-y-3">
-                      <div className="flex items-center gap-2">
-                         <div className="p-1 bg-[#007aff]/5 text-[#007aff] rounded-lg">
-                            <ShieldCheck size={16} />
-                         </div>
-                         <span className="text-[8px] font-black uppercase tracking-[0.5em] text-[#007aff]">Security Hub</span>
-                      </div>
-                  </header>
-
-                  {error && (
-                    <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-in fade-in duration-500">
-                        <Activity size={14} className="text-red-500" />
-                        <p className="text-[9px] font-black uppercase tracking-widest text-red-600 leading-none">{error}</p>
-                    </div>
-                  )}
-
-                  {isSent ? (
-                    <div className="space-y-8 animate-in zoom-in-95 duration-500 text-center lg:text-left">
-                        <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto lg:mx-0 shadow-sm">
-                           <CheckCircle size={40} strokeWidth={1} />
-                        </div>
-                        <div className="space-y-4">
-                           <h3 className="text-3xl font-black text-[#1d1d1f] tracking-tighter italic uppercase text-center lg:text-left">Check Inbox.</h3>
-                           <p className="text-sm font-medium text-[#86868b] leading-relaxed text-center lg:text-left">
-                              Recovery instructions dispatched to:<br />
-                              <strong className="text-[#007aff]">{email}</strong>
-                           </p>
-                        </div>
-                        <Button onClick={() => setIsSent(false)} className="w-full h-16 rounded-2xl border border-slate-100 text-[10px] font-black uppercase tracking-widest text-[#1d1d1f] transition-all hover:bg-slate-50">
-                           Attempt Respatch
-                        </Button>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleSubmit} className="space-y-10">
-                        <Input 
-                            label="Verification Destination (Email)"
-                            type="email" 
-                            placeholder="unit@clinical.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            icon={Mail}
-                            required
-                        />
-
-                        <Button 
-                          type="submit" 
-                          loading={loading} 
-                          className="w-full h-20 rounded-[32px] bg-[#1d1d1f] text-white font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-4 group/btn"
-                        >
-                           Dispatch Link <Send size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                        </Button>
-                    </form>
-                  )}
-
-                  <footer className="pt-8 border-t border-slate-50">
-                     <Link to="/login" className="text-[9px] font-black uppercase tracking-[0.4em] text-[#86868b] flex items-center justify-between hover:text-[#007aff] transition-colors group">
-                        Back to Identity Hub <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                     </Link>
-                  </footer>
-              </div>
+        {isSent ? (
+          <div className="space-y-6 text-center">
+            <p className="text-sm text-[#3C4043] leading-relaxed">
+              A password reset link has been dispatched to <br />
+              <span className="font-semibold text-[#202124]">{email}</span>
+            </p>
+            <div className="flex justify-center mt-12">
+                <Button 
+                  onClick={() => setIsSent(false)} 
+                  className="px-8 h-10 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] shadow-none"
+                >
+                  Try another email
+                </Button>
+            </div>
           </div>
-      </motion.div>
-    </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full">
+            <div className="flex flex-col gap-6">
+              <Input 
+                label="Email or phone"
+                type="email" 
+                placeholder="unit@clinical.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                fullWidth
+                autoFocus
+              />
+              <p className="text-sm text-[#5F6368] leading-relaxed">
+                Shifaa will send a verification link to your email for security.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between mt-12 w-full">
+              <Link to="/login" className="text-sm font-semibold text-[#1a73e8] hover:bg-blue-50/50 px-3 py-2 rounded transition-colors">
+                Sign in
+              </Link>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="px-8 h-10 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] shadow-none min-w-[100px]"
+              >
+                {loading ? "Processing..." : "Next"}
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
+    </motion.div>
   );
 }
+

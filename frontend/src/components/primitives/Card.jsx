@@ -15,14 +15,14 @@ export default function Card({
   const getVariantStyles = () => {
     switch (variant) {
       case 'tonal':
-        return 'bg-[#E8F0FE] border-transparent';
+        return 'bg-primary/10 border-transparent';
       case 'outlined':
-        return 'bg-white border-[#DADCE0]';
+        return 'bg-surface-bright border-outline';
       case 'elevator':
-        return 'bg-white border-transparent shadow-xl shadow-slate-200/50';
+        return 'bg-surface-bright border-transparent shadow-xl shadow-slate-900/10 dark:shadow-black/40';
       case 'flat':
       default:
-        return 'bg-white border-[#DADCE0]';
+        return 'bg-surface-bright border-outline';
     }
   };
 

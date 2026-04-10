@@ -1,4 +1,4 @@
-import api from '@/services/apiClient';
+import api from '@/core/api/services/apiClient';
 
 export const login = async (credentials) => {
   const response = await api.post('auth/login/', credentials);
@@ -21,9 +21,6 @@ export const logout = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
-  
-  // Optional: If you have a backend endpoint to invalidate tokens
-  // return api.post('/auth/logout/');
 };
 
 export const refreshToken = async () => {
@@ -36,3 +33,41 @@ export const refreshToken = async () => {
   }
   return response.data;
 };
+
+/**
+ * 🛰️ Google Authentication Endpoint
+ * Sends the access token from Google to the backend.
+ */
+export const googleLogin = async (token) => {
+  const response = await api.post('auth/google/', { access_token: token });
+  if (response.data.access) {
+    localStorage.setItem('accessToken', response.data.access);
+    localStorage.setItem('refreshToken', response.data.refresh);
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+  }
+  return response.data;
+};
+
+/**
+ * 🪄 Magic Link Authentication Endpoints
+ */
+export const sendMagicLink = async (email) => {
+  const response = await api.post('auth/magic-link/send/', { email });
+  return response.data;
+};
+
+export const verifyMagicLink = async (token) => {
+  const response = await api.post('auth/magic-link/verify/', { token });
+  if (response.data.access) {
+    localStorage.setItem('accessToken', response.data.access);
+    localStorage.setItem('refreshToken', response.data.refresh);
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+  }
+  return response.data;
+};
+
+

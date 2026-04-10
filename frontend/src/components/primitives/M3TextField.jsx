@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function M3TextField({ label, placeholder, type = "text", helperText, ...props }) {
   const [isFocused, setIsFocused] = useState(false);
   const [hasValue, setHasValue] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // 🏥 M3 Rule: Certain types always have internal browser placeholders
   const isDateType = ['date', 'time', 'datetime-local', 'month'].includes(type);
@@ -13,15 +15,20 @@ export default function M3TextField({ label, placeholder, type = "text", helperT
     if (props.onChange) props.onChange(e);
   };
 
+  const { fullWidth, ...inputProps } = props;
+
+  // Determine dynamic type for password visibility toggle
+  const inputType = type === 'password' && showPassword ? 'text' : type;
+
   return (
-    <div className="flex flex-col gap-1.5 w-full group">
+    <div className={`flex flex-col gap-1.5 group ${fullWidth ? 'w-full' : 'w-auto'}`}>
       <div className="relative pt-2">
         {/* Floating Label Logic (M3 Cutout Effect) */}
         <label
           className={`absolute left-3 transition-all duration-200 pointer-events-none z-20 px-2
             ${isLabelShrunk 
-              ? `-top-2 text-xs bg-white font-medium ${isFocused ? 'text-[#1A73E8]' : 'text-[#79747E]'}` 
-              : 'top-5 text-[16px] text-[#79747E]'}
+              ? `-top-2 text-xs bg-surface-bright font-medium transition-colors ${isFocused ? 'text-primary' : 'text-text-sub'}` 
+              : `top-5 text-[16px] text-text-sub transition-colors`}
           `}
         >
           {label}
@@ -29,7 +36,7 @@ export default function M3TextField({ label, placeholder, type = "text", helperT
 
         {/* Input Field */}
         <input
-          type={type}
+          type={inputType}
           onFocus={() => setIsFocused(true)}
           onBlur={(e) => {
             setIsFocused(false);
@@ -37,20 +44,31 @@ export default function M3TextField({ label, placeholder, type = "text", helperT
           }}
           onChange={handleInputChange}
           placeholder={isFocused ? placeholder : ''}
-          className={`w-full px-4 py-3.5 bg-white border rounded-xl text-slate-900 outline-none transition-all text-[16px]
+          className={`w-full px-4 py-3.5 bg-surface-bright border rounded-xl text-text-main outline-none transition-all text-[16px]
             ${isFocused 
-              ? 'border-[#1A73E8] border-2 px-[15px] py-[13.5px]' 
-              : 'border-[#79747E] border-[1px]'}
+              ? 'border-primary border-2 px-[15px] py-[13.5px]' 
+              : 'border-outline border-[1px]'}
             ${isDateType ? 'cursor-text min-h-[56px]' : 'min-h-[56px]'}
+            ${type === 'password' ? 'pr-12' : ''}
           `}
-          {...props}
+          {...inputProps}
         />
+
+        {/* 👁️ Password Visibility Toggle */}
+        {type === 'password' && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 mt-1 p-2 text-text-sub hover:bg-surface rounded-full transition-colors z-30"
+            tabIndex="-1"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        )}
       </div>
 
-
-
       {helperText && (
-        <span className="text-[12px] text-[#79747E] ml-4 font-medium tracking-wide">
+        <span className="text-[12px] text-text-sub ml-4 font-medium tracking-wide transition-colors">
           {helperText}
         </span>
       )}

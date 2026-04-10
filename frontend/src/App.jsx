@@ -1,18 +1,20 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { GoogleOAuthProvider } from '@react-oauth/google';
+
 import { LazyMotion, domMax } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // ─── Core ────────────────────────────────────────────────────────────────────
-import { UIProvider } from '@/core/ui/UIContext';
-import { useAuth } from '@/core/auth/AuthContext';
+import { useAuthStore } from '@/core/store/useAuthStore';
+import { useUIStore } from '@/core/store/useUIStore';
 import { APP_ROUTES, AUTH_ROUTES } from '@/core/routes/routes';
 
+
 // ─── Shared Layout ────────────────────────────────────────────────────────────
-import { ProtectedRoute, PublicLayout, AppLayout, AuthLayout } from '@/layouts';
+import { ProtectedRoute, AppLayout, AuthLayout } from '@/layouts';
+
 import Loading from '@/components/composed/Loading';
-import TeleSystem from '@/services/TeleSystem';
+import TeleSystem from '@/core/api/services/TeleSystem';
 
 // ─── Query Config ───
 const queryClient = new QueryClient({
@@ -28,61 +30,62 @@ const queryClient = new QueryClient({
 
 // ─── Route Guard ───
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, user } = useAuthStore();
+  const role = user?.role;
   if (isAuthenticated) {
     return role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />;
   }
   return children;
 };
 
+
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <QueryClientProvider client={queryClient}>
-        <UIProvider>
-          <TeleSystem>
-            <LazyMotion features={domMax} strict>
-              <Suspense fallback={<Loading />}>
-                <Routes>
+    <QueryClientProvider client={queryClient}>
+      <TeleSystem>
+        <LazyMotion features={domMax} strict>
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              
+              {/* 🔐 AUTH CLUSTER */}
+              <Route element={<AuthLayout />}>
+                {AUTH_ROUTES.map(route => (
+                  <Route key={route.path} path={route.path} element={<PublicRoute><route.element /></PublicRoute>} />
+                ))}
+              </Route>
+
+              {/* 🏥 PROTECTED CLUSTER */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
                   
-                  {/* 🔐 AUTH CLUSTER */}
-                  <Route element={<AuthLayout />}>
-                    {AUTH_ROUTES.map(route => (
-                      <Route key={route.path} path={route.path} element={<PublicRoute><route.element /></PublicRoute>} />
-                    ))}
+                  {/* 🏢 GLOBAL ADMIN CLUSTER (Surgical Nesting) */}
+                  <Route path="/admin">
+                     <Route element={<ProtectedRoute requireAdmin={true} />}>
+                        {APP_ROUTES.map(route => (
+                          <Route 
+                            key={route.path || 'index'} 
+                            index={route.path === ''}
+                            path={route.path !== '' ? route.path : undefined} 
+                            element={<route.element />} 
+                          />
+                        ))}
+                     </Route>
                   </Route>
 
-                  {/* 🏥 PROTECTED CLUSTER */}
-                  <Route element={<ProtectedRoute />}>
-                    <Route element={<AppLayout />}>
-                      
-                      {/* 🏢 GLOBAL ADMIN CLUSTER (Surgical Nesting) */}
-                      <Route path="/admin">
-                         <Route element={<ProtectedRoute requireAdmin={true} />}>
-                            {APP_ROUTES.map(route => (
-                              <Route 
-                                key={route.path || 'index'} 
-                                index={route.path === ''}
-                                path={route.path !== '' ? route.path : undefined} 
-                                element={<route.element />} 
-                              />
-                            ))}
-                         </Route>
-                      </Route>
+                  {/* 📟 OPERATIONAL DASHBOARD (Fallback/General) */}
+                  <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+                </Route>
+              </Route>
 
-                      {/* 📟 OPERATIONAL DASHBOARD (Fallback/General) */}
-                      <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
-                    </Route>
-                  </Route>
-
-                  <Route path="*" element={<Navigate to="/login" replace />} />
-                </Routes>
-              </Suspense>
-            </LazyMotion>
-          </TeleSystem>
-        </UIProvider>
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Suspense>
+        </LazyMotion>
+      </TeleSystem>
+    </QueryClientProvider>
   );
 }
+
+
+
 

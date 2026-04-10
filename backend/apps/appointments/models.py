@@ -120,14 +120,26 @@ class Appointment(models.Model):
         help_text=_("Appointment end time (HH:MM). Set automatically from slot duration."),
     )
 
-    # ── Status ────────────────────────────────────────────────────────────────
+    class PaymentStatus(models.TextChoices):
+        UNPAID         = "unpaid",         _("Unpaid")
+        PARTIALLY_PAID = "partially_paid", _("Partially Paid")
+        FULLY_PAID     = "fully_paid",     _("Fully Paid")
+        REFUNDED       = "refunded",       _("Refunded")
 
     status = models.CharField(
         _("status"),
         max_length=10,
         choices=Status.choices,
-        default=Status.PENDING,         # Newly booked appointments start as PENDING
+        default=Status.PENDING,
         help_text=_("Current status of the appointment."),
+    )
+
+    payment_status = models.CharField(
+        _("payment status"),
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.UNPAID,
+        help_text=_("Transaction status of this appointment."),
     )
 
     # ── Content Fields ────────────────────────────────────────────────────────
