@@ -10,7 +10,7 @@ import AdminSidebar from './sidebar/AdminSidebar';
  */
 const AppLayout = memo(() => {
   return (
-    <div className="flex w-full h-screen bg-[#FEF7FF] font-sans overflow-hidden">
+    <div className="flex w-full h-screen shifaa-portal-bg font-sans overflow-hidden">
       
       {/* 🧭 Structural Navigation Layer (MD3 Rail/Drawer) */}
       <AdminSidebar />

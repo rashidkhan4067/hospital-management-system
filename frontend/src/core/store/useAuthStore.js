@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
+import api, { setOnTokenRefreshed } from '@/core/api/services/apiClient';
+import { 
+  setAuthSession, 
+  clearAuthSession, 
+  getAccessToken,
+  getRefreshToken,
+  getStoredUser
+} from '@/core/auth/authUtils';
 
 /**
  * 🔐 Auth Command Hub (Zustand Protocol)
@@ -9,9 +16,10 @@ import axios from 'axios';
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      user: null,
-      token: localStorage.getItem('shifaa_key'),
-      isAuthenticated: !!localStorage.getItem('shifaa_key'),
+      user: getStoredUser(),
+      token: getAccessToken(),
+      refreshToken: getRefreshToken(),
+      isAuthenticated: !!getAccessToken(),
       loading: false,
       error: null,
 
@@ -19,40 +27,51 @@ export const useAuthStore = create(
       login: async (credentials) => {
         set({ loading: true, error: null });
         try {
-          // Placeholder for real backend clinical sync
-          // const res = await axios.post('/api/v1/auth/login', credentials);
-          // const { user, access } = res.data;
+          const response = await api.post('auth/login/', credentials);
+          const { user, access, refresh } = response.data;
           
-          // Simulation Node
-          const user = { id: 1, name: 'Director Rashid', role: 'admin', initials: 'DR' };
-          const access = 'shifaa-prod-telemetry-token-' + Date.now();
-
-          set({ user, token: access, isAuthenticated: true, loading: false });
-          localStorage.setItem('shifaa_key', access);
+          set({ user, token: access, refreshToken: refresh, isAuthenticated: true, loading: false });
+          setAuthSession(access, refresh || '', user);
           return { success: true };
         } catch (err) {
-          const errMsg = err.response?.data?.detail || 'Handshake Terminal Abort';
+          const errMsg = err.response?.data?.detail || 'Identity Handshake Aborted';
           set({ error: errMsg, loading: false });
           return { success: false, error: errMsg };
         }
       },
 
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false, error: null });
-        localStorage.removeItem('shifaa_key');
-        // Optional: window.location.href = '/login';
+        set({ user: null, token: null, refreshToken: null, isAuthenticated: false, error: null });
+        clearAuthSession();
       },
 
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      setToken: (token) => {
-          set({ token, isAuthenticated: !!token });
-          if(token) localStorage.setItem('shifaa_key', token);
-          else localStorage.removeItem('shifaa_key');
+      setToken: (token, refreshToken) => {
+          set({ token, refreshToken, isAuthenticated: !!token });
+          if(token) {
+              setAuthSession(token, refreshToken || '', get().user);
+          } else {
+              clearAuthSession();
+          }
       }
     }),
     {
       name: 'shifaa-auth-storage',
-      partialize: (state) => ({ token: state.token, user: state.user, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({ 
+        token: state.token, 
+        refreshToken: state.refreshToken, 
+        user: state.user, 
+        isAuthenticated: state.isAuthenticated 
+      }),
     }
   )
 );
+
+// 🛡️ Sync logic to catch refreshes from the API interceptor
+setOnTokenRefreshed((access, refresh) => {
+  if (access) {
+    useAuthStore.getState().setToken(access, refresh);
+  } else {
+    useAuthStore.getState().logout();
+  }
+});

@@ -480,6 +480,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 # 21. ALLAUTH SETTINGS
 # ─────────────────────────────────────────────────────────────────────────────
 # Allauth Core Identity Settings
+SOCIALACCOUNT_ADAPTER = "apps.accounts.adapters.CustomSocialAccountAdapter"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
 # ✅ Modern Allauth Identity Protocols

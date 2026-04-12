@@ -103,6 +103,7 @@ class VerifyMagicLinkView(views.APIView):
                     "email": user.email,
                     "full_name": user.full_name,
                     "role": user.role,
+                    "onboarding_completed": user.onboarding_completed,
                 }
             })
         except SignatureExpired:

@@ -252,6 +252,8 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "phone_number",
             "role",
+            "auth_provider",
+            "onboarding_completed",
             "is_active",
             "created_at",
         ]
@@ -264,6 +266,29 @@ class UserSerializer(serializers.ModelSerializer):
         Must be named get_<field_name> — DRF calls this automatically.
         """
         return obj.full_name
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """
+    Handles PATCH /api/v1/auth/me/ for self-service profile completion.
+    """
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "phone_number", "role"]
+
+    def validate_role(self, value):
+        """
+        🛡️ Integrity Check:
+        1. Prevent users from promoted to Admin.
+        2. Prevent existing Admins from accidental demotion via onboarding.
+        """
+        current_user = self.instance
+        if current_user and current_user.role == User.Role.ADMIN:
+            return User.Role.ADMIN # Force role to stay Admin
+            
+        if value == User.Role.ADMIN:
+            raise serializers.ValidationError("Unauthorized identity elevation: Admin role cannot be self-provisioned.")
+        return value
 
 
 # ─────────────────────────────────────────────────────────────────────────────

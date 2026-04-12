@@ -183,8 +183,8 @@ export const NAV_SECTIONS = [
       { label: 'Patients (EMR)', path: '/admin/patients', icon: UserIcon },
       { label: 'Doctors', path: '/admin/doctors', icon: DoctorIcon },
       { label: 'OPD Queue', path: '/admin/opd-queue', icon: QueueIcon },
-      { label: 'Ward / Beds', path: '/admin/wards', icon: BedIcon },
-      { label: 'Admissions', path: '/admin/admissions', icon: AdmissionIcon },
+      { label: 'Ward / Beds', path: '/admin/clinical/wards', icon: BedIcon },
+      { label: 'Admissions', path: '/admin/clinical/admissions', icon: AdmissionIcon },
       { label: 'Lab', path: '/admin/lab', icon: LabIcon },
       { label: 'Pharmacy', path: '/admin/pharmacy', icon: PharmacyIcon },
     ]
@@ -193,7 +193,7 @@ export const NAV_SECTIONS = [
     id: 'financial',
     label: 'Financials',
     items: [
-      { label: 'Billing', path: '/admin/billing', icon: BillingIcon },
+      { label: 'Billing Index', path: '/admin/financials', icon: BillingIcon },
       { label: 'Expenses', path: '/admin/expenses', icon: MoneyIcon },
       { label: 'Financial Reports', path: '/admin/reports/financial', icon: ReportIcon },
     ]

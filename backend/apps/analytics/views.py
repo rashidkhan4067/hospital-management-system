@@ -32,7 +32,7 @@ class GlobalIntelligencePulse(views.APIView):
 
     def get(self, request):
         try:
-            metrics = PulseEngine.get_realtime_metrics()
+            metrics = PulseEngine.get_realtime_metrics(filters=request.query_params)
             return response.Response(metrics)
         except Exception as e:
             return response.Response({"error": str(e)}, status=500)

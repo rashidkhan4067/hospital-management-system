@@ -15,6 +15,11 @@ const api = axios.create({
   },
 });
 
+let onTokenRefreshed = null;
+export const setOnTokenRefreshed = (fn) => {
+  onTokenRefreshed = fn;
+};
+
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
@@ -52,7 +57,10 @@ api.interceptors.response.use(
         });
 
         const newAccessToken = refreshResponse.data.access;
+        const newRefreshToken = refreshResponse.data.refresh || refreshToken;
+        
         setAccessToken(newAccessToken);
+        if (onTokenRefreshed) onTokenRefreshed(newAccessToken, newRefreshToken);
 
         // Retry original request with fresh token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -60,6 +68,7 @@ api.interceptors.response.use(
 
       } catch (refreshError) {    
         clearAuthSession();
+        if (onTokenRefreshed) onTokenRefreshed(null, null);
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

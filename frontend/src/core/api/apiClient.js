@@ -27,42 +27,76 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
 // Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized (Expired Tokens)
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = getRefreshToken();
-        
-        if (!refreshToken) {
-          clearAuthSession();
-          window.location.href = '/login';
-          return Promise.reject(error);
-        }
-
-        // Silent refresh attempt using clean axios instance
-        const refreshResponse = await axios.post(`${BASE_URL}/auth/refresh/`, { 
-          refresh: refreshToken 
-        });
-
-        const newAccessToken = refreshResponse.data.access;
-        setAccessToken(newAccessToken);
-
-        // Retry original request with fresh token
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
-
-      } catch (refreshError) {    
-        clearAuthSession();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
       }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        isRefreshing = false;
+        clearAuthSession();
+        if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+
+      return new Promise(function (resolve, reject) {
+        axios
+          .post(`${BASE_URL}/auth/refresh/`, { refresh: refreshToken })
+          .then(({ data }) => {
+            setAccessToken(data.access);
+            api.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+            originalRequest.headers.Authorization = `Bearer ${data.access}`;
+            processQueue(null, data.access);
+            resolve(api(originalRequest));
+          })
+          .catch((err) => {
+            processQueue(err, null);
+            clearAuthSession();
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+            reject(err);
+          })
+          .finally(() => {
+            isRefreshing = false;
+          });
+      });
     }
 
     return Promise.reject(error);

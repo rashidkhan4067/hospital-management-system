@@ -28,6 +28,8 @@ export const clearAuthSession = () => {
   localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
   localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+  localStorage.removeItem('shifaa-auth-storage'); // Clears core store
+  localStorage.removeItem('shifaa_key'); // Clears older dev key
 };
 
 export const getStoredUser = () => {

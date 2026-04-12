@@ -72,6 +72,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
         extra_fields.setdefault("role", "admin")  # Superusers always get admin role
+        extra_fields.setdefault("auth_provider", "local") # Superusers are always local
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("Superuser must have is_staff=True."))
@@ -96,6 +97,10 @@ class User(AbstractUser):
         DOCTOR  = "doctor",  _("Doctor")   # Medical professional — manage own schedule
         STAFF   = "staff",   _("Staff")    # Hospital support staff / desk
         PATIENT = "patient", _("Patient")  # Patient — book appointments, view own records
+
+    class AuthProvider(models.TextChoices):
+        LOCAL  = "local",  _("Local")
+        GOOGLE = "google", _("Google")
 
     # ── Core Identity Fields ──────────────────────────────────────────────────
 
@@ -129,6 +134,20 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.PATIENT,
         help_text=_("Determines what the user can access in the system."),
+    )
+
+    auth_provider = models.CharField(
+        _("authentication provider"),
+        max_length=10,
+        choices=AuthProvider.choices,
+        default=AuthProvider.LOCAL,
+        help_text=_("Identity stream source for authentication."),
+    )
+
+    onboarding_completed = models.BooleanField(
+        _("onboarding completed"),
+        default=False,
+        help_text=_("Designates whether the user has completed the clinical onboarding flow."),
     )
 
     # ── Contact Information ───────────────────────────────────────────────────
@@ -224,3 +243,36 @@ class User(AbstractUser):
         Format: "Full Name (role)" — e.g. "Dr. Ahmed Khan (doctor)"
         """
         return f"{self.full_name} ({self.role})"
+
+
+# ── Signals: Automated Clinical Provisioning ──────────────────────────────────
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Electronic Health Record (EHR) & Practitioner Node auto-provisioning.
+    Ensures that every user has the appropriate specialized profile based on role.
+    """
+    from apps.doctors.models import Doctor
+    from apps.patients.models import PatientProfile
+    import uuid
+
+    if created:
+        # 🧪 Only create on initial signup (Google or Manual)
+        if instance.role == User.Role.DOCTOR:
+            Doctor.objects.get_or_create(
+                user=instance,
+                defaults={
+                    'license_number': f"PROV-{uuid.uuid4().hex[:8].upper()}",
+                    'specialization': 'general'
+                }
+            )
+        elif instance.role == User.Role.PATIENT:
+            PatientProfile.objects.get_or_create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Sync logic if profiles need to be updated alongside user."""
+    pass

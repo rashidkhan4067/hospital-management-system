@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Settings, Shield, LogOut, ChevronDown, UserCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/core/store/useAuthStore';
@@ -9,6 +10,7 @@ import { useAuthStore } from '@/core/store/useAuthStore';
  */
 const ProfileMenu = ({ user }) => {
   const logout = useAuthStore(state => state.logout);
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const menuRef = useRef(null);
@@ -26,7 +28,7 @@ const ProfileMenu = ({ user }) => {
   }, []);
 
   const menuItems = [
-    { label: 'My Bio Profile', icon: UserCircle, action: () => alert('Opening Profile...') },
+    { label: 'My Bio Profile', icon: UserCircle, action: () => navigate('/profile') },
     { label: 'Switch Operational Role', icon: Shield, action: () => alert('Opening Role Switcher...') },
     { label: 'Intelligence Settings', icon: Settings, action: () => alert('Opening Settings...') },
   ];

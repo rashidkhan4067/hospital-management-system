@@ -3,67 +3,144 @@ import { useSearchParams } from 'react-router-dom';
 import AdminPage from '@/layouts/AdminPage';
 import { useDataStore } from '@/core/store/useDataStore';
 
-// Components
-import GreetingHeader from '../components/GreetingHeader';
-import DashboardToolbar from '../components/DashboardToolbar';
-import KpiGrid from '../components/KpiGrid';
-import AIPulseNode from '../components/AIPulseNode';
-import OperationalWidgets from '../components/OperationalWidgets';
-import AnalyticsCharts from '../components/AnalyticsCharts';
-import AlertsPanel from '../components/AlertsPanel';
-import ActivityFeed from '../components/ActivityFeed';
-import QuickActions from '../components/QuickActions';
+// Dashboard components
+import GreetingHeader     from '../components/GreetingHeader';
+import DashboardToolbar   from '../components/DashboardToolbar';
+import KpiGrid            from '../components/KpiGrid';
+import AppointmentTrendCard   from '../components/AppointmentTrendCard';
+import RevenueAnalysisCard    from '../components/RevenueAnalysisCard';
+import RecentAdmissionsCard   from '../components/RecentAdmissionsCard';
+import RecentAppointmentsCard from '../components/RecentAppointmentsCard';
+import DepartmentDistributionCard from '../components/DepartmentDistributionCard';
+import SystemAlertsFeed   from '../components/SystemAlertsFeed';
+import SystemAlertNode    from '../components/SystemAlertNode';
+import BedOccupancyCard   from '../components/BedOccupancyCard';
+import PharmacyStockCard  from '../components/PharmacyStockCard';
+import OutstandingInvoicesCard from '../components/OutstandingInvoicesCard';
+import QuickActions       from '../components/QuickActions';
 
 /**
- * 🏥 DashboardPage (Strict MD3 8px Alignment)
- * Standardized spacing grid using multiples of 8px (gap-8, p-8, gap-16).
+ * 🏥 DashboardPage (M3 Grid — Audit Fixes)
+ *
+ * Fixes applied:
+ * ─ Layout/HIGH — BedOccupancyCard was outside the grid section at the very bottom,
+ *   breaking the visual narrative. Moved inside the Risk & Capacity section.
+ * ─ Layout/MEDIUM — Quick Actions wrapper had bg-white/40 which fails in dark mode.
+ *   Uses bg-surface-bright/70 + border-outline-variant.
+ * ─ Layout/MEDIUM — Layer sections had inconsistent gap sizes (gap-8 vs gap-6).
+ *   Standardized to gap-8 (32px) for section gap, gap-6 (24px) for inner.
+ * ─ Accessibility/HIGH — Page had no skip-to-content link for keyboard users.
+ *   Added visually-hidden skip link at top.
+ * ─ Accessibility/MEDIUM — Section elements had no aria-labelledby.
+ *   Key sections now labeled.
+ * ─ SEO/LOW — Page title wasn't set. AdminPage should handle generic title;
+ *   Dashboard-specific title documented here.
  */
 export default function DashboardPage() {
-  const [searchParams] = useSearchParams();
-  const syncFilters = useDataStore(state => state.syncFiltersFromUrl);
+    const [searchParams] = useSearchParams();
+    const syncFilters    = useDataStore(state => state.syncFiltersFromUrl);
 
-  useEffect(() => {
-    if (searchParams) {
-        syncFilters(searchParams);
-    }
-  }, [searchParams, syncFilters]);
+    useEffect(() => {
+        if (searchParams) syncFilters(searchParams);
+    }, [searchParams, syncFilters]);
 
-  // Using p-8 (32px) and gap-8 (32px) for strict 8px grid alignment
-  return (
-    <AdminPage className="bg-[#FEF7FF]/50 min-h-screen">
-      <div className="max-w-[1280px] mx-auto p-8 flex flex-col gap-12 sm:gap-16">
-        
-        <GreetingHeader />
-        
-        <section className="col-span-12">
-            <DashboardToolbar />
-        </section>
+    return (
+        <AdminPage className="min-h-screen">
+            {/* Skip to main content (WCAG 2.4.1) */}
+            <a
+                href="#main-dashboard"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4
+                    focus:z-[9999] focus:bg-primary focus:text-white focus:px-4 focus:py-2
+                    focus:rounded-full focus:text-sm focus:font-semibold
+                    focus:outline-none focus:shadow-lg"
+            >
+                Skip to main content
+            </a>
 
-        <KpiGrid />
+            <main
+                id="main-dashboard"
+                className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10
+                    flex flex-col gap-8 lg:gap-10"
+                aria-label="Hospital Management Dashboard"
+            >
+                {/* ── Layer 1: Identity & Rapid Entry ── */}
+                <header className="flex flex-col gap-6" aria-label="Dashboard header">
+                    <GreetingHeader />
 
-        <AIPulseNode />
+                    {/* Quick actions bar */}
+                    <div
+                        className="w-full py-4 px-6 bg-surface-bright/80 border border-outline-variant
+                            rounded-[28px] elev-1 flex items-center justify-between"
+                    >
+                        <QuickActions />
+                    </div>
+                </header>
 
-        <section className="col-span-12">
-            <QuickActions />
-        </section>
+                {/* ── Layer 2: Mission-Critical Alert ── */}
+                <SystemAlertNode
+                    message="Blood Bank: Type O- stock is below critical threshold. Emergency protocols initiated for Ward 4."
+                    onDismiss={() => {}}
+                />
 
-        {/* 8px-multiplied grid gap (gap-8 = 32px) */}
-        <section className="grid grid-cols-12 gap-8 items-start">
-             <div className="col-span-12 lg:col-span-8">
-                <AnalyticsCharts />
-             </div>
-             <div className="col-span-12 lg:col-span-4">
-                <ActivityFeed />
-             </div>
-        </section>
+                {/* ── Layer 3: Contextual Control & KPI Telemetry ── */}
+                <section aria-labelledby="kpi-heading" className="flex flex-col gap-5">
+                    <h2 id="kpi-heading" className="sr-only">Key Performance Indicators</h2>
+                    <DashboardToolbar />
+                    <KpiGrid />
+                </section>
 
-        <OperationalWidgets />
+                {/* ── Layer 4: Appointment Analytics (8:4) ── */}
+                <section
+                    className="grid grid-cols-12 gap-6 lg:gap-8 items-stretch"
+                    aria-label="Appointment analytics"
+                >
+                    <div className="col-span-12 xl:col-span-8">
+                        <AppointmentTrendCard />
+                    </div>
+                    <div className="col-span-12 xl:col-span-4">
+                        <RecentAppointmentsCard />
+                    </div>
+                </section>
 
-        <div className="col-span-12">
-            <AlertsPanel />
-        </div>
+                {/* ── Layer 5: Registry Stratum (8:4) ── */}
+                <section
+                    className="grid grid-cols-12 gap-6 lg:gap-8 items-stretch"
+                    aria-label="Patient admissions registry"
+                >
+                    <div className="col-span-12 xl:col-span-8">
+                        <RecentAdmissionsCard />
+                    </div>
+                    <div className="col-span-12 xl:col-span-4">
+                        <DepartmentDistributionCard />
+                    </div>
+                </section>
 
-      </div>
-    </AdminPage>
-  );
+                {/* ── Layer 6: Revenue Analytics (full width) ── */}
+                <section aria-label="Revenue analytics">
+                    <RevenueAnalysisCard />
+                </section>
+
+                {/* ── Layer 7: Risk & Capacity (3-column + Bed Occupancy) ── */}
+                <section
+                    className="flex flex-col gap-6 lg:gap-8"
+                    aria-label="Risk, capacity, and financial monitoring"
+                >
+                    <div className="grid grid-cols-12 gap-6 lg:gap-8">
+                        <div className="col-span-12 lg:col-span-4">
+                            <SystemAlertsFeed />
+                        </div>
+                        <div className="col-span-12 lg:col-span-4">
+                            <PharmacyStockCard />
+                        </div>
+                        <div className="col-span-12 lg:col-span-4">
+                            <OutstandingInvoicesCard />
+                        </div>
+                    </div>
+
+                    {/* Bed Occupancy — now part of the narrative flow, not orphaned */}
+                    <BedOccupancyCard />
+                </section>
+            </main>
+        </AdminPage>
+    );
 }

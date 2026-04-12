@@ -34,9 +34,10 @@ const AdminTopBar = () => {
     <nav
       className={`
         sticky top-0 z-[100] h-[72px] w-full flex items-center justify-between px-6 transition-all duration-300
-        ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-md ring-1 ring-[#CAC4D0]/10' : 'bg-[#FEF7FF]'}
-        border-b border-[#CAC4D0]/40
+        ${scrolled ? 'bg-surface-bright/90 backdrop-blur-xl elev-2 ring-1 ring-outline-variant/20' : 'bg-surface-bright'}
+        border-b border-outline-variant/40
       `}
+      aria-label="Admin navigation"
     >
 
       {/* 🏥 Left: Brand Identity Cluster */}
@@ -44,9 +45,12 @@ const AdminTopBar = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={toggleMobileMenu}
-            className="lg:hidden p-2 rounded-full hover:bg-[#6750A4]/5 transition-colors text-[#49454F]"
+            aria-label="Open navigation menu"
+            aria-expanded={false}
+            aria-haspopup="dialog"
+            className="lg:hidden icon-btn text-text-sub hover:bg-primary/5"
           >
-            <Menu size={20} />
+            <Menu size={20} aria-hidden="true" />
           </button>
           <div className="flex items-center gap-4 group cursor-default">
             <div className="w-10 h-10 rounded-xl bg-[#6750A4] flex items-center justify-center text-white text-xl font-black shadow-lg shadow-[#6750A4]/20 transition-transform group-hover:scale-110">
@@ -75,15 +79,19 @@ const AdminTopBar = () => {
         {/* Mobile Search Overlay Trigger */}
         <button
           onClick={() => setMobileSearchOpen(true)}
-          className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#6750A4]/5 text-[#49454F]"
+          aria-label="Open search"
+          className="md:hidden icon-btn text-text-sub hover:bg-primary/5"
         >
-          <SearchIcon size={20} />
+          <SearchIcon size={20} aria-hidden="true" />
         </button>
 
         <NotificationBell />
 
-        <button className="hidden sm:flex w-12 h-12 items-center justify-center rounded-full text-[#49454F] hover:bg-[#49454F]/8 transition-all relative">
-          <Settings size={22} strokeWidth={2} />
+        <button
+          aria-label="Open settings"
+          className="hidden sm:flex icon-btn text-text-sub hover:bg-text-sub/8"
+        >
+          <Settings size={22} strokeWidth={2} aria-hidden="true" />
         </button>
 
         <div className="h-8 w-px bg-[#CAC4D0]/60 mx-1 hidden xs:block" />
@@ -100,8 +108,12 @@ const AdminTopBar = () => {
             exit={{ opacity: 0, scale: 0.98, y: -20 }}
             className="absolute inset-0 bg-white z-[200] flex items-center px-4 gap-4"
           >
-            <button onClick={() => setMobileSearchOpen(false)} className="p-2 text-[#49454F]">
-              <X size={20} />
+            <button
+              onClick={() => setMobileSearchOpen(false)}
+              aria-label="Close search"
+              className="icon-btn text-text-sub"
+            >
+              <X size={20} aria-hidden="true" />
             </button>
             <div className="flex-grow">
               <GlobalSearch isMobile={true} />

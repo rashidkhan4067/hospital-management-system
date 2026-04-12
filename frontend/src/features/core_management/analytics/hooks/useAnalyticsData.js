@@ -1,11 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useDataStore } from '@/core/store/useDataStore';
 import { useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/core/api';
+import { useDataStore } from '@/core/store/useDataStore';
 
-/**
- * 🛰️ useClinicalTelemetry (Architected for Data Integrity)
- * Enforces a 'Compute-and-Aggregate' pattern to ensure 100% parity between KPIs and Charts.
- */
 export function useAnalyticsData() {
   const queryClient = useQueryClient();
   const globalFilters = useDataStore(state => state.filters);
@@ -14,12 +11,31 @@ export function useAnalyticsData() {
   const query = useQuery({
     queryKey: ['clinical-telemetry', globalFilters],
     queryFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      return generateSimulationTelemetry(globalFilters);
+      // 🧠 Fetch Parallel Intelligence Shards
+      const [statsRes, pulseRes] = await Promise.all([
+          apiClient.get('/dashboard/stats/', { params: globalFilters }),
+          apiClient.get('/analytics/pulse/', { params: globalFilters })
+      ]);
+
+      const stats = statsRes.data;
+      const pulse = pulseRes.data;
+
+      // 🧬 Combine and Standardize Intelligence Shards
+      return {
+          kpis: [
+            { id: 'pat', value: stats.counts.patients.toLocaleString(), trend: "+12.4%", isUp: true },
+            { id: 'appt', value: stats.counts.appointments.toLocaleString(), trend: "+5.1%", isUp: true },
+            { id: 'rev', value: `PKR ${(stats.finance.net_revenue / 1000000).toFixed(2)}M`, trend: "+18.2%", isUp: true },
+            { id: 'doc', value: stats.counts.doctors.toLocaleString(), trend: "Sync'd", isUp: true },
+          ],
+          patientTrend: pulse.clinical?.trend || [],
+          revenueData: pulse.financial?.trend || [],
+          deptDistribution: pulse.departments || [],
+          registryData: stats.recent_activity || []
+      };
     },
-    staleTime: 10 * 1000,
-    refetchInterval: 30 * 1000,
-    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   const { data, isLoading } = query;

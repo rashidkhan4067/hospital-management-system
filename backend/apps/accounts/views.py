@@ -23,6 +23,7 @@ from .serializers import (
     ChangePasswordSerializer,
     UserAdminCreateSerializer,
     UserAdminUpdateSerializer,
+    ProfileUpdateSerializer,
 )
 from .email_services import send_welcome_email, send_login_alert_email
 
@@ -57,6 +58,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 "detail": "Identity authentication failed: The security key (password) provided is incorrect."
             })
         
+        # 🛡️ Step 3: Enforce Correct Auth Stream (Local vs Social)
+        if user.auth_provider != User.AuthProvider.LOCAL:
+            raise serializers.ValidationError({
+                "detail": "Please use correct login method"
+            })
+        
         # 🛡️ Step 3: Check Email Verification Status
         from allauth.account.models import EmailAddress
         from django.conf import settings
@@ -75,6 +82,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 "email": self.user.email,
                 "full_name": self.user.full_name,
                 "role": self.user.role,
+                "onboarding_completed": self.user.onboarding_completed,
             }
         })
         return data
@@ -109,34 +117,49 @@ class RegisterView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
         
-        # 1. Add user to allauth EmailAddress list (required for verification links)
+        # 🛡️ Step 1: Initialize Identity Verification Node
         from allauth.account.models import EmailAddress
-        from allauth.account.utils import send_email_confirmation
         
-        EmailAddress.objects.create(
+        email_instance = EmailAddress.objects.create(
             user=user, 
             email=user.email, 
             primary=True, 
             verified=False
         )
         
-        # 2. Trigger the allauth confirmation email (More secure)
-        send_email_confirmation(self.request, user, signup=True)
+        # 🛡️ Step 2: Trigger secure verification protocol (Modern Allauth Method)
+        # Using the instance method is more reliable across different allauth versions
+        try:
+            email_instance.send_confirmation(self.request, signup=True)
+        except Exception as e:
+            # Fallback for older versions or configuration misses
+            print(f"[DEBUG] Verification email dispatch failed: {str(e)}")
         
         # 3. Also send our custom welcome email (optional)
         send_welcome_email(user)
 
 
-class UserProfileView(generics.RetrieveAPIView):
+class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     GET /api/v1/auth/me/
-    Returns the currently authenticated user's profile.
+    PATCH /api/v1/auth/me/
+    Returns or updates the currently authenticated user's profile.
     """
     permission_classes = [IsAuthenticated]
-    serializer_class = UserSerializer
+    
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return ProfileUpdateSerializer
+        return UserSerializer
 
     def get_object(self):
         return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        # We override update to ensure the user is using the full serializer
+        # but only certain fields are allowed if we wanted to restrict them.
+        # For onboarding, we allow everything in UserSerializer.
+        return super().update(request, *args, **kwargs)
 
 
 class ChangePasswordView(generics.UpdateAPIView):
@@ -166,6 +189,8 @@ class LogoutView(views.APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 

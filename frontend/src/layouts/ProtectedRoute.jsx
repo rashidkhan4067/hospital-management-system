@@ -4,31 +4,35 @@ import { useAuthStore } from '@/core/store/useAuthStore';
 import Loading from '@/components/composed/Loading';
 
 /**
- * 🔒 Al Shifaa Security Gatekeeper
- * Enforces atomic role-based authentication and clinical session validation.
+ * 🔒 Al Shifaa Security Gatekeeper (V9PLU)
+ * Centralized RBAC enforcement for administrative and clinical route clusters.
  */
-const ProtectedRoute = ({ requireAdmin = false, requireDoctor = false }) => {
+const ProtectedRoute = ({ allowedRoles = [], requireAdmin = false, requireDoctor = false }) => {
   const { isAuthenticated, user, loading } = useAuthStore();
   const role = user?.role;
 
-  
   // 🛰 Synchronizing Authentication Node
   if (loading) return <Loading />;
   
-  // 🚫 Node Reset: Not Authenticated
+  // 🚫 Access Denied: Session Missing
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   
-  // ⛔ Access Denied: Admin Rights Required
+  // 🛡️ Legacy Logic (Maintain compatibility)
   if (requireAdmin && role !== 'admin') {
-    return <Navigate to="/dashboard" replace />; // Redirect to base role-dashboard
+    return <Navigate to="/admin-access-denied" replace />; // Explicit unauthorized path
   }
 
-  // ⛔ Access Denied: Doctor Rights Required
   if (requireDoctor && role !== 'doctor' && role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/access-denied" replace />;
   }
 
-  // ✅ Authentication Matrix Validated
+  // 🛡️ Modern RBAC Matrix Enforcement
+  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+    console.warn(`[SECURITY] Forbidden node traversal attempt by ${role} on ${window.location.pathname}`);
+    return <Navigate to="/access-denied" replace />;
+  }
+
+  // ✅ Security Matrix Validated
   return <Outlet />;
 };
 

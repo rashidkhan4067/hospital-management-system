@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Input, Button } from '@/components/primitives';
+import { Button } from '@/components/primitives';
+import M3TextField from '@/components/primitives/M3TextField';
 import api from '@/core/api/services/apiClient';
 
 /**
- * 🔐 ResetPasswordPage - Google 'Confirm Security' Archetype (M3 Content Node)
+ * 🔐 ResetPasswordPage - Google-Style Security Update (M3)
  */
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -18,13 +19,6 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const brandColors = {
-    blue: "#4285F4",
-    red: "#EA4335",
-    yellow: "#FBBC05",
-    green: "#34A853"
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!uid || !token) {
@@ -35,11 +29,6 @@ export default function ResetPasswordPage() {
       setError('Passwords do not match');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
     setLoading(true);
     setError(null);
     
@@ -64,31 +53,27 @@ export default function ResetPasswordPage() {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center w-full"
     >
-      {/* 🏛️ Google-Style Brand Header */}
-      <div className="flex flex-col items-center mb-8">
-        <div className="flex items-center mb-4 h-10">
-          <span className="text-3xl font-medium tracking-tight text-[#202124]">
-            <span style={{ color: brandColors.blue }}>S</span>
-            <span style={{ color: brandColors.red }}>h</span>
-            <span style={{ color: brandColors.yellow }}>i</span>
-            <span style={{ color: brandColors.blue }}>f</span>
-            <span style={{ color: brandColors.green }}>a</span>
-            <span style={{ color: brandColors.red }}>a</span>
+      {/* 🏛️ Brand Header */}
+      <div className="flex flex-col items-center mb-6">
+        <div className="flex items-center mb-3 h-10">
+          <span className="text-2xl font-semibold tracking-tight text-[#202124] flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-[#4285F4] flex items-center justify-center text-white font-bold text-xl">S</span>
+            <span className="text-[#5f6368]">Shifaa HMS</span>
           </span>
         </div>
         
-        <h1 className="text-2xl font-normal text-[#202124] tracking-normal text-center mb-2">
-          {isSuccess ? 'Success' : 'Create a strong password'}
+        <h1 className="text-2xl font-normal text-[#202124] tracking-normal text-center mb-1">
+          {isSuccess ? 'Success' : 'Reset your password'}
         </h1>
-        <p className="text-base text-[#202124] font-normal text-center mb-10">
+        <p className="text-base text-[#202124] font-normal text-center">
           {isSuccess 
             ? 'Your password has been changed successfully' 
-            : 'Create a new, strong password that you don\'t use for other services'}
+            : 'Create a new, strong password'}
         </p>
       </div>
 
       {/* 📟 Form Port */}
-      <div className="w-full">
+      <div className="w-full mt-4">
         {error && (
           <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center text-[10px] text-white">!</div>
@@ -97,19 +82,21 @@ export default function ResetPasswordPage() {
         )}
 
         {isSuccess ? (
-          <div className="flex justify-center mt-12 w-full">
+          <div className="flex flex-col items-center mt-8 py-4 gap-6">
+              <p className="text-[14px] text-[#3C4043] text-center">
+                  Secure access restored. You can now sign in with your new credentials.
+              </p>
               <Link to="/login" className="w-full">
-                  <Button className="w-full px-6 h-10 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] shadow-none">
+                  <Button className="w-full h-[40px] rounded-full text-[14px] font-semibold bg-[#4285F4] hover:bg-[#3367D6] text-white shadow-none">
                     Sign in
                   </Button>
               </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
-            <Input 
-                label="Create password"
+            <M3TextField 
+                label="New password"
                 type="password" 
-                placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -117,23 +104,22 @@ export default function ResetPasswordPage() {
                 autoFocus
             />
             
-            <Input 
-                label="Confirm"
+            <M3TextField 
+                label="Confirm password"
                 type="password" 
-                placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 fullWidth
             />
 
-            <div className="flex items-center justify-end mt-12 w-full">
+            <div className="flex items-center justify-end mt-10 w-full">
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="px-8 h-10 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] shadow-none min-w-[100px]"
+                className="px-8 h-[40px] rounded-full text-[14px] font-semibold bg-[#4285F4] hover:bg-[#3367D6] text-white shadow-none min-w-[100px]"
               >
-                {loading ? "Changing..." : "Reset password"}
+                {loading ? "..." : "Reset password"}
               </Button>
             </div>
           </form>
@@ -142,4 +128,5 @@ export default function ResetPasswordPage() {
     </motion.div>
   );
 }
+
 

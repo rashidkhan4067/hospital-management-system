@@ -21,7 +21,40 @@ class PatientViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "create":
             return PatientCreateSerializer
+        if self.action == "complete_onboarding":
+            return PatientProfileSerializer
         return PatientProfileSerializer
+
+    @action(detail=False, methods=["post"], url_path="complete-onboarding")
+    def complete_onboarding(self, request):
+        """
+        POST /api/v1/patients/profiles/complete-onboarding/
+        Atomic onboarding finalizing protocol for new patients.
+        Updates both User identity and PatientProfile clinical shards.
+        """
+        user = request.user
+        profile, created = PatientProfile.objects.get_or_create(user=user)
+        
+        # 🧪 Parse Inbound Clinical Payload
+        serializer = PatientProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            # Sync user-level fields if provided
+            fullName = request.data.get('fullName')
+            if fullName:
+                names = fullName.split(' ', 1)
+                user.first_name = names[0]
+                user.last_name = names[1] if len(names) > 1 else ""
+            
+            phone = request.data.get('phone')
+            if phone:
+                user.phone_number = phone
+            
+            user.onboarding_completed = True
+            user.save()
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"])
     def recent(self, request):
@@ -36,7 +69,10 @@ class PatientViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Only authenticated admins and specialized clinical personnel can manage profiles.
+        Patients can only complete their own onboarding.
         """
+        if self.action == "complete_onboarding":
+            return [permissions.IsAuthenticated()]
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [permissions.IsAuthenticated(), IsAdminUser()]
         return [permissions.IsAuthenticated()]

@@ -5,35 +5,41 @@ class PulseEngine:
     """ 🧬 EMERGENCY PULSE SHARD (HARDENED) """
     
     @staticmethod
-    def get_realtime_metrics():
+    def get_realtime_metrics(filters=None):
         from apps.ai.models import AIConversation
         from apps.analytics.models import FinancialMetric, ClinicalMetric
+        import random
         
         # 🧠 Neural Intelligence Shards
         total_chats = AIConversation.objects.count()
         success_chats = AIConversation.objects.filter(resolution='Success').count()
         success_rate = (success_chats / total_chats * 100) if total_chats > 0 else 98.2
         
+        # 🧪 Generate Trend Data (Simulation influenced by filters)
+        date_range = filters.get('dateRange', 'Today') if filters else 'Today'
+        points = 7 if date_range == 'Today' else (4 if date_range == 'Week' else 30)
+        
+        clinical_trend = []
+        financial_trend = []
+        
+        for i in range(points):
+            clinical_trend.append({
+                "name": f"P{i}",
+                "value": random.randint(10, 50)
+            })
+            financial_trend.append({
+                "name": f"W{i}",
+                "revenue": random.randint(100000, 500000)
+            })
+
         return {
             "status": "Operational",
-            "counts": {"patients": 50, "doctors": 12, "appointments": 5, "admissions": 2},
-            "voice_bookings": total_chats + 42, # Base + live
-            "success_rate": round(success_rate, 1),
-            "avg_response": 1.1,
-            "clinical": {"today": {}, "delta": "0%"},
-            "finance": {"net_revenue": 0.0, "delta": "0%"},
-            "financial": {"today": {"total_revenue": 0}, "delta": "0%", "net_revenue": 0},
+            "clinical": {"trend": clinical_trend},
+            "financial": {"trend": financial_trend},
             "departments": [
-                { "id": "card", "name": "CARDIOLOGY", "load": 82, "color": "#0ea5e9" },
-                { "id": "ped", "name": "PEDIATRICS", "load": 45, "color": "#10b981" },
-                { "id": "ortho", "name": "ORTHOPEDICS", "load": 68, "color": "#f59e0b" },
-                { "id": "neuro", "name": "NEUROLOGY", "load": 91, "color": "#ef4444" }
-            ],
-            "operations": [
-                { "id": "appointments", "label": "APPOINTMENTS", "value": 12, "suffix": "", "status": "OPTIMAL", "score": 98, "path": "/admin/appointments" },
-                { "id": "opd", "label": "OPD DENSITY", "value": 84, "suffix": "%", "status": "LIVE", "score": 84, "path": "/admin/appointments?view=opd&density=live" },
-                { "id": "triage", "label": "TRIAGE LATENCY", "value": 14, "suffix": "m", "status": "SYNCHRONIZED", "score": 92, "path": "/admin/appointments?status=optimal" },
-                { "id": "wards", "label": "WARD OCCUPANCY", "value": 92, "suffix": "%", "status": "LIVE", "score": 92, "path": "/admin/departments" }
+                { "name": "OPD", "value": random.randint(30, 60) },
+                { "name": "IPD", "value": random.randint(20, 40) },
+                { "name": "ICU", "value": random.randint(5, 15) },
             ]
         }
 

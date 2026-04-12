@@ -37,6 +37,7 @@ class PatientProfile(models.Model):
 
     allergies = models.TextField(_("known allergies"), blank=True, help_text=_("List of drug/food allergies."))
     medical_history = models.TextField(_("chronic conditions"), blank=True, help_text=_("Diabetes, Hypertension, etc."))
+    current_medications = models.TextField(_("current medications"), blank=True, help_text=_("List of active medications."))
     
     is_admitted = models.BooleanField(_("currently admitted"), default=False)
     room_number = models.CharField(_("room number"), max_length=10, blank=True, null=True)

@@ -38,7 +38,7 @@ class PatientProfileSerializer(serializers.ModelSerializer):
             'id', 'user_details', 'full_name', 'email', 'phone',
             'blood_group', 'date_of_birth', 'gender', 'address',
             'emergency_contact_name', 'emergency_contact_phone',
-            'allergies', 'medical_history', 'is_admitted', 
+            'allergies', 'medical_history', 'current_medications', 'is_admitted', 
             'room_number', 'records', 'created_at', 'updated_at'
         ]
 
