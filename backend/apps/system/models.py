@@ -39,6 +39,8 @@ class GlobalAlert(models.Model):
     priority = models.CharField(max_length=10, choices=Priority.choices, default=Priority.INFO)
     issuer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     expires_at = models.DateTimeField(null=True, blank=True)
+    is_resolved = models.BooleanField(default=False)
+    resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

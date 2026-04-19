@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Stethoscope } from 'lucide-react';
-import { apiClient } from '@/core/api';
 import { useNavigate } from 'react-router-dom';
-import { useDataStore } from '@/core/store/useDataStore';
+import { useDashboardStats } from '@/core/hooks/useDashboardStats';
 
 const STATUS = {
     'In-Progress': { dot: 'var(--m3-primary)',  bg: 'var(--m3-primary-container)',  color: 'var(--m3-primary)',  label: 'Active'    },
@@ -22,52 +21,20 @@ const FALLBACK = [
 ];
 
 const RecentAppointmentsCard = () => {
-    const [appointments, setAppointments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { appointments: rawAppointments, loading } = useDashboardStats();
     const navigate = useNavigate();
-    const filters  = useDataStore(s => s.filters);
 
-    const load = useCallback(async (signal, isBackground = false) => {
-        if (!isBackground) setLoading(true);
-        try {
-            const res  = await apiClient.get('/appointments/', { 
-                signal, 
-                params: { 
-                    ordering: '-start_time', 
-                    limit: 10,
-                    department: filters.department !== 'All' ? filters.department : undefined,
-                } 
-            });
-            const data = res.data?.results || res.data;
-            
-            if (Array.isArray(data) && data.length > 0) {
-                const mapped = data.map(item => ({
-                    id:      item.id,
-                    patient: item.patient?.full_name || 'Anonymous',
-                    doctor:  item.doctor?.full_name || 'Assigned Physician',
-                    time:    item.start_time?.slice(0, 5) || '00:00',
-                    status:  item.status_display || item.status || 'Pending',
-                    type:    item.notes?.slice(0, 20) || 'Consultation'
-                }));
-                setAppointments(mapped);
-            } else {
-                setAppointments(FALLBACK);
-            }
-        } catch (e) {
-            if (e.name !== 'CanceledError') setAppointments(FALLBACK);
-        } finally {
-            if (!isBackground) setLoading(false);
-        }
-    }, [filters.department]);
-
-    useEffect(() => {
-        const ctrl = new AbortController();
-        load(ctrl.signal);
-        const timer = setInterval(() => {
-            const c = new AbortController(); load(c.signal, true);
-        }, 60_000);
-        return () => { ctrl.abort(); clearInterval(timer); };
-    }, [load]);
+    const appointments = React.useMemo(() => {
+        if (!rawAppointments || rawAppointments.length === 0) return FALLBACK;
+        return rawAppointments.map(item => ({
+            id:      item.id,
+            patient: item.patient?.full_name || 'Anonymous',
+            doctor:  item.doctor?.full_name || 'Assigned Physician',
+            time:    item.start_time?.slice(0, 5) || '00:00',
+            status:  item.status_display || item.status || 'Pending',
+            type:    item.notes?.slice(0, 20) || 'Consultation'
+        })).slice(0, 5);
+    }, [rawAppointments]);
 
     const activeCount = appointments.filter(a => a.status === 'In-Progress').length;
 

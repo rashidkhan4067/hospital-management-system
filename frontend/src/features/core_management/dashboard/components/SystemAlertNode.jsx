@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, X, ArrowRight, TriangleAlert } from 'lucide-react';
+import { ShieldAlert, X, ArrowRight } from 'lucide-react';
+import { useUIStore } from '@/core/store/useUIStore';
 
 const TYPE_CFG = {
     Critical: {
@@ -32,22 +33,24 @@ const TYPE_CFG = {
     },
 };
 
-/**
- * 🚨 SystemAlertNode — Redesigned (M3 Production)
- *
- * Improvements:
- * ─ Supports type prop: Critical / Warning / Info
- * ─ Thick left accent bar themed per type
- * ─ Ambient glow effect per severity
- * ─ Icon chip filled with type color
- * ─ Pulse animation on icon for critical alerts
- * ─ "Execute Protocol" CTA themed per type
- * ─ Full ARIA: role=alert, aria-live=assertive for SR
- */
-const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
+const SystemAlertNode = ({ message, type = 'Critical', onDismiss, dept = 'Blood Bank' }) => {
     const [dismissed, setDismissed] = useState(false);
+    const openAlertDrawer = useUIStore(s => s.openAlertDrawer);
 
-    const handleDismiss = useCallback(() => {
+    const handleOpenDetail = useCallback((e) => {
+        e.stopPropagation();
+        openAlertDrawer({
+            message,
+            severity: type,
+            dept,
+            time: 'Just Now',
+            source: 'Live Monitoring System',
+            ward: 'All Affected Zones'
+        });
+    }, [message, type, dept, openAlertDrawer]);
+
+    const handleDismiss = useCallback((e) => {
+        e.stopPropagation();
         setDismissed(true);
         onDismiss?.();
     }, [onDismiss]);
@@ -62,17 +65,18 @@ const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
                 role="alert"
                 aria-live="assertive"
                 aria-atomic="true"
+                onClick={handleOpenDetail}
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.26, ease: [0.2, 0, 0, 1] }}
-                className={`relative overflow-hidden border rounded-[24px] elev-1 ${cfg.banner}`}
+                className={`relative overflow-hidden border rounded-[24px] elev-1 cursor-pointer group/banner transition-shadow hover:shadow-xl ${cfg.banner}`}
             >
                 {/* Left accent bar */}
                 <div className={`absolute top-0 left-0 w-1 h-full ${cfg.bar} rounded-l-[24px]`} aria-hidden="true" />
 
                 {/* Ambient glow blob */}
-                <div className={`absolute -top-16 -left-16 w-48 h-48 ${cfg.glow} rounded-full blur-3xl pointer-events-none`} aria-hidden="true" />
+                <div className={`absolute -top-16 -left-16 w-48 h-48 ${cfg.glow} rounded-full blur-3xl pointer-events-none group-hover/banner:scale-110 transition-transform`} aria-hidden="true" />
 
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 pl-7 relative z-10">
                     {/* Body */}
@@ -94,7 +98,7 @@ const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
                                 </span>
                                 <time className="text-[10px] font-medium text-text-sub opacity-50">Just Now</time>
                             </div>
-                            <p className="text-sm font-semibold text-text-main leading-snug max-w-xl">
+                            <p className="text-sm font-semibold text-text-main leading-snug max-w-xl group-hover/banner:text-primary transition-colors">
                                 {message}
                             </p>
                         </div>
@@ -103,6 +107,7 @@ const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
                         <button
+                            onClick={handleOpenDetail}
                             className={`flex items-center gap-2 h-9 px-5 rounded-full
                                 text-[11px] font-bold uppercase tracking-wide
                                 active:scale-[0.97] elev-1 transition-all

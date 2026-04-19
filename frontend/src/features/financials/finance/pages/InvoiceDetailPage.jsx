@@ -1,262 +1,255 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Receipt, Printer, Download, Mail, ShieldCheck, 
     ArrowLeft, Clock, FileText, CheckCircle2, Calendar, 
     User, CreditCard, ShieldAlert, Phone, MapPin, Globe,
-    Activity, ChevronDown, CheckCheck, Hash, Building2
+    Activity, ChevronRight, CheckCheck, Hash, Building2,
+    Briefcase, Landmark, ExternalLink, Sparkles
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import AdminPage from '@/layouts/AdminPage';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/core/api/apiClient';
+import AdminPage from '@/layouts/AdminPage';
 import Loading from '@/components/composed/Loading';
 
 /**
- * 🧾 InvoiceDetailPage (Clinical Fiscal Report)
- * Industry-standard financial document view with formal itemization 
- * and integrated export workflows.
+ * 🧾 InvoiceDetailPage (Clinical Fiscal Dossier)
+ * Recalibrated for dashboard-style density and MD3 compactness.
+ * Follows the high-fidelity institutional standards of Cite-PK.
  */
 export default function InvoiceDetailPage() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [invoice, setInvoice] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    
-    useEffect(() => {
-        const fetchInvoice = async () => {
-            try {
-                const res = await api.get(`/finance/invoices/${id}/`);
-                setInvoice(res.data);
-            } catch (err) {
-                console.error("Fiscal Retrieval Error:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        if (id) fetchInvoice();
-    }, [id]);
+    const [activeTab, setActiveTab] = useState('LEGER');
 
-    const handlePrint = () => {
-        window.print();
-    };
+    const { data: invoice, isLoading, error } = useQuery({
+        queryKey: ['invoice', id],
+        queryFn: async () => {
+            const { data } = await api.get(`/finance/invoices/${id}/`);
+            return data;
+        },
+        enabled: !!id
+    });
 
     if (isLoading) return <Loading />;
-
-    if (!invoice) {
-        return (
-            <AdminPage className="min-h-screen flex items-center justify-center">
-                <div className="text-center p-12">
-                    <div className="w-20 h-20 bg-red-50 text-red-500 rounded-[32px] flex items-center justify-center mx-auto mb-6">
-                        <ShieldAlert size={40} />
-                    </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-2">Dossier Missing</h2>
-                    <p className="text-[13px] text-slate-500 max-w-sm mb-8">The requested institutional ledger record could not be located in our fiscal shards.</p>
-                    <button onClick={() => navigate(-1)} className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase text-[12px] tracking-widest hover:bg-black transition-all">Registry Index</button>
+    if (error || !invoice) return (
+        <AdminPage>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-12">
+                <div className="w-16 h-16 bg-error-container text-error rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                    <ShieldAlert size={32} />
                 </div>
-            </AdminPage>
-        );
-    }
+                <h1 className="text-xl font-black text-text-main mb-2 tracking-tight">Dossier Missing</h1>
+                <p className="text-[13px] text-text-sub max-w-sm mb-8 opacity-70">The requested institutional ledger record could not be located.</p>
+                <button onClick={() => navigate(-1)} className="chip bg-surface-variant text-text-main py-2 px-6 font-black uppercase text-[10px] tracking-widest transition-all active:scale-95">Registry Index</button>
+            </div>
+        </AdminPage>
+    );
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
 
     return (
-        <AdminPage className="bg-[#f8f9fc] print:bg-white">
-            {/* ── Floating Dashboard Navigation (Hidden on Print) ── */}
-            <div className="max-w-[1000px] mx-auto pt-10 pb-6 flex items-center justify-between px-4 print:hidden">
-                <button 
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
-                >
-                    <ArrowLeft size={16} />
-                    Ledger Registry
-                </button>
-                <div className="flex items-center gap-3">
-                    <button 
-                        onClick={handlePrint}
-                        className="h-11 px-6 bg-white border border-slate-200 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all flex items-center gap-3"
-                    >
-                        <Printer size={16} /> Print Report
-                    </button>
-                    <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-black transition-all flex items-center gap-3 active:scale-95">
-                        <Download size={16} /> Export PDF
-                    </button>
-                </div>
-            </div>
-
-            {/* ── The Formal Invoice Sheet ── */}
-            <div className="max-w-[1000px] mx-auto px-4 pb-20">
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white border border-slate-100 rounded-[48px] shadow-2xl shadow-slate-200/50 overflow-hidden print:border-0 print:shadow-none print:rounded-none"
-                >
-                    {/* Invoice Formal Header */}
-                    <div className="p-12 md:p-16 border-b-2 border-slate-50 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-16 opacity-[0.03]">
-                            <Building2 size={280} />
+        <AdminPage>
+            <main
+                id="invoice-intelligence-dossier"
+                className="max-w-[1560px] mx-auto p-[clamp(14px,3vw,24px)] flex flex-col gap-[14px]"
+            >
+                {/* 📂 HEADER: Dossier Identity */}
+                <div className="widget p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
+                    <div className="flex items-center gap-5 relative z-10">
+                        <div className="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0">
+                            <Receipt size={22} strokeWidth={2.5} />
                         </div>
-                        
-                        <div className="flex flex-col md:flex-row justify-between items-start gap-12 relative z-10">
-                            <div>
-                                <div className="flex items-center gap-4 mb-8">
-                                    <div className="w-16 h-16 bg-[#0051d9] text-white rounded-[24px] flex items-center justify-center font-black text-2xl shadow-xl shadow-blue-100">
-                                        AS
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="text-lg font-black text-text-main tracking-tight uppercase">Invoice #{invoice.invoice_no}</h1>
+                                <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${invoice.status === 'PAID' ? 'bg-success-container text-success' : 'bg-warning-container text-warning'}`}>
+                                    {invoice.status}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-[11px] font-bold text-text-sub opacity-60">
+                                <span className="flex items-center gap-1.5"><User size={12}/> {invoice.patient_name}</span>
+                                <span className="flex items-center gap-1.5"><Calendar size={12}/> {formatDate(invoice.created_at)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 relative z-10">
+                       <button onClick={() => navigate(-1)} className="p-2.5 bg-surface-variant hover:bg-surface-variant/80 text-text-main rounded-xl transition-all" title="Back">
+                           <ArrowLeft size={18} />
+                       </button>
+                       <button className="h-10 px-4 bg-primary text-on-primary rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/10 hover:brightness-110 transition-all flex items-center gap-2">
+                           <Sparkles size={14} /> Process Action
+                       </button>
+                    </div>
+
+                    {/* Subtle AI Backdrop */}
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none">
+                        <Building2 size={160} />
+                    </div>
+                </div>
+
+                {/* 📊 GRID: High-Density Telemetry */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-[14px]">
+                    
+                    {/* LEFT: Financial Summary Shard */}
+                    <div className="lg:col-span-4 flex flex-col gap-[14px]">
+                        <div className="widget p-6 bg-gradient-to-br from-white to-primary/5 border-primary/10">
+                            <div className="eyebrow mb-6">
+                                <div className="eyebrow-dot bg-primary" />
+                                Fiscal Summary
+                            </div>
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="text-[10px] font-black text-text-sub uppercase tracking-widest mb-1 opacity-50">Total Document Value</div>
+                                    <div className="text-3xl font-black text-text-main tracking-tighter">
+                                        <span className="text-[14px] font-bold mr-1.5 opacity-30">Rs</span>
+                                        {parseFloat(invoice.total_amount).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-6 bg-surface-variant/30 p-4 rounded-2xl border border-outline-variant/30">
+                                    <div>
+                                        <div className="text-[9px] font-black text-text-sub uppercase tracking-widest mb-1 opacity-50">Paid flow</div>
+                                        <div className="text-lg font-black text-success tabular-nums">Rs. {parseFloat(invoice.paid_amount || 0).toLocaleString()}</div>
                                     </div>
                                     <div>
-                                        <h1 className="text-2xl font-black text-slate-900 leading-none">Al-Shifaa Institutional</h1>
-                                        <p className="text-[10px] font-black text-[#0051d9] uppercase tracking-[0.2em] mt-2">Clinical Healthcare Shard</p>
+                                        <div className="text-[9px] font-black text-text-sub uppercase tracking-widest mb-1 opacity-50">Outstanding</div>
+                                        <div className="text-lg font-black text-error tabular-nums">Rs. {parseFloat(invoice.due_amount).toLocaleString()}</div>
                                     </div>
                                 </div>
-                                <div className="space-y-1.5 grayscale opacity-60">
-                                    <p className="text-[12px] font-bold flex items-center gap-3"><MapPin size={12} /> Institutional Square, Sector G, Islamabad</p>
-                                    <p className="text-[12px] font-bold flex items-center gap-3"><Phone size={12} /> +92 (51) 9200-EMR</p>
-                                    <p className="text-[12px] font-bold flex items-center gap-3"><Globe size={12} /> clinical.alshifaa.org</p>
+                                <div className="flex items-center gap-2 text-[10px] font-black text-text-sub uppercase tracking-widest opacity-40">
+                                    <Clock size={12}/> Due {invoice.due_date ? formatDate(invoice.due_date) : 'on receipt'}
                                 </div>
                             </div>
-                            
-                            <div className="text-left md:text-right">
-                                <h2 className="text-5xl font-black text-slate-800 tracking-tighter mb-4">INVOICE</h2>
-                                <div className="space-y-1">
-                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Document Registry</p>
-                                    <p className="text-xl font-black text-slate-900">#{invoice.invoice_no}</p>
-                                    <div className="pt-4 flex md:justify-end gap-3">
-                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${invoice.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                                            {invoice.status === 'PAID' ? 'Ledger Settled' : 'Awaiting Payment'}
-                                        </span>
+                        </div>
+
+                        {/* Patient Intel Small Card */}
+                        <div className="widget p-5 flex-row items-center gap-4 hover:shadow-lg transition-all cursor-pointer" onClick={() => navigate(`/admin/patients/${invoice.patient}`)}>
+                            <div className="w-12 h-12 rounded-[18px] bg-surface-variant text-primary flex items-center justify-center text-xl font-black shadow-sm flex-shrink-0">
+                                {invoice.patient_name?.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-[13px] font-black text-text-main truncate uppercase tracking-tight">{invoice.patient_name}</div>
+                                <div className="text-[10px] font-bold text-text-sub opacity-50 uppercase tracking-widest mt-0.5">PID-#{invoice.patient_details?.mrn || 'EXT'}</div>
+                            </div>
+                            <ChevronRight size={16} className="text-outline" />
+                        </div>
+
+                        {/* Quick Actions List */}
+                        <div className="widget p-3 flex flex-col gap-1">
+                            {[
+                                { label: 'Print Invoice', icon: Printer, color: 'text-primary' },
+                                { label: 'Download PDF', icon: Download, color: 'text-success' },
+                                { label: 'Send via Mail', icon: Mail, color: 'text-info' },
+                            ].map((action, i) => (
+                                <button key={i} className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-surface-variant transition-all text-left group">
+                                    <div className={`w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform`}>
+                                        <action.icon size={16} />
                                     </div>
-                                </div>
-                            </div>
+                                    <span className="text-[11px] font-black text-text-main uppercase tracking-widest">{action.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Bill To Shard */}
-                    <div className="bg-slate-50/50 px-12 md:px-16 py-12 grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Recipient Identity</span>
-                            <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-[#0051d9] font-black text-xl shadow-sm">
-                                    {invoice.patient_name?.charAt(0).toUpperCase()}
+                    {/* RIGHT: Main Ledger Matrix */}
+                    <div className="lg:col-span-8 flex flex-col gap-[14px]">
+                        <div className="widget flex-1 flex flex-col overflow-hidden min-h-[450px]">
+                            {/* Matrix Header */}
+                            <div className="px-6 h-14 border-b border-outline-variant/30 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-20">
+                                <div className="flex gap-8 h-full">
+                                    {['LEGER', 'PAYMENTS', 'RECORDS'].map(tab => (
+                                        <button 
+                                            key={tab} 
+                                            onClick={() => setActiveTab(tab)}
+                                            className={`relative h-full text-[10px] font-black uppercase tracking-[0.2em] transition-all
+                                                ${activeTab === tab ? 'text-primary' : 'text-text-sub opacity-40 hover:opacity-100'}
+                                            `}
+                                        >
+                                            {tab}
+                                            {activeTab === tab && (
+                                                <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+                                            )}
+                                        </button>
+                                    ))}
                                 </div>
-                                <div>
-                                    <p className="text-lg font-black text-slate-900 tracking-tight">{invoice.patient_name}</p>
-                                    <p className="text-[11px] font-black text-[#0051d9] uppercase tracking-widest mt-1">PID-#{invoice.patient_details?.mrn || 'EXT-IDX'}</p>
-                                    <p className="text-[12px] font-bold text-slate-500 mt-1">{invoice.patient_details?.address || 'Medical Ward Allocation'}</p>
-                                </div>
+                                <div className="text-[9px] font-black text-text-sub opacity-30 uppercase tracking-[0.3em]">Institutional Matrix V2.0</div>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-8 md:pl-12">
-                            <div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Issue Shard</span>
-                                <p className="text-[13px] font-black text-slate-900">{new Date(invoice.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                            </div>
-                            <div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Payment Channel</span>
-                                <p className="text-[13px] font-black text-slate-900 capitalize">{invoice.payment_method || 'Awaiting Selection'}</p>
-                            </div>
-                            <div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Due Date</span>
-                                <p className="text-[13px] font-black text-red-500">{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en-GB') : 'Immediate Settlement'}</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Itemized Clinical Matrix */}
-                    <div className="px-12 md:px-16 py-12">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b-2 border-slate-900/5">
-                                    <th className="py-6 px-4 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Clinical Service / Shard</th>
-                                    <th className="py-6 px-4 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Protocol Type</th>
-                                    <th className="py-6 px-4 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Qty</th>
-                                    <th className="py-6 px-4 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Aggregate (Rs.)</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                                {invoice.items?.map((item, idx) => (
-                                    <tr key={idx} className="group">
-                                        <td className="py-8 px-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-[#0051d9] group-hover:bg-blue-50 transition-all">
-                                                    <Hash size={16} />
+                            <div className="flex-1 overflow-auto">
+                                <div className="p-0">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={activeTab}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.15 }}
+                                        >
+                                            {activeTab === 'LEGER' ? (
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead className="bg-surface-variant/10 sticky top-0 z-10 border-b border-outline-variant/20">
+                                                        <tr>
+                                                            <th className="py-4 px-6 text-[9px] font-black uppercase tracking-[0.2em] text-text-sub opacity-60">Service Node</th>
+                                                            <th className="py-4 px-6 text-[9px] font-black uppercase tracking-[0.2em] text-text-sub opacity-60 text-center">Type</th>
+                                                            <th className="py-4 px-6 text-[9px] font-black uppercase tracking-[0.2em] text-text-sub opacity-60 text-center">Qty</th>
+                                                            <th className="py-4 px-6 text-[9px] font-black uppercase tracking-[0.2em] text-text-sub opacity-60 text-right">Aggregate (Rs)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-outline-variant/10">
+                                                        {invoice.items?.map((item, idx) => (
+                                                            <tr key={idx} className="hover:bg-primary/[0.02] transition-colors group">
+                                                                <td className="py-4 px-6">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-8 h-8 rounded-lg bg-surface-variant/30 flex items-center justify-center text-text-sub group-hover:text-primary transition-colors">
+                                                                            <Hash size={14} />
+                                                                        </div>
+                                                                        <span className="text-[13px] font-black text-text-main tracking-tight uppercase">{item.name}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="py-4 px-6 text-center">
+                                                                    <span className="px-2.5 py-0.5 rounded-md bg-surface-variant/50 text-[9px] font-black text-text-sub uppercase tracking-wider">
+                                                                        {item.item_type || 'SVC'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="py-4 px-6 text-center text-[13px] font-bold text-text-sub opacity-70 tabular-nums">{item.quantity}</td>
+                                                                <td className="py-4 px-6 text-right text-[14px] font-black text-text-main tracking-tight tabular-nums">{parseFloat(item.subtotal).toLocaleString()}</td>
+                                                            </tr>
+                                                        ))}
+                                                        {/* Total Row */}
+                                                        <tr className="bg-surface-variant/5">
+                                                            <td colSpan={3} className="py-6 px-6 text-right text-[10px] font-black uppercase tracking-widest text-text-sub">Subtotal Aggregate</td>
+                                                            <td className="py-6 px-6 text-right text-base font-black text-text-main tabular-nums">Rs. {parseFloat(invoice.total_amount).toLocaleString()}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center">
+                                                     <Landmark size={48} className="mb-4" />
+                                                     <div className="text-[11px] font-black uppercase tracking-widest">Shard Empty</div>
+                                                     <p className="text-[9px] font-bold mt-1">No secondary records found in this context.</p>
                                                 </div>
-                                                <span className="text-[14px] font-black text-slate-800 tracking-tight">{item.name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="py-8 px-4 text-center">
-                                            <span className="text-[10px] font-black uppercase text-slate-400 bg-slate-100 px-3 py-1 rounded-lg">
-                                                {item.item_type || 'Procedure'}
-                                            </span>
-                                        </td>
-                                        <td className="py-8 px-4 text-center text-[14px] font-black text-slate-500">{item.quantity}</td>
-                                        <td className="py-8 px-4 text-right text-[15px] font-black text-slate-900 tracking-tight">Rs. {parseFloat(item.subtotal).toLocaleString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Financial Footer Aggregation */}
-                    <div className="bg-slate-900 p-12 md:p-16 flex flex-col md:flex-row justify-between gap-12 text-white relative overflow-hidden">
-                        <div className="absolute top-0 left-0 p-16 opacity-5">
-                            <ShieldCheck size={180} />
-                        </div>
-                        
-                        <div className="relative z-10 flex flex-col justify-end">
-                            <div className="flex items-center gap-3 mb-6">
-                                <CheckCheck size={24} className="text-emerald-400" />
-                                <h3 className="text-lg font-black uppercase tracking-widest">Digital Verification Shard</h3>
-                            </div>
-                            <p className="text-[11px] font-bold text-slate-400 max-w-sm leading-relaxed uppercase tracking-widest opacity-60">
-                                THIS IS A COMPUTER GENERATED FISCAL DOCUMENT. INSTITUTIONAL STAMP AND DIGITAL SIGNATURE ARE ENCRYPTED IN THE QR SHARD.
-                            </p>
-                        </div>
-                        
-                        <div className="relative z-10 space-y-4 md:w-96">
-                            <div className="flex justify-between items-center opacity-40">
-                                <span className="text-[11px] font-black uppercase tracking-widest">Ledger Subtotal</span>
-                                <span className="text-[14px] font-black">Rs. {invoice.items?.reduce((a, b) => a + parseFloat(b.subtotal), 0).toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center opacity-30 border-b border-white/10 pb-4">
-                                <span className="text-[11px] font-black uppercase tracking-widest">Incident Tax (5%)</span>
-                                <span className="text-[14px] font-black">+ Rs. {invoice.tax_amount?.toLocaleString() || '0'}</span>
-                            </div>
-                            <div className="flex justify-between items-end pt-4">
-                                <div className="flex flex-col">
-                                   <span className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-400 mb-2">Institutional Total Payable</span>
-                                   <span className="text-5xl font-black tracking-tighter leading-none">
-                                      {parseFloat(invoice.total_amount).toLocaleString()}
-                                   </span>
+                                            )}
+                                        </motion.div>
+                                    </AnimatePresence>
                                 </div>
-                                <span className="text-2xl font-black text-white/20 mb-1">PKR</span>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Final Stamp Section */}
-                    <div className="p-12 border-t border-slate-100 flex justify-between items-center text-slate-300">
-                        <div className="flex flex-col items-center">
-                            <div className="w-20 h-20 border-4 border-slate-50 rounded-full flex items-center justify-center mb-2 opacity-50">
-                                <ShieldCheck size={40} />
+                            {/* Ledger Footnote */}
+                            <div className="h-10 px-6 border-t border-outline-variant/30 flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-text-sub opacity-40">
+                                <div className="flex items-center gap-4">
+                                    <span>Sync: Stable</span>
+                                    <span>Hash: {String(invoice.id).padStart(12, '0')}</span>
+                                </div>
+                                <span>Cite-PK Institutional Ledger Matrix</span>
                             </div>
-                            <span className="text-[8px] font-black uppercase tracking-widest">Auth Shard</span>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1">System Audit Path</p>
-                            <p className="text-[8px] font-mono uppercase opacity-40">{id}</p>
                         </div>
                     </div>
-                </motion.div>
-                
-                {/* Secondary Actions */}
-                <div className="mt-8 flex items-center justify-center gap-8 print:hidden">
-                    <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#0051d9] transition-colors group">
-                        <Mail size={16} className="group-hover:-translate-y-1 transition-transform" />
-                        Broadcast via Email
-                    </button>
-                    <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#0051d9] transition-colors group">
-                        <ShieldCheck size={16} className="group-hover:scale-110 transition-transform" />
-                        Verify Hash Shard
-                    </button>
                 </div>
-            </div>
+            </main>
         </AdminPage>
     );
 }

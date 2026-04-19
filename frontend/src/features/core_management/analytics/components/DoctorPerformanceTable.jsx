@@ -1,160 +1,116 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Star, UserX } from 'lucide-react';
-import { Card, Button, Badge } from '@/components/primitives';
+import React, { useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Star, User, TrendingUp, ChevronRight, Activity } from 'lucide-react';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import { TableSkeleton } from './AnalyticsSkeleton';
 
-export default function DoctorPerformanceTable() {
-  const { data, isLoading } = useAnalyticsData();
-  const [sortConfig, setSortConfig] = useState({ key: 'appt', direction: 'desc' });
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 5;
+/**
+ * 🩺 DoctorPerformanceCard (Personnel Intelligence Shard)
+ * Re-engineered from a rigid table to a modern, compact list-based investigative surface.
+ * Aligns with the Dashboard's "Appointment Widget" design language.
+ */
+const DoctorPerformanceTable = ({ data, isLoading }) => {
+    const rawData = data || [];
 
-  const rawData = data?.doctorPerformance || [];
+    const AVATAR_GRADS = [
+        'linear-gradient(135deg, #1558D6 0%, #4285F4 100%)',
+        'linear-gradient(135deg, #1AA361 0%, #34A853 100%)',
+        'linear-gradient(135deg, #D93025 0%, #EA4335 100%)',
+        'linear-gradient(135deg, #7A4F00 0%, #FBBC04 100%)',
+        'linear-gradient(135deg, #6200EE 0%, #BB86FC 100%)',
+    ];
 
-  const sortedData = useMemo(() => {
-    let sortableItems = [...rawData];
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [rawData, sortConfig]);
+    const sortedData = useMemo(() => {
+        return [...rawData].sort((a, b) => b.caseload - a.caseload).slice(0, 5);
+    }, [rawData]);
 
-  const paginatedData = sortedData.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+    if (isLoading) return <TableSkeleton />;
 
-  const requestSort = (key) => {
-    let direction = 'desc';
-    if (sortConfig.key === key && sortConfig.direction === 'desc') {
-      direction = 'asc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const getStatusVariant = (status) => {
-    switch (status) {
-      case 'Active': return 'tonal';
-      case 'On Call': return 'tonal';
-      case 'On Leave': return 'outlined';
-      default: return 'tonal';
-    }
-  };
-
-  if (isLoading) return <TableSkeleton />;
-
-  return (
-    <Card className="p-0 overflow-hidden bg-surface-bright border border-outline rounded-3xl h-full flex flex-col transition-colors">
-      <div className="p-5 md:p-8 border-b border-outline/30 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface/10">
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-text-sub uppercase tracking-widest">Intelligence Registry</span>
-          <h3 className="text-xl font-bold text-text-main leading-tight transition-colors">Practitioner Performance</h3>
-        </div>
-        <div className="flex items-center gap-2">
-           <Button variant="outlined" size="sm" className="flex-1 sm:flex-none">Export</Button>
-           <Button variant="filled" size="sm" className="flex-1 sm:flex-none">Manage</Button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-x-auto min-h-[300px]">
-        {rawData.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center p-12 md:p-20 gap-4 opacity-40 text-center">
-            <UserX size={48} className="text-text-sub" />
-            <div>
-                <p className="text-sm font-bold text-text-main">No practitioners found</p>
-                <p className="text-[11px] font-medium text-text-sub">No data available for the selected selection</p>
+    return (
+        <div className="widget" style={{ 
+            height: '380px', 
+            background: 'linear-gradient(135deg, #ffffff 0%, #fcfdff 100%)',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden'
+        }}>
+            <div className="widget-header" style={{ padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                <div className="flex-1">
+                    <div className="eyebrow">
+                        <div className="eyebrow-dot" style={{ background: 'var(--m3-success)' }} />
+                        Personnel Intelligence
+                    </div>
+                    <div className="widget-title" style={{ marginTop: 2, fontSize: 16, letterSpacing: '-0.02em', fontWeight: 700 }}>Practitioner High-Flyers</div>
+                </div>
+                <button className="p-2 rounded-xl bg-success/5 text-success hover:bg-success/10 transition-all">
+                    <Activity size={16} />
+                </button>
             </div>
-          </div>
-        ) : (
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-surface/50 border-b border-outline/30">
-              <tr>
-                {[
-                  { label: 'Practitioner', key: 'name', hideOn: '' },
-                  { label: 'Appointments', key: 'appt', hideOn: 'hidden sm:table-cell' },
-                  { label: 'Revenue (PKR)', key: 'revenue', hideOn: 'hidden md:table-cell' },
-                  { label: 'Rating', key: 'rating', hideOn: 'hidden lg:table-cell' },
-                  { label: 'Status', key: 'status', hideOn: '' }
-                ].map((column) => (
-                  <th 
-                    key={column.key} 
-                    onClick={() => requestSort(column.key)}
-                    className={`px-5 md:px-8 py-5 text-[10px] font-black uppercase tracking-widest text-text-sub cursor-pointer hover:text-primary transition-colors group whitespace-nowrap ${column.hideOn}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {column.label}
-                      <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ChevronUp size={10} className={sortConfig.key === column.key && sortConfig.direction === 'asc' ? 'text-primary' : ''} />
-                        <ChevronDown size={10} className={sortConfig.key === column.key && sortConfig.direction === 'desc' ? 'text-primary' : ''} />
-                      </div>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline/20">
-              {paginatedData.map((doc) => (
-                <tr key={doc.id} className="hover:bg-surface/50 transition-colors group">
-                  <td className="px-5 md:px-8 py-5 text-sm font-bold text-text-main whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-surface border border-outline/30 flex items-center justify-center text-[10px] font-black text-text-sub transition-colors">
-                            {doc.name.charAt(0)}
-                        </div>
-                        {doc.name}
-                    </div>
-                  </td>
-                  <td className="px-5 md:px-8 py-5 text-sm font-medium text-text-sub hidden sm:table-cell uppercase tracking-tight">{doc.appt}</td>
-                  <td className="px-5 md:px-8 py-5 text-sm font-bold text-text-main whitespace-nowrap hidden md:table-cell">
-                    <span className="text-text-sub font-medium mr-1 text-[10px] opacity-40">PKR</span>
-                    {doc.revenue.toLocaleString()}
-                  </td>
-                  <td className="px-5 md:px-8 py-5 hidden lg:table-cell">
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-warning/10 rounded-lg w-fit border border-warning/20 transition-colors">
-                      <Star size={11} className="fill-warning text-warning" />
-                      <span className="text-[11px] font-black text-warning">{doc.rating}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 md:px-8 py-5">
-                    <Badge 
-                      variant={getStatusVariant(doc.status)} 
-                      className={`${doc.status === 'Active' ? 'bg-success/10 text-success border-success/20' : doc.status === 'On Leave' ? 'bg-warning/10 text-warning border-warning/20' : 'bg-surface text-text-sub border-outline'}`}
-                    >
-                      {doc.status}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
 
-      {/* 🧾 Pagination Strip */}
-      <div className="mt-auto px-5 md:px-8 py-4 md:py-5 border-t border-outline/30 flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface/5 rounded-b-2xl transition-colors">
-        <span className="text-[11px] font-medium text-text-sub transition-colors">
-          Showing <span className="text-text-main font-bold">{Math.min(rowsPerPage, paginatedData.length)}</span> of <span className="text-text-main font-bold">{sortedData.length}</span> practitioners
-        </span>
-        <div className="flex items-center gap-2">
-          <button 
-             onClick={() => setPage(p => Math.max(1, p - 1))}
-             disabled={page === 1}
-             className="p-2 rounded-lg border border-outline hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-all text-text-main"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="text-[11px] font-black text-text-main mx-2 transition-colors">Page {page} of {totalPages}</span>
-          <button 
-             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-             disabled={page === totalPages}
-             className="p-2 rounded-lg border border-outline hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-all text-text-main"
-          >
-            <ChevronRight size={16} />
-          </button>
+            <div className="flex-1 overflow-hidden">
+                <div className="h-full overflow-y-auto custom-scrollbar px-3 py-2">
+                    <AnimatePresence mode="popLayout">
+                        {sortedData.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center opacity-30 text-center py-10">
+                                <User size={32} strokeWidth={1.5} />
+                                <span className="text-[11px] font-bold mt-2 uppercase tracking-widest">No Active Feedback</span>
+                            </div>
+                        ) : (
+                            <div className="space-y-1">
+                                {sortedData.map((doc, i) => (
+                                    <motion.div
+                                        key={`doc-${doc.id}-${i}`}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="group p-3 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-success/5 transition-all cursor-pointer border border-transparent hover:border-outline-variant/20 flex items-center gap-4"
+                                    >
+                                        {/* Avatar Shard */}
+                                        <div 
+                                            className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-[12px] shadow-sm flex-shrink-0"
+                                            style={{ background: AVATAR_GRADS[i % 5] }}
+                                        >
+                                            {doc.doctor?.charAt(0)}
+                                        </div>
+
+                                        {/* Identity Cluster */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                                                <span className="text-[13px] font-bold text-text-main group-hover:text-primary transition-colors">{doc.doctor}</span>
+                                                {doc.rating >= 4.8 && <Star size={10} className="fill-warning text-warning" />}
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-[9px] font-bold text-text-sub opacity-30 uppercase tracking-tighter">Clinical Efficiency</span>
+                                                <div className="w-1 h-1 rounded-full bg-outline-variant/40" />
+                                                <span className="text-[10px] font-bold text-success tabular-nums">{doc.rating} Score</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Stats Shard */}
+                                        <div className="text-right flex-shrink-0 flex items-center gap-4">
+                                            <div className="flex flex-col items-end px-2 border-r border-outline-variant/10">
+                                                <span className="text-[14px] font-bold text-text-main tabular-nums tracking-tighter">{doc.caseload}</span>
+                                                <span className="text-[8px] font-bold text-text-sub opacity-20 uppercase">Units</span>
+                                            </div>
+                                            <ChevronRight size={14} className="text-text-sub opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0" />
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            <div className="p-3 px-6 border-t border-outline-variant/30 flex justify-between items-center bg-surface-variant/10">
+                <div className="flex items-center gap-1.5 opacity-40 grayscale">
+                    <TrendingUp size={10} />
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-text-sub">Performance Audit Nominal</span>
+                </div>
+                <button className="text-[9px] font-bold text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+                    All Nodes <ChevronRight size={10} />
+                </button>
+            </div>
         </div>
-      </div>
-    </Card>
-  );
-}
+    );
+};
+
+export default DoctorPerformanceTable;

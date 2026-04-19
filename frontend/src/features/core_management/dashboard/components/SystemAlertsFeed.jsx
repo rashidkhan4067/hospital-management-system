@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, ShieldAlert, AlertCircle, Info, CheckCircle2 } from 'lucide-react';
 import { apiClient } from '@/core/api';
 import { useDataStore } from '@/core/store/useDataStore';
+import { useUIStore } from '@/core/store/useUIStore';
 
 const SEV = {
     Critical: { Icon: ShieldAlert, color: 'var(--m3-error)',   bg: 'var(--m3-error-container)'   },
@@ -112,6 +113,8 @@ const SystemAlertsFeed = () => {
                             <AnimatePresence mode="popLayout">
                                 {visible.map((alert) => {
                                     const S = SEV[alert.severity] || SEV.Info;
+                                    const openAlertDrawer = useUIStore.getState().openAlertDrawer;
+                                    
                                     return (
                                         <motion.div
                                             key={alert.id}
@@ -120,12 +123,22 @@ const SystemAlertsFeed = () => {
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, scale: 0.95 }}
                                             transition={{ duration: 0.2 }}
+                                            onClick={() => openAlertDrawer({
+                                                message: alert.message,
+                                                severity: alert.severity,
+                                                time: alert.time,
+                                                dept: alert.message?.split(':')?.[0] || 'Unknown',
+                                                source: 'Activity Feed Aggregate',
+                                                ward: 'Detected Zone'
+                                            })}
                                             style={{
                                                 display: 'flex',
                                                 gap: 12,
                                                 padding: '12px 0',
-                                                borderBottom: '1px solid var(--m3-outline-variant)'
+                                                borderBottom: '1px solid var(--m3-outline-variant)',
+                                                cursor: 'pointer'
                                             }}
+                                            className="hover:bg-surface-variant/20 transition-colors px-2 rounded-xl"
                                         >
                                             <div
                                                 style={{

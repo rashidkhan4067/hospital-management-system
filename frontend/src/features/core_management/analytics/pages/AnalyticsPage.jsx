@@ -1,84 +1,118 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminPage from '@/layouts/AdminPage';
-import { AnalyticsProvider } from '../context/AnalyticsContext';
-import { Skeleton } from '@/components/primitives';
+import DashboardToolbar from '../../dashboard/components/DashboardToolbar';
+import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import { useDataStore } from '@/core/store/useDataStore';
+import Loading from '@/components/composed/Loading';
 
-// Synchronous Components (Critical View)
-import AnalyticsPageHeader from '../components/AnalyticsPageHeader';
-import AnalyticsGrid from '../components/AnalyticsKpiGrid';
+// 🏗️ Analytical Intelligence Shards (Institutional Standarized)
+import ClinicalPulseChart from '../components/ClinicalPulseChart';
+import DepartmentMatrixCard from '../components/DepartmentMatrixCard';
+import DoctorPerformanceTable from '../components/DoctorPerformanceTable';
+import OperationsPulseCard from '../components/OperationsPulseCard';
+import DemographicDistributionCard from '../components/DemographicDistributionCard';
+import InsuranceVelocityCard from '../components/InsuranceVelocityCard';
+import WardCapacityWidget from '../components/WardCapacityWidget';
 
-// 🚀 Lazy Loaded Shards
-const RevenueAnalytics = lazy(() => import('../components/RevenueAnalytics'));
-const PatientGrowthChart = lazy(() => import('../components/PatientGrowthChart'));
-const DepartmentDistribution = lazy(() => import('../components/DepartmentDistribution'));
-const AnalyticalRegistry = lazy(() => import('../components/AnalyticalRegistry'));
+import InstitutionalAlertStream from '../components/InstitutionalAlertStream';
+import AnalyticalRegistry from '../components/AnalyticalRegistry';
+import AnalyticsKpiGrid from '../components/AnalyticsKpiGrid';
 
-export default function AnalyticsPage() {
-  const [searchParams] = useSearchParams();
-  const syncFilters = useDataStore(state => state.syncFiltersFromUrl);
-  const focusType = searchParams.get('type');
+// 🏛️ Advanced Operational Shards (Utility-First)
+import AdmissionChannelShard from '../components/AdmissionChannelShard';
+import ClinicalQueueVelocity from '../components/ClinicalQueueVelocity';
+import CriticalResourceVault from '../components/CriticalResourceVault';
 
-  // 🛰️ QA Protocol: Deep-Link Sync
-  // Ensures that incoming URL context (range, unit, doctor) hydrates the global store.
-  useEffect(() => {
-    if (searchParams.size > 0) {
-      syncFilters(searchParams);
-    }
-  }, [searchParams, syncFilters]);
+/**
+ * 📈 AnalyticsPage (Clinical Business Intelligence hub)
+ * Re-engineered with absolute design parity to the core dashboard.
+ * Expanded with a multi-dimensional, properly adjusted compact investigative matrix.
+ */
+const AnalyticsPage = () => {
+    const [searchParams] = useSearchParams();
+    const setFilters = useDataStore(s => s.setFilters);
+    const { data, isLoading } = useAnalyticsData();
 
-  // 🏥 Context Orientation Effect
-  useEffect(() => {
-    if (focusType) {
-      const timer = setTimeout(() => {
-        const targetId = `shifaa-${focusType}-node`;
-        const element = document.getElementById(targetId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          element.classList.add('ring-4', 'ring-primary/20', 'transition-all');
-          setTimeout(() => element.classList.remove('ring-4', 'ring-primary/20'), 3000);
-        }
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [focusType]);
+    useEffect(() => {
+        const query = searchParams.get('q') || '';
+        setFilters({ searchQuery: query });
+    }, [searchParams, setFilters]);
 
-  const ShardFallback = () => (
-    <div className="w-full h-80 bg-surface-bright border border-outline/10 rounded-[32px] p-8 flex flex-col gap-4">
-      <Skeleton className="h-12 w-48 rounded-full" />
-      <Skeleton className="flex-1 w-full rounded-2xl" />
-    </div>
-  );
+    return (
+        <AdminPage>
+            <main className="flex flex-col gap-6 p-6 max-w-[1600px] mx-auto w-full font-sans animate-in fade-in duration-700">
+                
+                <section aria-label="Analytical Toolbar"><DashboardToolbar /></section>
 
-  return (
-    <AnalyticsProvider>
-      <AdminPage className="bg-[#FEF7FF]/50 min-h-screen">
-        <div className="max-w-[1280px] mx-auto p-8 flex flex-col gap-12 sm:gap-16">
-          <AnalyticsPageHeader />
-          <div id="shifaa-meta-node">
-            <AnalyticsGrid />
-          </div>
-          <Suspense fallback={<ShardFallback />}>
-            <section className="grid grid-cols-12 gap-8 items-start">
-              <div id="shifaa-growth-node" className="col-span-12 lg:col-span-8 rounded-[32px] overflow-hidden">
-                <PatientGrowthChart />
-              </div>
-              <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
-                <div id="shifaa-finance-node" className="rounded-[32px] overflow-hidden">
-                  <RevenueAnalytics />
-                </div>
-                <div id="shifaa-distribution-node" className="rounded-[32px] overflow-hidden">
-                  <DepartmentDistribution />
-                </div>
-              </div>
-            </section>
-            <section id="shifaa-schedule-node" className="col-span-12 pb-12 rounded-[32px] overflow-hidden">
-              <AnalyticalRegistry />
-            </section>
-          </Suspense>
-        </div>
-      </AdminPage>
-    </AnalyticsProvider>
-  );
-}
+                {/* 📊 KPI Registry */}
+                <AnalyticsKpiGrid isLoading={isLoading} />
+
+                {/* 📈 Row 4: Primary Strategic Analytics & Live Shards */}
+                <section className="grid grid-cols-1 xl:grid-cols-12 gap-[14px]" aria-label="Strategic Matrix">
+                    {/* Primary Pulse Chart (Strategic View) */}
+                    <div className="xl:col-span-8">
+                        <ClinicalPulseChart data={data?.pulseSeries} isLoading={isLoading} />
+                    </div>
+
+                    {/* Operational Intelligence (Alert Feed) */}
+                    <div className="xl:col-span-4">
+                        <InstitutionalAlertStream data={data?.alerts} isLoading={isLoading} />
+                    </div>
+                </section>                {/* 📊 Row 5: Diagnostic Performance Trio */}
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]" aria-label="Diagnostic Metrics">
+                    <DemographicDistributionCard data={data?.demographics} isLoading={isLoading} />
+                    <InsuranceVelocityCard data={data?.insuranceVelocity} isLoading={isLoading} />
+                    <WardCapacityWidget data={data?.wardCapacity} isLoading={isLoading} />
+                </section>
+
+                {/* 🏷️ Row 6: Tactical Operational & Resource Shards */}
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]" aria-label="Operational Matrix">
+                    <AdmissionChannelShard data={data?.admissionChannels} isLoading={isLoading} />
+                    <ClinicalQueueVelocity data={data?.clinicalQueues} isLoading={isLoading} />
+                    <CriticalResourceVault data={data?.resourceVault} isLoading={isLoading} />
+                </section>
+
+                {/* ⚙️ Row 7: Operational Command Shard (Full Width) */}
+                <section aria-label="Operational Pulse Velocity">
+                    <OperationsPulseCard
+                        waitTimes={data?.waitTimes}
+                        inventory={data?.inventoryBurn}
+                        isLoading={isLoading}
+                    />
+                </section>
+
+                {/* 🩺 Row 8: Clinical Integrity & Personnel Matrix */}
+                <section className="grid grid-cols-1 xl:grid-cols-12 gap-[14px]" aria-label="Integrity Shards">
+                    {/* Clinical Integrity Efficiency Matrix */}
+                    <div className="xl:col-span-5">
+                        <DepartmentMatrixCard data={data?.deptPerformance} isLoading={isLoading} />
+                    </div>
+                    {/* Practitioner Efficiency Ledger */}
+                    <div className="xl:col-span-7">
+                        <DoctorPerformanceTable data={data?.practitionerScore || []} isLoading={isLoading} />
+                    </div>
+                </section>
+
+                {/* 📉 Row 9: The Data Root (Intelligence Ledger) */}
+                <section aria-label="Tactical Intelligence Registry">
+                    <AnalyticalRegistry data={data?.registryData} isLoading={isLoading} />
+                </section>
+
+                {/* 📟 Institutional Ledger Footnote */}
+                <footer className="mt-8 pt-8 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] font-bold text-text-sub opacity-30 uppercase tracking-[0.2em]">
+                    <div className="flex items-center gap-6">
+                        <span>Node: SITE-PK-ISL-BI-04</span>
+                        <span>Shard: ANALYTICS-PREDICTIVE-SYNC</span>
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <span>Last Intelligence Pulse: {new Date().toLocaleTimeString()}</span>
+                        <span>Cite-PK Enterprise Intelligence v5.24</span>
+                    </div>
+                </footer>
+            </main>
+        </AdminPage>
+    );
+};
+
+export default AnalyticsPage;

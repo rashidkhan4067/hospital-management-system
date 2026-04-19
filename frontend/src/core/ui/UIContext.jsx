@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useUIStore } from '@/core/store/useUIStore';
 
 const UIContext = createContext(null);
 
@@ -6,11 +7,17 @@ export const UIProvider = ({ children }) => {
   const [isSanaActive, setIsSanaActive] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   
-  // Persist Sidebar State
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem('sidebar_collapsed');
-    return saved ? JSON.parse(saved) : (window.innerWidth < 1280);
-  });
+  // 🛰️ Redirect Sidebar Logic to Central Store (Optimized Selectors)
+  // Use discrete selectors to ensure stability and prevent infinite re-renders.
+  const isSidebarExpanded = useUIStore(s => s.isSidebarExpanded);
+  const setSidebarExpanded = useUIStore(s => s.setSidebarExpanded);
+  const toggleSidebarCollapse = useUIStore(s => s.toggleSidebar);
+
+  // Derived state to maintain backward compatibility with legacy consumers
+  const isSidebarCollapsed = !isSidebarExpanded;
+  const setIsSidebarCollapsed = useCallback((collapsed) => {
+    setSidebarExpanded(!collapsed);
+  }, [setSidebarExpanded]);
 
   // 🎨 Material 3 Theme Management
   const [theme, setTheme] = useState(() => {
@@ -34,11 +41,6 @@ export const UIProvider = ({ children }) => {
     localStorage.setItem('shifaa_theme', theme);
   }, [theme]);
 
-  // Save Sidebar State
-  useEffect(() => {
-    localStorage.setItem('sidebar_collapsed', JSON.stringify(isSidebarCollapsed));
-  }, [isSidebarCollapsed]);
-
   // Optimized Responsive Listener (Throttled Discrete State)
   useEffect(() => {
     let timeoutId = null;
@@ -51,9 +53,10 @@ export const UIProvider = ({ children }) => {
         
         setIsMobile(mobile);
         
-        // Auto-collapse on smaller screens, expand on large
-        if (width < 1280 && width >= 1024) setIsSidebarCollapsed(true);
-        else if (width >= 1280) setIsSidebarCollapsed(false);
+        // Let the central store manage responsive breakpoints for consistency
+        const { setSidebarExpanded } = useUIStore.getState();
+        if (width < 1280 && width >= 1024) setSidebarExpanded(false);
+        else if (width >= 1280) setSidebarExpanded(true);
         
         if (width >= 1024) setIsMobileMenuOpen(false); 
         
@@ -69,7 +72,6 @@ export const UIProvider = ({ children }) => {
   }, []);
 
   const toggleSana = useCallback(() => setIsSanaActive(prev => !prev), []);
-  const toggleSidebarCollapse = useCallback(() => setIsSidebarCollapsed(prev => !prev), []);
   const toggleMobileMenu = useCallback(() => setIsMobileMenuOpen(prev => !prev), []);
   
   const addNotification = useCallback((title, message = '', type = 'info') => {
@@ -109,10 +111,11 @@ export const UIProvider = ({ children }) => {
     isSanaActive, 
     isMobile, 
     isSidebarCollapsed, 
+    setIsSidebarCollapsed,
+    toggleSidebarCollapse,
     isMobileMenuOpen, 
     notifications, 
     toggleSana, 
-    toggleSidebarCollapse, 
     toggleMobileMenu, 
     addNotification, 
     removeNotification,

@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Clock } from 'lucide-react';
-import { apiClient } from '@/core/api';
-import { useDataStore } from '@/core/store/useDataStore';
+import { useDashboardStats } from '@/core/hooks/useDashboardStats';
 import { useNavigate }  from 'react-router-dom';
 
 const AVATAR_GRADS = [
@@ -30,60 +29,25 @@ const FALLBACK = [
 ];
 
 const RecentAdmissionsCard = () => {
-    const [patients,  setPatients]  = useState([]);
-    const [loading,   setLoading]   = useState(true);
-    const navigate    = useNavigate();
-    const filters     = useDataStore(s => s.filters);
-    const timerRef    = useRef(null);
+    const { admissions: rawPatients, loading } = useDashboardStats();
+    const navigate = useNavigate();
 
-    const load = useCallback(async (signal, isBackground = false) => {
-        if (!isBackground) setLoading(true);
-        try {
-            const res  = await apiClient.get('/patients/profiles/', {
-                signal,
-                params: { 
-                    limit: 10, 
-                    ordering: '-created_at',
-                },
-            });
-            const data = res.data?.results ?? res.data;
-            console.debug('[RecentAdmissions] raw data:', data);
-            if (Array.isArray(data) && data.length > 0) {
-                const mapped = data.map(p => {
-                    let safeTime = 'now';
-                    try {
-                        if (p.created_at) safeTime = new Date(p.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    } catch(err){}
-                    return {
-                        id: p.id,
-                        full_name: p.full_name || p.user_details?.full_name || 'Unknown Patient',
-                        ward: p.admissions?.[0]?.ward_details?.name || 'General OPD',
-                        type: p.is_admitted ? 'IPD' : 'OPD',
-                        time: safeTime
-                    };
-                });
-                setPatients(mapped.slice(0, 10));
-            } else {
-                setPatients(FALLBACK);
-            }
-        } catch (e) {
-            if (e.name !== 'CanceledError') {
-                console.error('Admissions load error:', e);
-                setPatients(FALLBACK);
-            }
-        } finally {
-            if (!isBackground) setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        const ctrl = new AbortController();
-        load(ctrl.signal);
-        timerRef.current = setInterval(() => {
-            const c = new AbortController(); load(c.signal, true);
-        }, 60_000);
-        return () => { ctrl.abort(); clearInterval(timerRef.current); };
-    }, [load]);
+    const patients = React.useMemo(() => {
+        if (!rawPatients || rawPatients.length === 0) return FALLBACK;
+        return rawPatients.map(p => {
+            let safeTime = 'now';
+            try {
+                if (p.created_at) safeTime = new Date(p.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } catch (err) { }
+            return {
+                id: p.id,
+                full_name: p.full_name || p.user_details?.full_name || 'Unknown Patient',
+                ward: p.admissions?.[0]?.ward_details?.name || 'General OPD',
+                type: p.is_admitted ? 'IPD' : 'OPD',
+                time: safeTime
+            };
+        }).slice(0, 5);
+    }, [rawPatients]);
 
     const ipdCount = patients.filter(p => p.type === 'IPD').length;
     const opdCount = patients.filter(p => p.type === 'OPD').length;

@@ -327,7 +327,7 @@ export default function PatientDetailPage() {
                                                             {inv.status || 'Pending'}
                                                         </span>
                                                     </div>
-                                                    <button className="ghost-link" onClick={() => openModal('INVOICE_REPORT', { invoiceId: inv.id })}>View →</button>
+                                                    <button className="ghost-link" onClick={() => navigate(`/admin/financials/invoices/${inv.id}`)}>View →</button>
                                                 </div>
                                             )) : (
                                                 <div style={{ padding: 40, textAlign: 'center', opacity: 0.5 }}>

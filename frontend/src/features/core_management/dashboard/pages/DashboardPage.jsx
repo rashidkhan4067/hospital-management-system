@@ -12,7 +12,7 @@ import RecentAdmissionsCard    from '../components/RecentAdmissionsCard';
 import RecentAppointmentsCard  from '../components/RecentAppointmentsCard';
 import DepartmentDistributionCard from '../components/DepartmentDistributionCard';
 import SystemAlertsFeed        from '../components/SystemAlertsFeed';
-import SystemAlertNode         from '../components/SystemAlertNode';
+import ClinicalAIAlerts        from '../components/DynamicIntelligenceBanner.jsx';
 import OperationalPulseCard    from '../components/OperationalPulseCard';
 import BedOccupancyCard        from '../components/BedOccupancyCard';
 import PharmacyStockCard       from '../components/PharmacyStockCard';
@@ -56,11 +56,8 @@ export default function DashboardPage() {
                     <QuickActions />
                 </div>
 
-                {/* ── Row 3: Priority alert (conditional) ── */}
-                <SystemAlertNode
-                    type="Critical"
-                    message="Blood Bank: Type O− stock below critical threshold (12 units). Emergency protocols activated — Ward 4 + ICU."
-                />
+                {/* ── Row 3: AI Intelligence Banner (Dynamic) ── */}
+                <ClinicalAIAlerts />
 
                 {/* ── Row 4: Toolbar ── */}
                 <section aria-label="Dashboard controls"><DashboardToolbar /></section>

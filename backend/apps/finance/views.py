@@ -27,6 +27,14 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'patient']
     search_fields = ['invoice_no', 'patient__user__full_name']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        status_in = self.request.query_params.get('status_in')
+        if status_in:
+            statuses = status_in.split(',')
+            queryset = queryset.filter(status__in=statuses)
+        return queryset
+
     @action(detail=True, methods=['post'], url_path='pay')
     def process_payment(self, request, pk=None):
         """

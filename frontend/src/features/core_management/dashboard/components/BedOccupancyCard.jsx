@@ -47,6 +47,7 @@ const BedOccupancyCard = () => {
             
             if (data?.ward_matrix) {
                 const mappedWards = data.ward_matrix.map(w => ({
+                    id:        w.id,
                     name:      w.name,
                     occupancy: Math.round((w.occupied / w.total) * 100) || 0,
                     total:     w.total,
@@ -57,14 +58,12 @@ const BedOccupancyCard = () => {
                 
                 if (data.overview) {
                     setSummary([
-                        { label: 'Aggregate Occ.', value: data.overview.occupancy_rate, note: 'Real-time' },
-                        { label: 'Available Beds', value: data.overview.available,      note: `${((data.overview.available/data.overview.total_beds)*100).toFixed(0)}% capacity` },
-                        { label: 'ICU Capacity',   value: data.overview.icu_stats,      note: 'Occupied/Total' },
-                        { label: 'Maintenance',    value: data.overview.maintenance,    note: 'In-service' },
+                        { label: 'Aggregate Occ.', value: data.overview.occupancy_rate, note: 'System Load' },
+                        { label: 'Available Beds', value: data.overview.available,      note: 'Vacant' },
+                        { label: 'ICU Pulse',      value: data.overview.icu_stats.split('/')[0], note: `Total ${data.overview.icu_stats.split('/')[1]}` },
+                        { label: 'Active Wards',   value: mappedWards.length,            note: 'Operational' },
                     ]);
                 }
-            } else {
-                setWards(WARDS);
             }
             setLastSync(new Date());
         } catch (e) {
@@ -81,100 +80,106 @@ const BedOccupancyCard = () => {
     }, [load]);
 
     return (
-        <div className="widget" style={{ height: '380px' }}>
-            <div className="widget-header" style={{ padding: '14px 16px 0', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                        width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-                        background: 'var(--m3-primary-container)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: 'var(--m3-primary)',
-                    }}>
-                        <Bed size={18} strokeWidth={2.5} />
+        <div className="widget group" style={{ height: '380px', background: 'var(--m3-surface-bright)', overflow: 'hidden' }}>
+            <div className="widget-header" style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+                <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+                        <Activity size={20} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <div className="eyebrow" style={{ marginBottom: 0 }}>Clinical Infrastructure</div>
-                        <div className="widget-title">Bed Occupancy</div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.12em] text-text-sub opacity-50">Clinical Infrastructure</div>
+                        <h3 className="text-sm font-black text-text-main tracking-tight">Bed Occupancy</h3>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button className="ghost-link" onClick={() => load()} disabled={loading} style={{ padding: 8 }}>
+                <div className="flex items-center gap-2">
+                    <button className="w-8 h-8 rounded-full hover:bg-surface-variant flex items-center justify-center transition-all text-text-sub" onClick={() => load()} disabled={loading}>
                         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     </button>
-                    <button className="ghost-link" onClick={() => navigate('/admin/clinical/wards')}>Detail →</button>
+                    <button 
+                        className="px-4 py-1.5 rounded-full bg-surface-variant/50 hover:bg-surface-variant text-[11px] font-black tracking-wide text-text-main transition-all"
+                        onClick={() => navigate('/admin/clinical/wards')}
+                    >
+                        Registry
+                    </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mx-4 my-3 py-3 border-y border-[var(--m3-outline-variant)] flex-shrink-0">
+            <div className="grid grid-cols-4 gap-4 px-5 py-4 my-2 border-y border-outline-variant/30 bg-surface-variant/10">
                 {summary.map(s => (
-                    <div key={s.label}>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--m3-text-main)' }}>{s.value}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--m3-text-sub)', opacity: 0.6, marginTop: 1 }}>{s.label}</div>
+                    <div key={s.label} className="flex flex-col">
+                        <span className="text-xs font-black text-text-main tabular-nums tracking-tighter">{s.value}</span>
+                        <span className="text-[9px] font-bold text-text-sub opacity-40 uppercase truncate">{s.label}</span>
                     </div>
                 ))}
             </div>
 
-            <div className="widget-body" style={{ padding: '0 16px 16px', minHeight: 0 }}>
-                <div className="widget-scroll-area">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+            <div className="widget-body" style={{ padding: '4px 20px 20px', minHeight: 0 }}>
+                <div className="widget-scroll-area pr-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {wards.map((ward, idx) => {
                             const meta = wardMeta(ward.occupancy);
                             const Icon = ward.Icon || Bed;
                             return (
                                 <motion.div
-                                    key={ward.name + idx}
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: idx * 0.04 }}
-                                    style={{
-                                        padding: 10, borderRadius: 12,
-                                        background: 'var(--m3-surface-bright)',
-                                        border: '1px solid var(--m3-outline-variant)',
-                                    }}
+                                    key={ward.id || ward.name + idx}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    className="p-3.5 rounded-2xl border border-outline-variant/50 hover:border-primary/30 hover:shadow-md transition-all cursor-crosshair bg-surface-bright relative group/node"
                                 >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                                        <div style={{ color: meta.color }}><Icon size={14} /></div>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--m3-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {ward.name}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-surface-variant/30" style={{ color: meta.color }}>
+                                                <Icon size={14} />
+                                            </div>
+                                            <span className="text-[12px] font-black text-text-main truncate tracking-tight">{ward.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            <span className="text-[10px] font-bold text-text-sub opacity-40 tabular-nums">{ward.occupied}/{ward.total}</span>
+                                            <div className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase text-white`} style={{ background: meta.color }}>{meta.label}</div>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 900, color: meta.color }}>{ward.occupancy}%</span>
-                                        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--m3-text-sub)' }}>{ward.occupied}/{ward.total}</span>
-                                    </div>
-                                    <div className="progress-track" style={{ background: 'var(--m3-surface-variant)' }}>
-                                        <div className="progress-fill" style={{ width: `${ward.occupancy}%`, background: meta.color }} />
+
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 h-1.5 rounded-full bg-surface-variant/40 overflow-hidden">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${ward.occupancy}%` }}
+                                                className="h-full rounded-full" 
+                                                style={{ background: meta.color }} 
+                                            />
+                                        </div>
+                                        <span className="text-xs font-black tabular-nums tracking-tighter" style={{ color: meta.color }}>{ward.occupancy}%</span>
                                     </div>
                                 </motion.div>
                             );
                         })}
                     </div>
 
-                    <div style={{ 
-                        marginTop: 14, padding: '10px 14px', 
-                        background: 'var(--m3-primary-container)', border: '1px solid var(--m3-primary)',
-                        borderRadius: 14, display: 'flex', alignItems: 'center', gap: 10,
-                        cursor: 'pointer'
-                    }} onClick={() => navigate('/admin/clinical/admissions')}>
-                        <div style={{ 
-                            width: 28, height: 28, borderRadius: '50%', 
-                            background: 'var(--m3-primary)', color: 'white',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            <UserPlus size={14} />
+                    <div 
+                        className="mt-6 p-4 rounded-[24px] bg-primary text-white flex items-center gap-4 cursor-pointer hover:shadow-lg active:scale-[0.98] transition-all group/cta relative overflow-hidden"
+                        onClick={() => navigate('/admin/clinical/admissions')}
+                    >
+                        {/* Pulse effect */}
+                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/cta:opacity-100 transition-opacity" />
+                        
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                            <UserPlus size={18} />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--m3-primary)' }}>New Patient Admission</div>
-                            <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--m3-primary)', opacity: 0.7 }}>Protocol ready for ER arrival</div>
+                        <div className="flex-1">
+                            <div className="text-[13px] font-black tracking-tight leading-none">Emergency Intake Hub</div>
+                            <div className="text-[10px] font-bold opacity-70 mt-1 uppercase tracking-wider">Deploy clinical protocol</div>
                         </div>
-                        <ArrowUpRight size={14} style={{ color: 'var(--m3-primary)' }} />
+                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover/cta:translate-x-1 transition-transform">
+                            <ArrowUpRight size={16} />
+                        </div>
                     </div>
                 </div>
             </div>
 
             {lastSync && (
-                <div style={{ padding: '6px 16px', fontSize: 8, fontWeight: 800, color: 'var(--m3-text-sub)', opacity: 0.4, textAlign: 'right', borderTop: '1px solid var(--m3-outline-variant)', flexShrink: 0 }}>
-                    LAST SYNC: {lastSync.toLocaleTimeString()}
+                <div className="px-5 py-2 text-[9px] font-black text-text-sub opacity-30 text-right border-t border-outline-variant/30 bg-surface-variant/5">
+                    CORE TELEMETRY SYNCED: {lastSync.toLocaleTimeString()}
                 </div>
             )}
         </div>

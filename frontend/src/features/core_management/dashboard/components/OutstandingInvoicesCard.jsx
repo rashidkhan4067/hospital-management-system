@@ -34,7 +34,7 @@ const OutstandingInvoicesCard = () => {
             const res  = await apiClient.get('/finance/invoices/', { 
                 signal, 
                 params: { 
-                    status_in: 'PARTIAL,UNPAID', 
+                    status_in: 'PARTIAL,DUE', 
                     limit: 10,
                     search: filters.searchQuery || undefined,
                     department: filters.department !== 'All' ? filters.department : undefined,
@@ -44,11 +44,12 @@ const OutstandingInvoicesCard = () => {
             
             if (Array.isArray(data) && data.length > 0) {
                 const mapped = data.map(item => ({
+                    pk:      item.id,
                     id:      item.invoice_no || `INV-${item.id}`,
                     patient: item.patient_name || 'Anonymous',
-                    amount:  parseFloat(item.total_amount) || 0,
-                    days:    item.due_date ? Math.max(0, Math.floor((new Date(item.due_date) - new Date()) / (1000*60*60*24))) : 0,
-                    status:  item.status === 'PARTIAL' ? 'Overdue' : 'Pending'
+                    amount:  parseFloat(item.due_amount) || 0,
+                    days:    item.created_at ? Math.floor((new Date() - new Date(item.created_at)) / (1000*60*60*24)) : 0,
+                    status:  item.status === 'PARTIAL' ? 'Overdue' : 'Critical'
                 }));
                 setInvoices(mapped);
             } else {
@@ -137,7 +138,7 @@ const OutstandingInvoicesCard = () => {
                                         >
                                             <button
                                                 className="widget-row-btn"
-                                                onClick={() => navigate(`/admin/finance/invoices/${inv.id}`)}
+                                                onClick={() => navigate(`/admin/financials/invoices/${inv.pk}`)}
                                                 style={{ borderBottom: '1px solid var(--m3-outline-variant)' }}
                                             >
                                                 <div style={{

@@ -56,6 +56,12 @@ export const useUIStore = create(
       setMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
       toggleMobileMenu: () => set((state) => ({ isMobileMenuOpen: !state.isMobileMenuOpen })),
 
+      // Priority alert System
+      isAlertDrawerOpen: false,
+      activeAlert: null,
+      openAlertDrawer: (alert) => set({ isAlertDrawerOpen: true, activeAlert: alert }),
+      closeAlertDrawer: () => set({ isAlertDrawerOpen: false }),
+
       // Notification Protocol
       addNotification: (title, message, type = 'info') => {
         const id = Date.now().toString();

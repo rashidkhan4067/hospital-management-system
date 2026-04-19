@@ -18,66 +18,55 @@ class WardViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """
-        📊 SYSTEM TELEMETRY: Ward & Bed Hub
+        📊 SYSTEM TELEMETRY: Ward & Bed Hub (Optimized Engine)
         Provides high-performance aggregation for the administrative dashboard.
         """
-        total_beds = Bed.objects.count()
-        occupied = Bed.objects.filter(status='occupied').count()
-        available = Bed.objects.filter(status='available').count()
-        maintenance = Bed.objects.filter(status='maintenance').count()
-        icu_total = Bed.objects.filter(bed_type='icu').count()
-        icu_occupied = Bed.objects.filter(bed_type='icu', status='occupied').count()
-
-        # Shard: Occupancy by Type
-        by_type = Bed.objects.values('bed_type').annotate(
+        # 🧪 Aggregate High-Level Metrics (Vectorized)
+        stats_agg = Bed.objects.aggregate(
             total=Count('id'),
-            occupied=Count('id', filter=Q(status='occupied'))
+            occupied=Count('id', filter=Q(status='occupied')),
+            available=Count('id', filter=Q(status='available')),
+            maintenance=Count('id', filter=Q(status='maintenance')),
+            icu_total=Count('id', filter=Q(bed_type='icu')),
+            icu_occupied=Count('id', filter=Q(bed_type='icu', status='occupied'))
         )
 
+        total_beds = stats_agg['total']
+        occupied = stats_agg['occupied']
         occupancy_rate = (occupied / total_beds * 100) if total_beds > 0 else 0
 
-        # Shard: Recently Admitted Patients
-        recent_admissions = Bed.objects.filter(status='occupied').select_related('patient', 'room__ward', 'patient__user')[:10]
-        admissions_data = [{
-            "id": b.id,
-            "patient_name": b.patient.user.get_full_name() if b.patient else "Anonymous Patient",
-            "patient_id": b.patient.id if b.patient else None,
-            "ward_name": b.room.ward.name if b.room and b.room.ward else "Unassigned",
-            "bed_number": b.bed_number,
-            "bed_type": b.bed_type,
-            "days": 3 
-        } for b in recent_admissions]
+        # 🏢 Matrix Pulse: Per-Ward Aggregation in a Single Batch
+        # We use a single query to get all ward stats by grouping
+        ward_stats = Bed.objects.values('room__ward__id', 'room__ward__name', 'room__ward__code').annotate(
+            total=Count('id'),
+            occupied=Count('id', filter=Q(status='occupied')),
+            available=Count('id', filter=Q(status='available')),
+            maintenance=Count('id', filter=Q(status='maintenance'))
+        ).order_by('room__ward__name')
 
-        # Detailed Ward Nodes (Traversing Rooms)
-        wards = Ward.objects.all()
         ward_matrix = []
-        for w in wards:
-            ward_beds = Bed.objects.filter(room__ward=w)
-            ward_matrix.append({
-                "id": w.id,
-                "name": w.name,
-                "code": w.code,
-                "floor": w.floor,
-                "total": ward_beds.count(),
-                "occupied": ward_beds.filter(status='occupied').count(),
-                "available": ward_beds.filter(status='available').count(),
-                "maintenance": ward_beds.filter(status='maintenance').count(),
-                "reserved": ward_beds.filter(status='reserved').count(),
-                "beds": [{ "id": b.id, "number": b.bed_number, "status": b.status, "type": b.bed_type } for b in ward_beds]
-            })
+        for w in ward_stats:
+            if w['room__ward__id']: # Filter out unassigned beds
+                ward_matrix.append({
+                    "id": w['room__ward__id'],
+                    "name": w['room__ward__name'],
+                    "code": w['room__ward__code'],
+                    "total": w['total'],
+                    "occupied": w['occupied'],
+                    "available": w['available'],
+                    "maintenance": w['maintenance']
+                })
 
         return response.Response({
             "overview": {
                 "total_beds": total_beds,
                 "occupied": occupied,
-                "available": available,
-                "maintenance": maintenance,
-                "icu_stats": f"{icu_occupied}/{icu_total}",
+                "available": stats_agg['available'],
+                "maintenance": stats_agg['maintenance'],
+                "icu_stats": f"{stats_agg['icu_occupied']}/{stats_agg['icu_total']}",
                 "occupancy_rate": f"{occupancy_rate:.1f}%"
             },
-            "by_type": list(by_type),
-            "ward_matrix": ward_matrix,
-            "admissions": admissions_data
+            "ward_matrix": ward_matrix
         })
 
 class RoomViewSet(viewsets.ModelViewSet):

@@ -40,6 +40,7 @@ class PatientProfile(models.Model):
         max_length=15,
         choices=ClinicalStatus.choices,
         default=ClinicalStatus.INCOMPLETE,
+        db_index=True,
     )
 
     blood_group = models.CharField(
@@ -78,10 +79,10 @@ class PatientProfile(models.Model):
     medical_history = models.TextField(_("chronic conditions"), blank=True, help_text=_("Diabetes, Hypertension, etc."))
     current_medications = models.TextField(_("current medications"), blank=True, help_text=_("List of active medications."))
     
-    is_admitted = models.BooleanField(_("currently admitted"), default=False)
+    is_admitted = models.BooleanField(_("currently admitted"), default=False, db_index=True)
     room_number = models.CharField(_("room number"), max_length=10, blank=True, null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):

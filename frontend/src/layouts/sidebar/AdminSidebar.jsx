@@ -60,11 +60,11 @@ const AdminSidebar = () => {
 
   // 🏥 Branding Cluster Component
   const BrandHead = () => (
-    <div className={`flex items-center gap-4 px-6 h-[72px] mb-4 border-b border-outline-variant/30 ${!isExpanded && !isMobile ? 'justify-center p-0' : ''}`}>
+    <div className={`flex items-center gap-4 px-6 h-[72px] mb-4 border-b border-outline-variant/30 ${!effectiveExpanded && !isMobile ? 'justify-center p-0' : ''}`}>
       <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white text-xl font-black shadow-lg shadow-primary/20 shrink-0">
         S
       </div>
-      {(isExpanded || isMobile) && (
+      {(effectiveExpanded || isMobile) && (
         <div className="flex flex-col">
           <span className="text-[18px] font-black text-primary tracking-tight leading-none uppercase">Shifaa</span>
           <span className="text-[10px] font-bold text-text-sub tracking-[0.2em] opacity-40 uppercase">Intelligence Matrix</span>
@@ -76,12 +76,12 @@ const AdminSidebar = () => {
   // 👤 Profile Command Cluster Component
   const ProfileCommand = () => {
     return (
-      <div className={`mt-auto bg-surface border-t border-outline-variant/30 p-4 ${!isExpanded && !isMobile ? 'flex flex-col items-center gap-6 p-2' : ''}`}>
-        <div className={`flex items-center gap-4 ${isExpanded ? 'px-2 py-2 mb-4 bg-surface-variant/20 rounded-2xl' : ''}`}>
+      <div className={`mt-auto bg-surface border-t border-outline-variant/30 p-4 ${!effectiveExpanded && !isMobile ? 'flex flex-col items-center gap-6 p-2' : ''}`}>
+        <div className={`flex items-center gap-4 ${effectiveExpanded ? 'px-2 py-2 mb-4 bg-surface-variant/20 rounded-2xl' : ''}`}>
           <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-primary text-sm font-black ring-1 ring-primary/10 shrink-0">
             {user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AD'}
           </div>
-          {(isExpanded || isMobile) && (
+          {(effectiveExpanded || isMobile) && (
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-text-main truncate group-hover:text-primary transition-colors">{user?.full_name || 'Director Rashid'}</span>
               <span className="text-[10px] font-black text-text-sub uppercase tracking-[0.1em] opacity-60 truncate">{user?.role || 'Administrator'}</span>
@@ -91,11 +91,11 @@ const AdminSidebar = () => {
 
         <button
           onClick={logout}
-          className={`w-full flex items-center transition-all hover:bg-error/5 text-[#B3261E] rounded-full group ${isExpanded || isMobile ? 'gap-4 px-4 py-3 bg-surface-variant/10' : 'justify-center w-12 h-12 hover:bg-error/10 mx-auto'}`}
+          className={`w-full flex items-center transition-all hover:bg-error/5 text-[#B3261E] rounded-full group ${effectiveExpanded || isMobile ? 'gap-4 px-4 py-3 bg-surface-variant/10' : 'justify-center w-12 h-12 hover:bg-error/10 mx-auto'}`}
           title="Command Logout"
         >
           <LogOut size={20} className="shrink-0 group-hover:scale-110 transition-transform" />
-          {(isExpanded || isMobile) && (
+          {(effectiveExpanded || isMobile) && (
             <span className="text-[11px] font-black uppercase tracking-[0.4em] scale-90 -translate-x-1 underline-offset-4 decoration-2">Logout System</span>
           )}
         </button>
@@ -104,10 +104,10 @@ const AdminSidebar = () => {
         {!isMobile && (
           <button
             onClick={toggleSidebar}
-            className={`mt-4 w-full flex items-center transition-all hover:bg-primary/5 text-text-sub rounded-full group ${isExpanded ? 'gap-4 px-4 py-3' : 'justify-center w-12 h-12 mx-auto'}`}
+            className={`mt-4 w-full flex items-center transition-all hover:bg-primary/5 text-text-sub rounded-full group ${effectiveExpanded ? 'gap-4 px-4 py-3' : 'justify-center w-12 h-12 mx-auto'}`}
           >
-            {isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-            {isExpanded && <span className="text-xs font-bold uppercase tracking-[0.1em] text-text-sub/60">Collapse Console</span>}
+            {effectiveExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+            {effectiveExpanded && <span className="text-xs font-bold uppercase tracking-[0.1em] text-text-sub/60">Collapse Console</span>}
           </button>
         )}
       </div>
@@ -134,7 +134,7 @@ const AdminSidebar = () => {
                 key={section.id}
                 label={section.label}
                 items={section.items}
-                isExpanded={isExpanded}
+                isExpanded={effectiveExpanded}
                 isMobile={false}
                 isOpen={isGroupOpen(section.id)}
                 onToggle={() => toggleGroup(section.id)}

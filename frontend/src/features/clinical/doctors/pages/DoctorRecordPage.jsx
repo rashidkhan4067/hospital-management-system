@@ -1,249 +1,311 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, Stethoscope, Calendar, Award, Clock, DollarSign, Edit2, 
-  Briefcase, Activity, Plus, History, Star, Users
+    Stethoscope, Calendar, Activity, Clock, 
+    ArrowLeft, MoreVertical, Edit3, Award, 
+    Phone, Mail, Briefcase, Star, Users,
+    DollarSign, Trash2, CheckCircle2, ShieldAlert
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageHeader, Button, Badge, Card } from '@/components/primitives';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/core/api/apiClient';
 import AdminPage from '@/layouts/AdminPage';
-import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
-import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
-
-import DoctorService from '@/features/clinical/doctors/api/doctorService';
+import Loading from '@/components/composed/Loading';
 import { useNotifications } from '@/core/hooks/useNotifications';
 
-// ── Modular Practitioner Shards ──────────────────────────────────────────────
-import DoctorProfileCard from '../components/record/DoctorProfileCard';
-import DoctorSchedule from '../components/record/DoctorSchedule';
-import DoctorHistory from '../components/record/DoctorHistory';
+/**
+ * 🩺 DoctorRecordPage (Practitioner EMR Dashboard)
+ * High-fidelity practitioner profile echoing the Patient Detail architecture.
+ */
+export default function DoctorRecordPage() {
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const { addNotification } = useNotifications();
+    
+    // Tab State
+    const [activeTab, setActiveTab] = useState('Overview');
 
-// ── Practitioner Modals ──────────────────────────────────────────────────────
-import EditDoctorModal from '../components/record/EditDoctorModal';
+    // Fetch Global Practitioner Record
+    const { data: doctor, isLoading, error } = useQuery({
+        queryKey: ['doctor', id],
+        queryFn: async () => {
+            const { data } = await api.get(`doctors/${id}/`);
+            return data;
+        }
+    });
 
-const TABS = [
-  { id: 'overview',     label: 'Overview',      icon: Activity },
-  { id: 'appointments', label: 'Appointments',  icon: Calendar },
-  { id: 'schedule',     label: 'Clinical Shard', icon: Clock },
-];
-
-export default function DoctorRecord() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const { addNotification } = useNotifications();
-  
-  const [doctor, setDoctor] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // Modal States
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await DoctorService.getById(id);
-      setDoctor({
-          ...data,
-          name: data.user?.full_name || data.full_name || 'Anonymous Doctor',
-          specialization: (data.specialization_display || data.specialization || 'General Practice').replace(/ (NODE|SHARD)$/i, ''),
-          experience: data.experience_years || 0,
-          fee: data.consultation_fee || 0,
-          status: data.is_available ? 'Available' : 'On Leave',
-          email: data.user?.email || data.email || 'doctor@hospital.com',
-          phone: data.user?.phone || data.phone || 'No Contact',
-          initials: (data.user?.full_name || data.full_name || 'D').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
-          schedule: data.schedule || [
-            { day: 'Monday', time: '09:00 AM - 05:00 PM', status: 'Active' },
-            { day: 'Wednesday', time: '09:00 AM - 05:00 PM', status: 'Active' },
-            { day: 'Friday', time: '09:00 AM - 02:00 PM', status: 'Active' },
-          ],
-          history: data.history || [
-            { date: '2026-04-03', patient: 'Ellen Ripley', type: 'Consultation', status: 'Completed' },
-            { date: '2026-04-02', patient: 'John Doe',     type: 'Follow-up',    status: 'Completed' },
-            { date: '2026-04-01', patient: 'Sarah Connor', type: 'Emergency',    status: 'Completed' },
-          ]
-      });
-    } catch {
-      addNotification('Error', 'Failed to load doctor profile.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, addNotification]);
-
-  useEffect(() => {
-    if (id) load();
-  }, [id, load]);
-
-  if (loading && !doctor) return <Loading />;
-  if (!doctor) return null;
-
-  return (
-    <AdminPage>
-      <div className="flex flex-col gap-4 lg:gap-5 w-full min-h-screen bg-slate-50/50 dark:bg-transparent px-4 lg:px-8 -mt-2 pb-20">
-
-        {/* ── Row 1: Header ─────────────────────────────────────────────────── */}
-        <PageHeader 
-          title={doctor.name}
-          subtitle={`${doctor.specialization} · ID #${id}`}
-          status="Clinical Practitioner"
-          actions={
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => navigate('/admin/doctors')}
-                className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-white/5 text-slate-500 dark:text-white/60 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-sm"
-              >
-                <ChevronLeft size={14} /> Back to Registry
-              </Button>
-              <Button 
-                onClick={() => setIsEditModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-accent-primary/25 border-none hover:brightness-110 transition-all italic"
-              >
-                <Edit2 size={14} /> Edit Identity
-              </Button>
+    if (isLoading) return <Loading />;
+    if (error || !doctor) return (
+        <AdminPage>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-12">
+                <div className="w-20 h-20 bg-error-container text-error rounded-full flex items-center justify-center mb-6">
+                    <ShieldAlert size={40} />
+                </div>
+                <h1 className="text-2xl font-black text-text-main mb-2">Practitioner Not Found</h1>
+                <p className="text-text-sub max-w-sm mb-8">The requested clinician record could not be retrieved from the institutional matrix.</p>
+                <button onClick={() => navigate(-1)} className="chip bg-surface-variant text-text-main h-9 px-6 text-xs">Back to Hub</button>
             </div>
-          }
-        />
+        </AdminPage>
+    );
 
-        {/* ── Row 2: Hero CTA ───────────────────────────────────────────────── */}
-        <UnifiedHeroCTA 
-          compact
-          title={<>Dr. {doctor.name.split(' ').pop()}'s <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/30">Clinical Identity.</span></>}
-          subtitle={`${doctor.specialization} · Lead Practitioner with ${doctor.experience} years of clinical logic established within the hospital hub.`}
-          pillPrefix="Practitioner Profile"
-          pillIcon={Briefcase}
-          actions={[
-            { title: 'Update Schedule', subtitle: 'Calibrate Rotation', icon: Clock, onClick: () => {} },
-            { title: 'View Analytics',   subtitle: 'Efficiency Matrix',  icon: Activity, onClick: () => {} },
-          ]}
-        />
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
 
-        {/* ── Row 3: KPI Matrix ─────────────────────────────────────────────── */}
-        <UnifiedKpiGrid
-           items={[
-              { label: 'Total Patients', value: '1,240', icon: Users, color: 'text-accent-primary' },
-              { label: 'Avg Rating',    value: '4.9/5', icon: Star, color: 'text-amber-500' },
-              { label: 'Completion',    value: '98%',   icon: CheckCircle2, color: 'text-emerald-500' },
-              { label: 'Efficiency',    value: 'Nominal', icon: Activity, color: 'text-sky-500' }
-           ]}
-           className="mb-2"
-        />
+    const tabs = ['Overview', 'Patient Load', 'Schedule', 'Performance'];
 
-        {/* ── Row 4: Main 4-col + 8-col Grid ───────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-
-          {/* LEFT — Identity Sidebar (4 cols) */}
-          <div className="lg:col-span-4 flex flex-col gap-5">
-            <DoctorProfileCard 
-               doctor={doctor} 
-               id={id} 
-               initials={doctor.initials} 
-               onEdit={() => setIsEditModalOpen(true)} 
-            />
-            <DoctorSchedule schedule={doctor.schedule} />
-          </div>
-
-          {/* RIGHT — Practitioner Content (8 cols) */}
-          <div className="lg:col-span-8 flex flex-col gap-5">
-            
-            {/* Tab Bar */}
-            <div className="bg-white dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-white/[0.06] p-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar">
-              {TABS.map(tab => {
-                const Icon = tab.icon;
-                const active = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
-                      active
-                        ? 'bg-accent-primary text-white shadow-md shadow-accent-primary/30'
-                        : 'text-slate-400 dark:text-white/40 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-white/70'
-                    }`}
-                  >
-                    <Icon size={13} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Tab Content Panel */}
-            <div className="bg-white dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-white/[0.06] p-8 lg:p-10 min-h-[500px] relative overflow-hidden">
-               <div key={activeTab} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <div className="flex justify-between items-center mb-10">
-                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-[1.2rem] bg-accent-primary/10 flex items-center justify-center text-accent-primary">
-                           {TABS.find(t => t.id === activeTab).icon && React.createElement(TABS.find(t => t.id === activeTab).icon, { size: 22 })}
+    return (
+        <AdminPage>
+            <main
+                aria-label="Practitioner Identity Matrix"
+                style={{
+                    maxWidth: 1560,
+                    margin: '0 auto',
+                    padding: 'clamp(14px, 3vw, 24px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 14,
+                }}
+            >
+                {/* ── 1. PRACTITIONER HEADER WIDGET ── */}
+                <div className="widget" style={{ padding: 24 }}>
+                    <div className="flex items-start justify-between gap-6 flex-wrap">
+                        
+                        <div className="flex items-center gap-6">
+                            {/* Avatar */}
+                            <div style={{ 
+                                width: 80, height: 80, borderRadius: 24, 
+                                background: 'var(--m3-primary)', color: 'var(--m3-on-primary)', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                fontSize: 32, fontWeight: 900, flexShrink: 0,
+                                boxShadow: 'var(--m3-elev-2)'
+                            }} className="flex items-center justify-center">
+                                {doctor?.user?.full_name?.charAt(0).toUpperCase() || 'D'}
+                            </div>
+                            
+                            {/* Core Identity */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-1.5">
+                                    <h1 className="text-2xl font-black text-text-main tracking-tight leading-none">{doctor?.user?.full_name}</h1>
+                                    <span className="chip bg-success-container text-success">
+                                        {doctor?.is_available ? 'Active' : 'On Leave'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-4 flex-wrap">
+                                    <div className="flex items-center gap-1.5 text-[13px] text-text-sub font-semibold">
+                                        <Stethoscope size={14} className="text-primary" /> {doctor?.specialization_display || 'Specialist'}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[13px] text-text-sub font-semibold">
+                                        <Award size={14} className="text-warning" /> {doctor?.experience_years || 0} Yrs Exp
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[13px] text-success font-bold">
+                                        <DollarSign size={14} /> Rs. {doctor?.consultation_fee?.toLocaleString() || 0} / visit
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                           <h3 className="text-[18px] font-black text-slate-800 dark:text-white uppercase tracking-tight italic">
-                              Practitioner {activeTab} Hub
-                           </h3>
-                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Established Professional Log Matrix</p>
+
+                        {/* Secondary Details */}
+                        <div className="flex gap-8 p-4 bg-surface-variant/40 rounded-2xl">
+                            <div>
+                                <div className="text-[10px] font-bold text-text-sub uppercase tracking-widest mb-1 opacity-50">Role Profile</div>
+                                <div className="text-[13px] font-bold text-text-main">{doctor?.specialization_display || 'Practitioner'}</div>
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-bold text-text-sub uppercase tracking-widest mb-1 opacity-50">Staff ID</div>
+                                <div className="text-[13px] font-bold text-text-main">#{doctor?.id || 'N/A'}</div>
+                            </div>
                         </div>
-                     </div>
-                  </div>
+                        
+                    </div>
+                </div>
 
-                  <div className="mt-8">
-                     {activeTab === 'overview' && <DoctorHistory history={doctor.history} />}
-                     {activeTab === 'appointments' && <DoctorHistory history={doctor.history} />}
-                     {activeTab === 'schedule' && <DoctorSchedule schedule={doctor.schedule} />}
-                  </div>
-               </div>
-            </div>
+                {/* ── 2. QUICK ACTIONS ── */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px]">
+                    <button className="widget p-4 flex-row items-center gap-3 cursor-pointer hover:border-primary/20 transition-all">
+                        <div className="w-10 h-10 rounded-xl bg-primary-container/30 text-primary flex items-center justify-center">
+                            <Edit3 size={18} />
+                        </div>
+                        <div className="text-left">
+                            <div className="text-[13px] font-bold text-text-main">Edit Identity</div>
+                            <div className="text-[10px] font-semibold text-text-sub">Refine credentials</div>
+                        </div>
+                    </button>
 
-          </div>
-        </div>
-      </div>
+                    <button className="widget p-4 flex-row items-center gap-3 cursor-pointer hover:border-primary/20 transition-all">
+                        <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                            <Clock size={18} />
+                        </div>
+                        <div className="text-left">
+                            <div className="text-[13px] font-bold text-text-main">Update Schedule</div>
+                            <div className="text-[10px] font-semibold text-text-sub">Calibrate shifts</div>
+                        </div>
+                    </button>
 
-      {/* ── Practitioner Modals ── */}
-      <EditDoctorModal 
-         isOpen={isEditModalOpen} 
-         onClose={() => setIsEditModalOpen(false)} 
-         doctorId={id} 
-         initialData={doctor} 
-         onRefresh={load} 
-      />
+                    <button className="widget p-4 flex-row items-center gap-3 cursor-pointer hover:border-primary/20 transition-all">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                            <DollarSign size={18} />
+                        </div>
+                        <div className="text-left">
+                            <div className="text-[13px] font-bold text-text-main">Fee Management</div>
+                            <div className="text-[10px] font-semibold text-text-sub">Adjust billing</div>
+                        </div>
+                    </button>
 
-    </AdminPage>
-  );
+                    <button className="widget p-4 flex-row items-center gap-3 cursor-pointer hover:border-primary/20 transition-all">
+                        <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                            <ShieldAlert size={18} />
+                        </div>
+                        <div className="text-left">
+                            <div className="text-[13px] font-bold text-text-main">Credentialing</div>
+                            <div className="text-[10px] font-semibold text-text-sub">Verification sync</div>
+                        </div>
+                    </button>
+                </div>
+
+                {/* ── 3. PRACTITIONER INTELLIGENCE TABS ── */}
+                <div className="widget flex-1 min-h-[500px]">
+                    {/* Header / Tab Bar */}
+                    <div className="p-0 px-4 border-b border-outline-variant/10">
+                        <div className="flex gap-8 overflow-x-auto no-scrollbar">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`relative h-14 flex items-center text-[13px] transition-all ${
+                                        activeTab === tab ? 'font-bold text-primary' : 'font-medium text-text-sub'
+                                    }`}
+                                >
+                                    {tab}
+                                    {activeTab === tab && (
+                                        <motion.div
+                                            layoutId="active-tab-practitioner"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"
+                                        />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tab Content Area */}
+                    <div className="p-0 flex-1 overflow-hidden">
+                        <div className="h-full overflow-y-auto p-6 scrollbar-hide">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeTab}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    {/* ── OVERVIEW TAB ── */}
+                                    {activeTab === 'Overview' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="flex flex-col gap-6">
+                                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-text-sub opacity-50">Identity Matrix</h4>
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-surface-variant/30 flex items-center justify-center text-text-sub">
+                                                            <Mail size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[10px] font-bold text-text-sub uppercase mb-0.5">Primary Email</div>
+                                                            <div className="text-[13px] font-bold text-text-main">{doctor?.user?.email || 'N/A'}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-surface-variant/30 flex items-center justify-center text-text-sub">
+                                                            <Phone size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[10px] font-bold text-text-sub uppercase mb-0.5">Contact Node</div>
+                                                            <div className="text-[13px] font-bold text-text-main">{doctor?.user?.phone_number || 'N/A'}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-6">
+                                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-text-sub opacity-50">Professional Core</h4>
+                                                <div className="flex flex-col gap-3 p-5 rounded-2xl bg-surface-variant/20">
+                                                    <p className="text-[13px] leading-relaxed text-text-main font-medium italic">
+                                                        "{doctor?.bio || 'Lead clinical practitioner specializing in advanced patient care and institutional health strategies.'}"
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── PATIENT LOAD TAB ── */}
+                                    {activeTab === 'Patient Load' && (
+                                        <div className="flex flex-col gap-3">
+                                            {/* Simulated patient list for the load tab */}
+                                            {[1, 2, 3, 4, 5].map(i => (
+                                                <div key={i} className="px-5 py-3.5 bg-surface-variant/20 rounded-2xl flex items-center justify-between border border-transparent hover:border-primary/10 transition-all">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-full bg-primary-container/30 text-primary flex items-center justify-center text-xs font-bold">
+                                                            P{i}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[13px] font-bold text-text-main">Assigned Patient Node {i}02</div>
+                                                            <div className="text-[10px] font-semibold text-text-sub">Last sync: 2 hours ago</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-[12px] font-black text-text-main">OPD Consultation</div>
+                                                        <div className="text-[10px] font-bold text-success uppercase">Completed</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* ── SCHEDULE TAB ── */}
+                                    {activeTab === 'Schedule' && (
+                                        <div className="flex flex-col gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => (
+                                                    <div key={day} className="p-4 rounded-2xl border border-outline-variant/30 flex flex-col gap-3">
+                                                        <div className="text-[11px] font-bold uppercase tracking-widest text-primary">{day}</div>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="text-[13px] font-bold text-text-main">09:00 - 17:00</div>
+                                                            <span className="chip bg-primary-container text-primary text-[9px]">Normal Shift</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── PERFORMANCE TAB ── */}
+                                    {activeTab === 'Performance' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="p-6 rounded-2xl bg-warning/5 border border-warning/10 flex flex-col items-center gap-3">
+                                                <Star className="text-warning fill-warning" size={32} />
+                                                <div className="text-3xl font-black text-text-main">4.9/5</div>
+                                                <div className="text-[11px] font-bold text-text-sub uppercase tracking-widest">Patient Rating</div>
+                                            </div>
+                                            <div className="p-6 rounded-2xl bg-success/5 border border-success/10 flex flex-col items-center gap-3">
+                                                <Activity className="text-success" size={32} />
+                                                <div className="text-3xl font-black text-text-main">98%</div>
+                                                <div className="text-[11px] font-bold text-text-sub uppercase tracking-widest">Efficiency Shard</div>
+                                            </div>
+                                            <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col items-center gap-3">
+                                                <Users className="text-primary" size={32} />
+                                                <div className="text-3xl font-black text-text-main">1,240</div>
+                                                <div className="text-[11px] font-bold text-text-sub uppercase tracking-widest">Cumulative Load</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </AdminPage>
+    );
 }
-
-function Loading() {
-  return (
-    <AdminPage>
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="flex flex-col items-center gap-5">
-          <div className="w-14 h-14 rounded-[1.5rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-center text-accent-primary animate-spin shadow-inner">
-             <Stethoscope size={24} />
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 dark:text-white/30 italic">
-            Synchronizing Practitioner Record...
-          </p>
-        </div>
-      </div>
-    </AdminPage>
-  );
-}
-
-function CheckCircle2(props) {
-   return (
-     <svg
-       {...props}
-       xmlns="http://www.w3.org/2000/svg"
-       width="24"
-       height="24"
-       viewBox="0 0 24 24"
-       fill="none"
-       stroke="currentColor"
-       strokeWidth="2"
-       strokeLinecap="round"
-       strokeLinejoin="round"
-     >
-       <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-       <path d="m9 12 2 2 4-4" />
-     </svg>
-   )
- }
-
-

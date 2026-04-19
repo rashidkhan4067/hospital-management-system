@@ -4,6 +4,7 @@ import { useUI } from '@/core/ui/UIContext';
 import AdminTopBar from './AdminTopBar';
 import AdminSidebar from './sidebar/AdminSidebar';
 import GlobalModalContainer from '@/components/modals/GlobalModalContainer';
+import AlertDetailDrawer from './drawers/AlertDetailDrawer';
 
 /**
  * 🏢 Master App Shell (Material 3 Spec)
@@ -18,6 +19,9 @@ const AppLayout = memo(() => {
       
       {/* 🛰️ Project-Wide Dialog Engine */}
       <GlobalModalContainer />
+      
+      {/* 🚨 Emergency Response Drawer */}
+      <AlertDetailDrawer />
       
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative">
 

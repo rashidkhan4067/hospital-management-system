@@ -27,6 +27,7 @@ const AppointmentsPage  = lazy(() => import('@/features/core_management/appointm
 const BookAppointmentPage = lazy(() => import('@/features/core_management/appointments/pages/BookAppointmentPage'));
 const AppointmentDetailPage = lazy(() => import('@/features/core_management/appointments/pages/AppointmentDetailPage'));
 const DoctorsPage       = lazy(() => import('@/features/clinical/doctors/pages/DoctorsPage'));
+const DoctorRecordPage   = lazy(() => import('@/features/clinical/doctors/pages/DoctorRecordPage'));
 const WardsBedsPage     = lazy(() => import('@/features/clinical/wards/pages/WardsBeds'));
 const AdmissionsPage    = lazy(() => import('@/features/clinical/wards/pages/AdmissionsPage'));
 const AdmissionsProtocolPage = lazy(() => import('@/features/clinical/wards/pages/AdmissionsProtocolPage'));
@@ -167,6 +168,11 @@ export const APP_ROUTES = [
         path: 'financials/invoices/:id',
         element: InvoiceDetailPage,
         requireAuth: true, requireAdmin: true, title: 'Invoice Details'
+    },
+    {
+        path: 'doctors/:id',
+        element: DoctorRecordPage,
+        requireAuth: true, requireAdmin: true, title: 'Practitioner Profile'
     }
 ];
 
