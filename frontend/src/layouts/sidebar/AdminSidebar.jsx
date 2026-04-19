@@ -1,11 +1,35 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, ChevronLeft, ChevronRight, UserCircle } from 'lucide-react';
+// motion/AnimatePresence still needed for mobile drawer
+import { AnimatePresence } from 'framer-motion';
+import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSidebar } from './useSidebar';
 import { NAV_SECTIONS } from './sidebarNav';
 import SidebarGroup from './SidebarGroup';
 import SidebarDrawer from './SidebarDrawer';
 import { useAuthStore } from '@/core/store/useAuthStore';
+import { useUIStore } from '@/core/store/useUIStore';
+
+// ─── Read sidebar preference sync, before any React render ───────────────────
+// This eliminates the Zustand-persist rehydration flash entirely:
+// the value here is read ONCE at module load, before the component mounts.
+const _readSidebarPref = () => {
+  try {
+    // Try Zustand's own storage key first
+    const z = localStorage.getItem('shifaa-ui-storage');
+    if (z) {
+      const parsed = JSON.parse(z);
+      if (typeof parsed?.state?.isSidebarExpanded === 'boolean')
+        return parsed.state.isSidebarExpanded;
+    }
+    // Fallback: UIContext's legacy key
+    const legacy = localStorage.getItem('sidebar_collapsed');
+    if (legacy !== null) return !JSON.parse(legacy);
+  } catch {}
+  return window.innerWidth >= 1280; // safe default for first-ever visit
+};
+
+// Module-level constant — evaluated ONCE before any component renders
+const INITIAL_EXPANDED = _readSidebarPref();
 
 /**
  * 🛰️ AdminSidebar (MD3 Master Orchestrator)
@@ -16,7 +40,6 @@ const AdminSidebar = () => {
   const { user, logout } = useAuthStore();
   const {
     isExpanded,
-    setSidebarExpanded,
     toggleSidebar,
     isMobile,
     isMobileMenuOpen,
@@ -25,18 +48,15 @@ const AdminSidebar = () => {
     toggleGroup
   } = useSidebar();
 
-  // 🛰️ Automatic Responsive Payload Orchestration (MD3 Viewport Adapter)
-  React.useEffect(() => {
-    if (isMobile) {
-      setSidebarExpanded(false);
-    } else {
-      // Auto-expand on large screens (>1024px), auto-collapse on tablet (768px-1024px)
-      const isDesktop = window.innerWidth >= 1024;
-      setSidebarExpanded(isDesktop);
-    }
-  }, [isMobile, setSidebarExpanded]);
+  // isMounted: suppress transition on first render, enable after paint
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => { setIsMounted(true); }, []);
 
-  const width = isMobile ? 0 : (isExpanded ? 280 : 80);
+  // Use INITIAL_EXPANDED for the very first render to avoid flash;
+  // after mount, follow the live Zustand store for toggle interactions.
+  const effectiveExpanded = isMounted ? isExpanded : INITIAL_EXPANDED;
+  const width = isMobile ? 0 : (effectiveExpanded ? 280 : 80);
+
 
   // 🏥 Branding Cluster Component
   const BrandHead = () => (
@@ -98,11 +118,12 @@ const AdminSidebar = () => {
     <>
       {/* 🧭 Structural Navigation Layer (Permanent Rail/Drawer) */}
       {!isMobile && (
-        <motion.aside
-          initial={false}
-          animate={{ width }}
-          transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
-          className="h-screen bg-surface flex flex-col border-r border-outline-variant/40 shrink-0 relative z-[101]"
+        <aside
+          style={{
+            width,
+            transition: isMounted.current ? 'width 0.3s cubic-bezier(0.2,0,0,1)' : 'none',
+          }}
+          className="h-screen bg-surface flex flex-col border-r border-outline-variant/40 shrink-0 relative z-[101] overflow-hidden"
           aria-label="Admin Navigation Console"
         >
           <BrandHead />
@@ -122,7 +143,7 @@ const AdminSidebar = () => {
           </div>
 
           <ProfileCommand />
-        </motion.aside>
+        </aside>
       )}
 
       {/* 📱 Mobile Drawer Infrastructure */}

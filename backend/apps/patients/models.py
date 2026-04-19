@@ -51,6 +51,15 @@ class PatientProfile(models.Model):
 
     age = models.PositiveIntegerField(_("age"), null=True, blank=True)
     cnic = models.CharField(_("CNIC"), max_length=20, blank=True, null=True)
+    
+    father_name = models.CharField(_("father/husband name"), max_length=100, blank=True)
+    national_id_type = models.CharField(
+        _("ID type"), 
+        max_length=20, 
+        default="CNIC",
+        choices=[("CNIC", "CNIC"), ("Passport", "Passport"), ("Other", "Other")]
+    )
+
     date_of_birth = models.DateField(_("date of birth"), null=True, blank=True)
     gender = models.CharField(_("gender"), max_length=20, blank=True)
     address = models.TextField(_("physical address"), blank=True)

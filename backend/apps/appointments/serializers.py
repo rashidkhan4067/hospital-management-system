@@ -64,6 +64,8 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
             "doctor_id",
             "appointment_date",
             "start_time",
+            "priority",
+            "appointment_type",
             "notes",
             "booked_via_voice",
         ]
@@ -198,7 +200,8 @@ class AdminAppointmentCreateSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = [
             "id", "doctor_id", "patient_id", 
-            "appointment_date", "start_time", "notes"
+            "appointment_date", "start_time", 
+            "priority", "appointment_type", "notes"
         ]
         read_only_fields = ["id"]
 
@@ -242,6 +245,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
     patient             = UserSerializer(read_only=True)
     doctor              = DoctorListSerializer(read_only=True)
 
+    patient_profile_id  = serializers.ReadOnlyField(source="patient.patient_profile.id")
+
     # Human-readable status label: "pending" → "Pending"
     status_display      = serializers.SerializerMethodField()
 
@@ -254,6 +259,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "patient",
+            "patient_profile_id",
             "doctor",
             "appointment_date",
             "start_time",

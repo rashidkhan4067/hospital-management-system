@@ -36,31 +36,51 @@ const RecentAdmissionsCard = () => {
     const filters     = useDataStore(s => s.filters);
     const timerRef    = useRef(null);
 
-    const load = useCallback(async (signal) => {
-        setLoading(true);
+    const load = useCallback(async (signal, isBackground = false) => {
+        if (!isBackground) setLoading(true);
         try {
             const res  = await apiClient.get('/patients/profiles/', {
                 signal,
                 params: { 
                     limit: 10, 
-                    department: filters.department !== 'All' ? filters.department : undefined,
-                    search: filters.searchQuery || undefined,
+                    ordering: '-created_at',
                 },
             });
-            const data = res.data?.results || res.data;
-            setPatients(Array.isArray(data) && data.length > 0 ? data.slice(0, 10) : FALLBACK);
+            const data = res.data?.results ?? res.data;
+            console.debug('[RecentAdmissions] raw data:', data);
+            if (Array.isArray(data) && data.length > 0) {
+                const mapped = data.map(p => {
+                    let safeTime = 'now';
+                    try {
+                        if (p.created_at) safeTime = new Date(p.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } catch(err){}
+                    return {
+                        id: p.id,
+                        full_name: p.full_name || p.user_details?.full_name || 'Unknown Patient',
+                        ward: p.admissions?.[0]?.ward_details?.name || 'General OPD',
+                        type: p.is_admitted ? 'IPD' : 'OPD',
+                        time: safeTime
+                    };
+                });
+                setPatients(mapped.slice(0, 10));
+            } else {
+                setPatients(FALLBACK);
+            }
         } catch (e) {
-            if (e.name !== 'CanceledError') setPatients(FALLBACK);
+            if (e.name !== 'CanceledError') {
+                console.error('Admissions load error:', e);
+                setPatients(FALLBACK);
+            }
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
     useEffect(() => {
         const ctrl = new AbortController();
         load(ctrl.signal);
         timerRef.current = setInterval(() => {
-            const c = new AbortController(); load(c.signal);
+            const c = new AbortController(); load(c.signal, true);
         }, 60_000);
         return () => { ctrl.abort(); clearInterval(timerRef.current); };
     }, [load]);
@@ -87,7 +107,7 @@ const RecentAdmissionsCard = () => {
             </div>
 
             {/* Summary chips */}
-            {!loading && (
+            {!loading && patients.length > 0 && (
                 <div style={{ display: 'flex', gap: 6, padding: '8px 16px 0', flexShrink: 0 }}>
                     {[
                         { label: `${ipdCount} IPD`, bg: 'var(--m3-warning-container)', color: 'var(--m3-warning)' },
@@ -113,6 +133,11 @@ const RecentAdmissionsCard = () => {
                                 </div>
                             </div>
                         ))
+                    ) : patients.length === 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, opacity: 0.5 }}>
+                            <div style={{ fontSize: 28 }}>🏥</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--m3-text-sub)' }}>No admissions found</div>
+                        </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <AnimatePresence mode="popLayout">
@@ -127,7 +152,7 @@ const RecentAdmissionsCard = () => {
                                         >
                                             <button
                                                 className="widget-row-btn"
-                                                onClick={() => navigate(`/admin/clinical/patients/${p.id}`)}
+                                                onClick={() => navigate(`/admin/patients/${p.id}`)}
                                                 style={{ borderBottom: '1px solid var(--m3-outline-variant)' }}
                                             >
                                                 {/* Avatar */}

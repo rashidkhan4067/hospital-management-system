@@ -122,7 +122,7 @@ const BedOccupancyCard = () => {
                             const Icon = ward.Icon || Bed;
                             return (
                                 <motion.div
-                                    key={ward.name}
+                                    key={ward.name + idx}
                                     initial={{ opacity: 0, scale: 0.98 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: idx * 0.04 }}

@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import PatientProfile, ClinicalRecord
 from .serializers import (
     PatientProfileSerializer, 
+    PatientListSerializer,
     PatientCreateSerializer, 
     ClinicalRecordSerializer,
     AdministrativePatientCreateSerializer
@@ -24,6 +25,8 @@ class PatientViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at"]
 
     def get_serializer_class(self):
+        if self.action == 'list':
+            return PatientListSerializer
         if self.action == "create":
             return AdministrativePatientCreateSerializer
         if self.action == "complete_onboarding":
@@ -60,6 +63,55 @@ class PatientViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="quick_add")
+    def quick_add(self, request):
+        """
+        POST /api/v1/patients/profiles/quick_add/
+        Minimalist patient creation for fast clinical flows.
+        """
+        full_name = request.data.get('fullName', '')
+        phone = request.data.get('phone_number', '')
+        cnic = request.data.get('cnic', '')
+        
+        if not (full_name and phone and cnic):
+            return Response({"error": "Missing required shards: Name, Phone, and CNIC"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from apps.accounts.models import User
+        import uuid
+        
+        if User.objects.filter(cnic=cnic).exists():
+            u = User.objects.get(cnic=cnic)
+            profile = u.patient_profile
+            return Response({
+                "id": profile.id,
+                "full_name": u.full_name,
+                "mrn": profile.mrn,
+                "message": "Existing record retrieved"
+            }, status=status.HTTP_200_OK)
+        
+        names = full_name.split(' ', 1)
+        first_name = names[0]
+        last_name = names[1] if len(names) > 1 else ""
+        
+        user = User.objects.create_user(
+            username=f"pt-{uuid.uuid4().hex[:8]}",
+            email=f"{uuid.uuid4().hex[:6]}@quick.reg",
+            cnic=cnic,
+            phone_number=phone,
+            password=User.objects.make_random_password(),
+            first_name=first_name,
+            last_name=last_name,
+            role=User.UserRole.PATIENT
+        )
+        
+        profile = PatientProfile.objects.create(user=user)
+        
+        return Response({
+            "id": profile.id,
+            "full_name": profile.user.full_name,
+            "mrn": profile.mrn
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"])
     def recent(self, request):

@@ -27,8 +27,8 @@ const RecentAppointmentsCard = () => {
     const navigate = useNavigate();
     const filters  = useDataStore(s => s.filters);
 
-    const load = useCallback(async (signal) => {
-        setLoading(true);
+    const load = useCallback(async (signal, isBackground = false) => {
+        if (!isBackground) setLoading(true);
         try {
             const res  = await apiClient.get('/appointments/', { 
                 signal, 
@@ -36,8 +36,6 @@ const RecentAppointmentsCard = () => {
                     ordering: '-start_time', 
                     limit: 10,
                     department: filters.department !== 'All' ? filters.department : undefined,
-                    search: filters.searchQuery || undefined,
-                    // Map date range if backend supports it
                 } 
             });
             const data = res.data?.results || res.data;
@@ -58,14 +56,17 @@ const RecentAppointmentsCard = () => {
         } catch (e) {
             if (e.name !== 'CanceledError') setAppointments(FALLBACK);
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
-    }, [filters]);
+    }, [filters.department]);
 
     useEffect(() => {
         const ctrl = new AbortController();
         load(ctrl.signal);
-        return () => ctrl.abort();
+        const timer = setInterval(() => {
+            const c = new AbortController(); load(c.signal, true);
+        }, 60_000);
+        return () => { ctrl.abort(); clearInterval(timer); };
     }, [load]);
 
     const activeCount = appointments.filter(a => a.status === 'In-Progress').length;

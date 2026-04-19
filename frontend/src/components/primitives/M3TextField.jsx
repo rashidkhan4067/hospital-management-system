@@ -13,6 +13,9 @@ export default function M3TextField({
   validation, 
   errorText,
   icon: LeftIcon,
+  multiline = false,
+  rows = 3,
+  variant = "outlined", // "outlined" or "filled"
   ...props 
 }) {
   const [isFocused, setIsFocused] = useState(false);
@@ -27,75 +30,84 @@ export default function M3TextField({
     if (props.onChange) props.onChange(e);
   };
 
-  const { fullWidth, ...inputProps } = props;
+  const { fullWidth, className = "", ...inputProps } = props;
   const inputType = type === 'password' && showPassword ? 'text' : type;
+  const InputComponent = multiline ? 'textarea' : 'input';
 
   return (
-    <div className={`flex flex-col gap-1.5 group ${fullWidth ? 'w-full' : 'w-auto'}`}>
-      <div className="relative">
+    <div className={`flex flex-col gap-1.5 group ${fullWidth ? 'w-full' : 'w-auto'} ${className}`}>
+      <div className={`relative transition-all duration-300 rounded-t-xl
+        ${variant === 'filled' ? 'bg-[var(--m3-surface-container)] hover:bg-[var(--m3-surface-variant)]' : ''}
+      `}>
         
-        {/* Leading Icon Shard */}
-        {LeftIcon && (
-          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 z-30
-            ${isFocused ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}
+        {/* Leading Icon */}
+        {LeftIcon && !multiline && (
+          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 z-30
+            ${isFocused ? 'text-[var(--m3-primary)] scale-110' : 'text-[var(--m3-text-sub)] group-hover:text-[var(--m3-text-main)]'}
           `}>
-             <LeftIcon size={18} strokeWidth={2} />
+             <LeftIcon size={20} strokeWidth={1.8} />
           </div>
         )}
 
-        {/* Floating Label (Strict MD3 Spec) */}
+        {/* Floating Label */}
         <label
-          className={`absolute transition-all duration-200 pointer-events-none z-20 px-1 rounded-sm
+          className={`absolute transition-all duration-200 pointer-events-none z-20
             ${isLabelShrunk 
-              ? `-top-2 left-3 text-xs bg-white font-bold tracking-tight
-                 ${isFocused ? 'text-blue-600' : (validation === 'error' ? 'text-red-500' : 'text-gray-500')}` 
-              : `${LeftIcon ? 'left-11' : 'left-4'} top-[14px] text-sm text-gray-400 font-medium tracking-tight`}
+              ? `${variant === 'filled' ? 'top-1' : '-top-2.5'} left-3 text-[10px] ${variant === 'filled' ? 'bg-transparent' : 'bg-white px-1.5'} font-black uppercase tracking-widest
+                 ${isFocused ? 'text-[var(--m3-primary)]' : (validation === 'error' ? 'text-[var(--m3-error)]' : 'text-slate-400 group-hover:text-slate-600')}` 
+              : `${LeftIcon && !multiline ? 'left-11' : 'left-4'} ${variant === 'filled' ? 'top-6' : 'top-1/2 -translate-y-1/2'} text-[14px] text-slate-400 font-medium tracking-wide`}
           `}
         >
           {label}
-          {props.required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
 
-        {/* MD3 Outlined Container */}
-        <input
-          type={inputType}
+        {/* Input/Textarea */}
+        <InputComponent
+          type={multiline ? undefined : inputType}
+          rows={multiline ? rows : undefined}
           onFocus={() => setIsFocused(true)}
           onBlur={(e) => {
             setIsFocused(false);
             setHasValue(e.target.value.length > 0);
           }}
           onChange={handleInputChange}
-          placeholder={isFocused ? placeholder : ''}
-          className={`w-full h-[52px] bg-white border rounded-xl text-gray-800 outline-none transition-all text-sm font-medium
-            ${LeftIcon ? 'pl-11 pr-4' : 'px-4'}
-            ${isFocused 
-              ? `border-2 ${validation === 'error' ? 'border-red-500' : 'border-blue-600 shadow-[0_0_0_4px_rgba(37,99,235,0.1)]'}` 
-              : `border-gray-200 group-hover:border-gray-300`}
-            ${(type === 'password' || validation) ? 'pr-11' : ''}
+          placeholder={isFocused && !isDateType ? placeholder : ''}
+          required={props.required}
+          className={`w-full bg-transparent outline-none transition-all duration-200 text-[16px] font-normal text-[var(--m3-text-main)]
+            ${multiline ? 'pt-7 pb-3 px-4 resize-none min-h-[100px]' : (variant === 'filled' ? 'h-[64px] pt-6' : 'h-[56px]')}
+            ${LeftIcon && !multiline ? 'pl-11 pr-4' : 'px-4'}
+            ${variant === 'outlined' 
+                ? `border rounded-xl ${isFocused ? 'border-[var(--m3-primary)] ring-[1px] ring-[var(--m3-primary)]' : (validation === 'error' ? 'border-[var(--m3-error)]' : 'border-[var(--m3-outline)] group-hover:border-[var(--m3-text-main)]')}` 
+                : `border-b-2 rounded-t-xl ${isFocused ? 'border-[var(--m3-primary)]' : (validation === 'error' ? 'border-[var(--m3-error)]' : 'border-[var(--m3-outline)] group-hover:border-[var(--m3-text-main)]')}`
+            }
+            ${(type === 'password' || validation) && !multiline ? 'pr-11' : ''}
           `}
+          style={{ WebkitAppearance: isDateType ? 'none' : undefined }}
           {...inputProps}
         />
 
         {/* Trailing Feedback */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-30">
-          {validation === 'error' && <AlertCircle size={16} className="text-red-500" />}
-          {validation === 'success' && <CheckCircle2 size={16} className="text-green-600" />}
-          
-          {type === 'password' && (
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-full transition-colors"
-              tabIndex="-1"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          )}
-        </div>
+        {!multiline && (
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-30">
+            {validation === 'error' && <AlertCircle size={18} className="text-[var(--m3-error)]" />}
+            {validation === 'success' && <CheckCircle2 size={18} className="text-[var(--m3-success)]" />}
+            
+            {type === 'password' && (
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="p-1.5 text-[var(--m3-text-sub)] hover:bg-[var(--m3-surface-variant)] rounded-full transition-colors"
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {(errorText || helperText) && (
-        <span className={`text-[10px] ml-4 font-bold ${errorText ? 'text-red-500' : 'text-gray-400'}`}>
+        <span className={`text-[11px] ml-4 font-medium tracking-tight ${errorText ? 'text-[var(--m3-error)]' : 'text-[var(--m3-text-sub)]'}`}>
           {errorText || helperText}
         </span>
       )}

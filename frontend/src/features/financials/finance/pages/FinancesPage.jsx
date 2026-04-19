@@ -21,6 +21,7 @@ import { useFinanceForm } from '../hooks/useFinanceForm';
 import { exportToCSV } from '@/core/utils/exportUtils';
 
 import { useNavigate } from 'react-router-dom';
+import { useModalStore } from '@/core/store/useModalStore';
 
 /**
  * 💹 Financial Oversight & Billing Hub (Orchestrator)
@@ -28,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
  */
 export default function AdminFinances() {
   const navigate = useNavigate();
+  const openModal = useModalStore(state => state.openModal);
   const { addNotification } = useUI();
   
   // 🧭 UI Local State
@@ -111,7 +113,7 @@ export default function AdminFinances() {
                     <Download size={16} /> Global Export
                 </Button>
                 <Button 
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => openModal('GENERATE_BILL')}
                     className="bg-accent-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent-primary/25 flex items-center gap-3 border-none hover:scale-105 transition-all"
                 >
                     <CreditCard size={18} /> Sync Transaction
@@ -164,15 +166,7 @@ export default function AdminFinances() {
         />
       </div>
 
-      <ProvisionTransactionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAction={handleSubmit}
-        isSubmitting={isSubmitting}
-        patients={patientsLoading ? [] : patients}
-        formData={formData}
-        setFormData={setFormData}
-      />
+
 
       <ReceiptModal 
         isOpen={isReceiptOpen}

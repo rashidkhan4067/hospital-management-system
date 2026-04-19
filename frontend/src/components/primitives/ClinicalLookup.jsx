@@ -19,6 +19,17 @@ export default function ClinicalLookup({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [show, setShow] = useState(false);
+  const dropdownRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShow(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (query.length < 2) {
@@ -29,8 +40,9 @@ export default function ClinicalLookup({
 
     const timer = setTimeout(() => {
       api.get(`${endpoint}?search=${query}`).then(res => {
-        setResults(res.data.results || res.data || []);
-        setShow(true);
+        const data = res.data.results || res.data || [];
+        setResults(data);
+        setShow(data.length > 0);
       });
     }, 300);
 
@@ -38,22 +50,24 @@ export default function ClinicalLookup({
   }, [query, endpoint]);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={dropdownRef}>
       <M3TextField
         label={label}
         placeholder={placeholder}
         value={query}
         icon={LeftIcon}
-        onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => query.length >= 2 && setShow(true)}
-        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onChange={(e) => {
+            setQuery(e.target.value);
+            if (e.target.value.length < 2) setShow(false);
+        }}
+        onFocus={() => query.length >= 2 && results.length > 0 && setShow(true)}
         autoComplete="off"
         required={required}
         name={name}
         fullWidth
       />
       {show && results.length > 0 && (
-        <div className="absolute top-[105%] left-0 right-0 bg-surface-bright border border-outline-variant shadow-2xl rounded-2xl z-[500] max-h-[220px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-[105%] left-0 right-0 bg-white border border-slate-100 shadow-2xl rounded-2xl z-[999] max-h-[220px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
           {results.map((item) => (
             <div
               key={item.id}
@@ -62,9 +76,10 @@ export default function ClinicalLookup({
                 e.stopPropagation();
                 onSelect(item);
                 setQuery(item.full_name || item.name || item.user?.full_name || item.label);
+                setResults([]);
                 setShow(false);
               }}
-              className="px-4 py-3 hover:bg-primary/5 cursor-pointer border-b border-outline-variant/30 last:border-0 transition-colors group"
+              className="px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors group"
             >
               <div className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">
                 {item.full_name || item.name || item.user?.full_name || item.label}

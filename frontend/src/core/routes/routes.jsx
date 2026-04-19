@@ -25,6 +25,7 @@ const PatientIntakePage  = lazy(() => import('@/features/clinical/patients/pages
 const PatientDetailPage  = lazy(() => import('@/features/clinical/patients/pages/PatientDetailPage'));
 const AppointmentsPage  = lazy(() => import('@/features/core_management/appointments/pages/AppointmentsPage'));
 const BookAppointmentPage = lazy(() => import('@/features/core_management/appointments/pages/BookAppointmentPage'));
+const AppointmentDetailPage = lazy(() => import('@/features/core_management/appointments/pages/AppointmentDetailPage'));
 const DoctorsPage       = lazy(() => import('@/features/clinical/doctors/pages/DoctorsPage'));
 const WardsBedsPage     = lazy(() => import('@/features/clinical/wards/pages/WardsBeds'));
 const AdmissionsPage    = lazy(() => import('@/features/clinical/wards/pages/AdmissionsPage'));
@@ -159,7 +160,7 @@ export const APP_ROUTES = [
     },
     {
         path: 'appointments/:id',
-        element: BookAppointmentPage, // Reusing for now
+        element: AppointmentDetailPage,
         requireAuth: true, requireAdmin: true, title: 'Appointment Details'
     },
     {
