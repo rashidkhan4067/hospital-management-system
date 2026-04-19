@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Plus, 
     ShoppingCart, 
@@ -9,31 +9,104 @@ import {
     Truck,
     ShieldAlert,
     CheckCircle2,
-    FileText
+    FileText,
+    Clock,
+    Search,
+    ChevronRight,
+    Package
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminPage from '@/layouts/AdminPage';
+import { apiClient } from '@/core/api';
+import { UI_TOKENS, CTA_THEMES } from '@/core/config/UI';
 
 /**
  * 📦 PharmacyOrderPage (Procurement Gateway)
  * High-fidelity interface for ordering medical supplies and medication shards.
+ * Standardized to Google UI (M3) architecture.
  */
 export default function PharmacyOrderPage() {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-
+    const [inventoryItems, setInventoryItems] = useState([]);
+    
+    // Order items state
     const [items, setItems] = useState([
-        { id: 1, name: 'Amoxicillin 500mg (Batch C)', qty: 50, supplier: 'PharmaCore Intl' },
-        { id: 2, name: 'Insulin Glargine Vials', qty: 20, supplier: 'BioMed Systems' },
+        { id: Date.now(), inventory_id: '', name: '', qty: 10, unit_price: 0, supplier: 'PharmaCore Intl' }
     ]);
 
-    const handleOrder = () => {
+    // ── Load Inventory Matrix ──
+    useEffect(() => {
+        apiClient.get('/inventory/items/')
+            .then(res => {
+                const data = res.data.results || res.data;
+                if (Array.isArray(data)) setInventoryItems(data);
+            })
+            .catch(err => console.error("Inventory Retrieval Error:", err));
+    }, []);
+
+    const subtotal = items.reduce((acc, item) => acc + (item.qty * item.unit_price), 0);
+
+    const addItem = () => {
+        setItems([...items, { 
+            id: Date.now(), 
+            inventory_id: '', 
+            name: '', 
+            qty: 1, 
+            unit_price: 0, 
+            supplier: 'Global Logistics' 
+        }]);
+    };
+
+    const removeItem = (id) => {
+        if (items.length > 1) {
+            setItems(items.filter(item => item.id !== id));
+        }
+    };
+
+    const updateItem = (id, field, value) => {
+        if (field === 'inventory_id') {
+            const invItem = inventoryItems.find(i => i.id === parseInt(value));
+            setItems(items.map(item => 
+                item.id === id ? { 
+                    ...item, 
+                    inventory_id: value, 
+                    name: invItem.name, 
+                    unit_price: invItem.unit_price 
+                } : item
+            ));
+        } else {
+            setItems(items.map(item => 
+                item.id === id ? { ...item, [field]: value } : item
+            ));
+        }
+    };
+
+    const handleOrder = async () => {
+        if (items.some(i => !i.inventory_id)) {
+            alert("Ensure all item shards are mapped to inventory nodes.");
+            return;
+        }
+
         setIsSubmitting(true);
-        setTimeout(() => {
-            setIsSubmitting(false);
+        try {
+            // Use the adjust-stock endpoint for atomic mutation and audit logging
+            for (const item of items) {
+                await apiClient.post(`/inventory/items/${item.inventory_id}/adjust-stock/`, {
+                    type: 'in',
+                    quantity: item.qty,
+                    reason: 'Procurement Dispatch - Clinical Restocking'
+                });
+            }
             setIsSuccess(true);
-        }, 2000);
+            setTimeout(() => navigate('/admin/pharmacy'), 3000);
+        } catch (err) {
+            console.error("Procurement Protocol Failure:", err);
+            alert("Failed to synchronize procurement shard. Check clinical connectivity.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (isSuccess) {
@@ -42,17 +115,19 @@ export default function PharmacyOrderPage() {
                 <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-center max-w-sm"
+                    className={`${UI_TOKENS.SHARD_BASE} text-center max-w-sm`}
                 >
-                    <div className="w-20 h-20 rounded-full bg-success/10 text-success flex items-center justify-center mx-auto mb-8">
-                        <CheckCircle2 size={40} />
+                    <div className="w-24 h-24 rounded-full bg-blue-50 text-[#1a73e8] flex items-center justify-center mx-auto mb-8 animate-bounce">
+                        <CheckCircle2 size={48} strokeWidth={1.5} />
                     </div>
-                    <h1 className="text-2xl font-bold text-text-main mb-3">Order Dispatched</h1>
-                    <p className="text-sm text-text-sub mb-8">
-                        Purchase Order <strong>#PO-99283</strong> has been synchronized with the supplier gateway.
+                    <h1 className="text-2xl font-bold text-slate-900 mb-3">Order Dispatched</h1>
+                    <p className="text-sm text-slate-600 mb-8">
+                        Purchase Order shard has been synchronized with the supplier gateway. Inventory nodes will update upon delivery confirmation.
                     </p>
                     <div className="flex flex-col gap-3">
-                        <button onClick={() => navigate('/admin/pharmacy')} className="w-full h-12 bg-primary text-white rounded-full font-bold text-[13px] hover:brightness-110">Return to Pharmacy Hub</button>
+                        <button onClick={() => navigate('/admin/pharmacy')} className={CTA_THEMES.PRIMARY}>
+                            Return to Pharmacy Hub
+                        </button>
                     </div>
                 </motion.div>
             </AdminPage>
@@ -61,127 +136,177 @@ export default function PharmacyOrderPage() {
 
     return (
         <AdminPage className="min-h-screen">
-            <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
+            <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
                 
-                {/* ── Page Header ── */}
-                <header className="mb-12">
-                    <div className="flex items-center gap-2 mb-3 text-primary">
-                        <ShoppingCart size={16} />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Procurement Gateway</span>
+                {/* ── Dashboard Header ── */}
+                <header className={UI_TOKENS.HEADER}>
+                    <div className={UI_TOKENS.HEADER_LEFT}>
+                        <div className={UI_TOKENS.ICON_BOX}>
+                            <ShoppingCart size={20} />
+                        </div>
+                        <div>
+                            <span className={UI_TOKENS.TEXT_SECONDARY}>Procurement Gateway</span>
+                            <h1 className={`${UI_TOKENS.TEXT_PRIMARY} text-2xl mt-1`}>Create Supply Order</h1>
+                            <p className="text-sm text-slate-500 font-medium mt-1">Initialize restocking for critical clinical medication shards and resource nodes.</p>
+                        </div>
                     </div>
-                    <h1 className="text-4xl font-black text-text-main tracking-tight">Create Supply Order</h1>
-                    <p className="text-text-sub font-medium opacity-60">Initialize restocking for critical clinical medication shards.</p>
                 </header>
 
-                <div className="grid grid-cols-12 gap-8">
+                <div className="grid grid-cols-12 gap-8 items-start">
                     
-                    {/* ── Left: Order Builder ── */}
-                    <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
+                    {/* ── Left Column: Order Builder ── */}
+                    <div className="col-span-12 lg:col-span-8 flex flex-col gap-8">
                         
                         {/* Supplier Selection */}
-                        <div className="bg-surface-bright border border-outline-variant rounded-[32px] p-6 elev-1 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-surface-variant flex items-center justify-center text-text-sub">
-                                    <Truck size={24} />
+                        <section className={UI_TOKENS.SHARD_BASE}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-[#1a73e8]">
+                                        <Truck size={24} strokeWidth={1.5} />
+                                    </div>
+                                    <div>
+                                        <p className={UI_TOKENS.TEXT_SECONDARY}>Primary Logistics Partner</p>
+                                        <p className="text-sm font-bold text-slate-900 mt-1">PharmaCore Global Distribution</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-xs font-bold text-text-main uppercase tracking-widest leading-none mb-1">Primary Logistics Partner</p>
-                                    <p className="text-sm font-bold text-primary">PharmaCore Global Distribution</p>
-                                </div>
+                                <button className={CTA_THEMES.SECONDARY + " !h-10 !text-[11px] !px-4"}>Switch Partner</button>
                             </div>
-                            <button className="text-[10px] font-bold text-primary px-4 py-2 bg-primary/5 rounded-full uppercase tracking-widest">Switch</button>
-                        </div>
+                        </section>
 
                         {/* Items Matrix */}
-                        <div className="bg-surface-bright border border-outline-variant rounded-[40px] overflow-hidden elev-2">
-                             <table className="w-full text-left">
-                                <thead className="bg-surface-variant/30 border-b border-outline-variant">
-                                    <tr className="text-[10px] uppercase font-bold text-text-sub tracking-widest">
-                                        <th className="px-8 py-5">Medication / Supply Node</th>
-                                        <th className="px-6 py-5">Quantity</th>
-                                        <th className="px-8 py-5 text-right">Aggregate</th>
-                                        <th className="px-4 py-5"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {items.map((item) => (
-                                        <tr key={item.id} className="border-b border-outline-variant/30 hover:bg-surface-variant/10 transition-colors group">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-white border border-outline-variant flex items-center justify-center text-text-sub opacity-40">
-                                                        <FileText size={16} />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[13px] font-bold text-text-main">{item.name}</span>
-                                                        <span className="text-[10px] text-text-sub">{item.supplier}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <input type="number" defaultValue={item.qty} className="w-20 h-10 px-3 bg-surface-variant/20 border border-outline-variant/50 rounded-xl text-center text-[13px] font-bold outline-none focus:border-primary" />
-                                            </td>
-                                            <td className="px-8 py-5 text-[13px] font-black text-text-main text-right">PKR {(item.qty * 120).toLocaleString()}</td>
-                                            <td className="px-4 py-5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="text-error"><Trash2 size={16} /></button>
-                                            </td>
+                        <section className={`${UI_TOKENS.SHARD_BASE} !p-0 overflow-hidden`}>
+                            <div className="p-6 md:p-8 border-b border-slate-50">
+                                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-3">
+                                    <Package size={20} className="text-[#1a73e8]" />
+                                    Supply Itemization
+                                </h2>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-slate-50/50 border-b border-slate-100">
+                                            <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Medication / Supply Node</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest w-24 text-center">Qty</th>
+                                            <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Aggregate</th>
+                                            <th className="px-4 py-4 w-16"></th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                             </table>
-                             
-                             <button className="w-full py-6 flex items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors border-t border-outline-variant/30 border-dashed">
-                                <Plus size={18} />
-                                <span className="text-[11px] font-black uppercase tracking-[0.2em]">Add Medication to Order</span>
-                             </button>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        <AnimatePresence initial={false}>
+                                            {items.map((item) => (
+                                                <motion.tr 
+                                                    key={item.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, x: -20 }}
+                                                    className="group hover:bg-slate-50/50 transition-colors"
+                                                >
+                                                    <td className="px-8 py-5">
+                                                        <select 
+                                                            className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-900 cursor-pointer appearance-none"
+                                                            value={item.inventory_id}
+                                                            onChange={(e) => updateItem(item.id, 'inventory_id', e.target.value)}
+                                                        >
+                                                            <option value="" disabled>Select Item Node...</option>
+                                                            {inventoryItems.map(inv => (
+                                                                <option key={inv.id} value={inv.id}>{inv.name} (Stock: {inv.current_stock})</option>
+                                                            ))}
+                                                        </select>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                                            {item.supplier}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <input 
+                                                            type="number" 
+                                                            className="w-full h-10 bg-slate-100/50 border-none rounded-xl text-center text-sm font-bold focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/10 transition-all"
+                                                            value={item.qty}
+                                                            onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 0)}
+                                                        />
+                                                    </td>
+                                                    <td className="px-8 py-5 text-right text-sm font-bold text-slate-900 tabular-nums">
+                                                        Rs. {(item.qty * item.unit_price).toLocaleString()}
+                                                    </td>
+                                                    <td className="px-4 py-5">
+                                                        <button 
+                                                            onClick={() => removeItem(item.id)}
+                                                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </td>
+                                                </motion.tr>
+                                            ))}
+                                        </AnimatePresence>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <button 
+                                onClick={addItem}
+                                className="w-full py-6 flex items-center justify-center gap-2 text-[#1a73e8] hover:bg-blue-50/50 transition-colors border-t border-slate-50 font-bold text-[11px] uppercase tracking-widest"
+                            >
+                                <Plus size={16} />
+                                Add Medication Shard
+                            </button>
+                        </section>
                     </div>
 
-                    {/* ── Right: Summary ── */}
-                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-                        <div className="bg-surface-bright border border-outline-variant rounded-[40px] p-8 md:p-10 elev-2 flex flex-col gap-8">
-                            <h2 className="text-xl font-bold text-text-main tracking-tight flex items-center gap-3">
-                                <PackageSearch size={22} className="text-primary" />
+                    {/* ── Right Column: Summary ── */}
+                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 sticky top-8">
+                        <section className={UI_TOKENS.SHARD_BASE}>
+                            <h2 className="text-lg font-bold text-slate-900 mb-8 flex items-center gap-3">
+                                <PackageSearch size={22} className="text-[#1a73e8]" />
                                 Order Profile
                             </h2>
                             
-                            <div className="flex flex-col gap-4">
-                                <div className="flex items-center justify-between text-[12px]">
-                                    <span className="text-text-sub font-medium">Estimated Delivery</span>
-                                    <span className="text-text-main font-bold">24-48 Hours</span>
+                            <div className="flex flex-col gap-4 mb-8">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-slate-500 font-medium">Estimated Delivery</span>
+                                    <span className="text-slate-900 font-bold">24-48 Hours</span>
                                 </div>
-                                <div className="flex items-center justify-between text-[12px]">
-                                    <span className="text-text-sub font-medium">Logistic Priority</span>
-                                    <span className="text-warning font-bold uppercase tracking-widest">High</span>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-slate-500 font-medium">Logistic Priority</span>
+                                    <span className="text-[#1a73e8] font-bold uppercase tracking-widest text-[11px]">High Priority</span>
                                 </div>
-                                <div className="h-px bg-outline-variant/50" />
+                                <div className="h-px bg-slate-50 my-2" />
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-bold text-text-main">Total Commitment</span>
-                                    <span className="text-2xl font-black text-text-main tracking-tighter tabular-nums">PKR 12,400</span>
+                                    <span className="text-sm font-bold text-slate-900">Total Commitment</span>
+                                    <span className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
+                                        Rs. {subtotal.toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="p-5 rounded-[24px] bg-error/5 border border-error/10 flex gap-4">
-                                <ShieldAlert size={20} className="text-error shrink-0" />
-                                <p className="text-[10px] font-bold text-error leading-relaxed uppercase tracking-wide">Note: Restricted medications require clinical head override before final dispatch.</p>
+                            <div className="p-5 rounded-[24px] bg-red-50 border border-red-100 flex gap-4 mb-8">
+                                <ShieldAlert size={20} className="text-red-500 shrink-0" strokeWidth={1.5} />
+                                <p className="text-[11px] font-bold text-red-600 leading-relaxed uppercase tracking-wide">Note: Restricted medications require clinical head override before final dispatch.</p>
                             </div>
 
                             <button 
                                 onClick={handleOrder}
-                                disabled={isSubmitting}
-                                className="w-full h-16 bg-primary text-white rounded-[28px] font-bold text-sm elev-2 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20"
+                                disabled={isSubmitting || items.some(i => !i.inventory_id)}
+                                className={CTA_THEMES.PRIMARY + " w-full !h-14 !rounded-2xl shadow-xl shadow-blue-500/20"}
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3" />
                                         Syncing Nexus...
                                     </>
                                 ) : (
                                     <>
-                                        Dispatch Order
-                                        <ArrowRight size={20} />
+                                        Dispatch Order <ArrowRight size={20} className="ml-2" />
                                     </>
                                 )}
                             </button>
+                        </section>
+                        
+                        <div className="p-6 rounded-[24px] bg-slate-50 border border-slate-100 flex items-center gap-4">
+                            <Clock size={20} className="text-slate-400" />
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                                Nexus Procurement V2.4 Active
+                            </p>
                         </div>
                     </div>
                 </div>

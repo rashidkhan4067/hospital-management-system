@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Constants for project settings
 PROJECT_NAME = "Al Shifaa Clinic"
-SITE_URL = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+SITE_URL = getattr(settings, 'SITE_URL', 'http://localhost:5173')
 
 def send_magic_link_email(email, magic_link):
     """
@@ -69,21 +69,23 @@ def send_welcome_email(user):
         logger.error(f"Error sending welcome email: {str(e)}")
         return False
 
-def send_login_alert_email(user, request):
+def send_login_alert_email(user, request, risk_level):
     """
-    Sends a security alert email when a user logs in.
+    🏢 Institutional Security Alert
+    Sends a tiered notification ONLY when identity shards are unfamiliar or suspicious.
     """
-    subject = f"{PROJECT_NAME} Security Alert: New Login Detected"
+    subject_map = {
+        'MEDIUM': f"{PROJECT_NAME} Security: New Device Sign-in",
+        'HIGH':   f"{PROJECT_NAME} URGENT: Suspicious Login Detected"
+    }
     
-    # Get user agent and IP address
+    subject = subject_map.get(risk_level, f"{PROJECT_NAME} Security Alert")
+    
+    # Forensic context extraction
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-        
-    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown device')
-    login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ip = x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
+    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown device/interface')
+    login_time = datetime.now().strftime("%Y-%m-%d %I:%M %p")
 
     context = {
         'subject': subject,
@@ -91,6 +93,7 @@ def send_login_alert_email(user, request):
         'login_time': login_time,
         'ip_address': ip,
         'user_agent': user_agent,
+        'risk_level': risk_level,
         'site_url': SITE_URL
     }
     
@@ -108,5 +111,35 @@ def send_login_alert_email(user, request):
         msg.send()
         return True
     except Exception as e:
-        logger.error(f"Error sending login alert email: {str(e)}")
+        logger.error(f"Security Alert Dispatch Failure: {str(e)}")
+        return False
+
+def send_otp_email(user, otp_code):
+    """
+    🔐 Higher-Order Identity Challenge
+    Dispatches a transient 6-digit verification code to the communication shard.
+    """
+    subject = f"{PROJECT_NAME} Security: Verification Code Required"
+    context = {
+        'subject': subject,
+        'user': user,
+        'otp_code': otp_code,
+        'site_url': SITE_URL
+    }
+    
+    html_content = render_to_string('emails/otp_email.html', context)
+    text_content = strip_tags(html_content)
+
+    try:
+        msg = EmailMultiAlternatives(
+            subject,
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email]
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+        return True
+    except Exception as e:
+        logger.error(f"OTP Dispatch Failure: {str(e)}")
         return False

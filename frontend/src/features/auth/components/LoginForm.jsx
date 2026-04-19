@@ -10,16 +10,58 @@ import M3TextField from '@/components/primitives/M3TextField';
 /**
  * 🔓 Google-Style LoginForm - Shifaa HMS Gateway (M3)
  */
-export default function LoginForm({ setError: setParentError }) {
-  const { formData, error, setError, loading, setLoading, handleChange } = useForm({ email: '', password: '' });
+export default function LoginForm({ setError: setParentError, setSuccess }) {
+  const { formData, error, setError, loading, setLoading, handleChange, setFormData } = useForm({ 
+    identity: '', 
+    password: '' 
+  });
 
   const setUser = useAuthStore(state => state.setUser);
   const setToken = useAuthStore(state => state.setToken);
   const navigate = useNavigate();
-
+  const location = React.useRef(window.location); // Reference for static state check
+  
   const handleLocalError = (err) => {
     setError(err);
+    if (setSuccess) setSuccess(null); // Clear success if an error occurs
     if (setParentError) setParentError(err);
+  };
+
+  const handleLocalSuccess = (msg) => {
+      if (setSuccess) setSuccess(msg);
+      setError(null);
+      if (setParentError) setParentError(null);
+  };
+
+  // 🛰️ Identity Pre-fill Shard
+  React.useEffect(() => {
+    const state = window.history.state?.usr; // Reach into history state
+    if (state?.fromRegistration && state?.cnic) {
+      setFormData(prev => ({ ...prev, identity: state.cnic }));
+      handleLocalSuccess('Registration successful! Please verify your clinical email to proceed.');
+    }
+  }, [setFormData]);
+
+  // 🧪 CNIC Masking Shard
+  const applyCnicMask = (val) => {
+      // If user is typing an email, do not apply mask
+      if (val.includes('@')) return val;
+      
+      const raw = val.replace(/\D/g, '').substring(0, 13);
+      let masked = raw;
+      if (raw.length > 5) {
+          masked = raw.substring(0, 5) + '-' + raw.substring(5);
+      }
+      if (raw.length > 12) {
+          masked = masked.substring(0, 13) + '-' + raw.substring(12);
+      }
+      return masked;
+  };
+
+  const handleIdentityChange = (e) => {
+      const { value } = e.target;
+      const maskedValue = applyCnicMask(value);
+      setFormData(prev => ({ ...prev, identity: maskedValue }));
   };
 
   const handleGoogleLogin = useGoogleLogin({
@@ -45,20 +87,61 @@ export default function LoginForm({ setError: setParentError }) {
     e.preventDefault();
     if (loading) return;
     handleLocalError('');
-    if (!formData.email || !formData.password) {
-      handleLocalError('Email and password required');
+
+    const { identity, password } = formData;
+
+    if (!identity || !password) {
+      handleLocalError('Identity and password required');
       return;
+    }
+
+    // 🛡️ Pre-submission Validation Protocol
+    const isEmail = identity.includes('@');
+    if (!isEmail) {
+        const rawDigits = identity.replace(/\D/g, '');
+        if (rawDigits.length < 13) {
+            handleLocalError('Incomplete Identity: CNIC must contain 13 digits.');
+            return;
+        }
     }
 
     setLoading(true);
     try {
-      const data = await loginService(formData);
+      // 🚁 Triple-Mapped Identity Shard (Agnostic Handover)
+      const data = await loginService({ 
+        identity, 
+        username: identity, 
+        email: identity.includes('@') ? identity : undefined,
+        cnic: !identity.includes('@') ? identity : undefined,
+        password 
+      });
       setToken(data.access);
       setUser(data.user);
       const redirectMap = { 'admin': '/admin/dashboard', 'doctor': '/doctor/dashboard', 'patient': '/onboarding' };
       navigate(redirectMap[data.user?.role] || '/dashboard');
     } catch (err) {
-      const errorMsg = err.response?.data?.detail || 'Identity verification failed.';
+      // 🧠 Advanced Forensic Shard Extraction
+      let errorMsg = 'Identity verification sequence failed.';
+      const data = err.response?.data || err;
+      
+      if (typeof data === 'string') {
+        errorMsg = data;
+      } else if (data.detail) {
+        errorMsg = data.detail;
+      } else if (data.non_field_errors) {
+        errorMsg = data.non_field_errors[0];
+      } else if (typeof data === 'object') {
+        // Collect ALL field errors for transparency
+        const keys = Object.keys(data);
+        if (keys.length > 0) {
+          const firstKey = keys[0];
+          const fieldLabel = firstKey === 'identity' ? 'National ID/Email' : (firstKey.charAt(0).toUpperCase() + firstKey.slice(1));
+          errorMsg = Array.isArray(data[firstKey]) 
+            ? `${fieldLabel}: ${data[firstKey][0]}` 
+            : `${fieldLabel}: ${data[firstKey]}`;
+        }
+      }
+      
       handleLocalError(errorMsg);
     } finally {
       setLoading(false);
@@ -69,14 +152,16 @@ export default function LoginForm({ setError: setParentError }) {
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
         <M3TextField
-          id="login-email"
-          label="Email"
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
+          id="login-identity"
+          label="National ID / Email"
+          placeholder="XXXXX-XXXXXXX-X or email"
+          type="text"
+          name="identity"
+          value={formData.identity}
+          onChange={handleIdentityChange}
+          helperText="Enter 13-digit National ID or clinical email address"
+          validation={error ? 'error' : null}
           fullWidth
-          required
         />
 
         <M3TextField
@@ -86,28 +171,35 @@ export default function LoginForm({ setError: setParentError }) {
           name="password"
           value={formData.password}
           onChange={handleChange}
+          validation={error ? 'error' : null}
           fullWidth
-          required
         />
 
-        <div className="mt-4">
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-[48px] rounded-full text-[14px] font-semibold bg-[#4285F4] hover:bg-[#3367D6] text-white shadow-none flex items-center justify-center transition-all active:scale-[0.98] tracking-wide"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              "Sign in"
-            )}
-          </Button>
-        </div>
-
-        <div className="flex justify-center -mt-2">
-          <Link to="/forgot-password" size="xs" className="text-[14px] font-medium text-[#4285F4] hover:text-[#3367D6] transition-colors">
+        <div className="mt-2 text-left">
+          <Link to="/forgot-password" size="xs" className="text-[14px] font-bold text-[#4285F4] hover:text-[#3367D6] transition-colors">
             Forgot password?
           </Link>
+        </div>
+
+        <div className="flex items-center justify-between mt-10 w-full">
+            <Link
+                to="/register"
+                className="text-[14px] font-bold text-[#4285F4] hover:bg-blue-50/50 px-4 py-2 rounded-full transition-all"
+            >
+                Create account
+            </Link>
+
+            <Button
+                type="submit"
+                disabled={loading}
+                className="px-8 h-[40px] rounded-full text-[14px] font-bold bg-[#4285F4] hover:bg-[#3367D6] text-white shadow-none transition-all active:scale-[0.98] min-w-[100px]"
+            >
+                {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                "Next"
+                )}
+            </Button>
         </div>
       </form>
 
@@ -134,15 +226,6 @@ export default function LoginForm({ setError: setParentError }) {
         Continue with Google
       </button>
 
-      {/* 📝 Footer Link */}
-      <div className="text-center pt-8">
-        <p className="text-[14px] text-[#202124]">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-[#4285F4] hover:underline">
-            Create one
-          </Link>
-        </p>
-      </div>
     </div>
   );
 }

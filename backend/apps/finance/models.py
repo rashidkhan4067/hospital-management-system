@@ -1,6 +1,7 @@
 from django.db import models
-from apps.patients.models import PatientProfile
-from apps.appointments.models import Appointment
+from django.utils import timezone
+from ..patients.models import PatientProfile
+from ..appointments.models import Appointment
 
 class Transaction(models.Model):
     """
@@ -25,7 +26,7 @@ class Transaction(models.Model):
     method = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='CARD')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=20, default='completed')
 
     def save(self, *args, **kwargs):
@@ -108,17 +109,9 @@ class InvoiceItem(models.Model):
         super().save(*args, **kwargs)
         
         # Update parent invoice total
-        self.invoice.total_amount = sum(item.subtotal for item in self.invoice.items.all()) | (self.subtotal if not self.pk else 0)
-        # Note: In a real app we'd use a more robust signal or method, 
-        # but for this script we'll update the total.
-        items_total = sum(item.subtotal for item in self.invoice.items.all())
-        if not self.pk: # If new item, add its subtotal
-             items_total += self.subtotal
-        
-        Invoice.objects.filter(pk=self.invoice.pk).update(
-            total_amount=items_total,
-            due_amount=items_total - self.invoice.paid_amount
-        )
+        items_total = self.invoice.items.aggregate(total=models.Sum('subtotal'))['total'] or 0
+        self.invoice.total_amount = items_total
+        self.invoice.save()
 
     def __str__(self):
         return f"{self.name} ({self.invoice.invoice_no})"

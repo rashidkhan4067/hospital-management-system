@@ -1,161 +1,66 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ArrowUpRight, Clock, ChevronRight, Stethoscope, User2 } from 'lucide-react';
+import { Clock, Stethoscope } from 'lucide-react';
 import { apiClient } from '@/core/api';
-import { ListSkeleton } from '@/components/primitives/Skeleton';
 import { useNavigate } from 'react-router-dom';
+import { useDataStore } from '@/core/store/useDataStore';
 
-/* ─── Status config: Google-style semantic tokens ─── */
 const STATUS = {
-    'In-Progress': {
-        dot:   'bg-primary',
-        ring:  'ring-primary/25',
-        badge: 'bg-primary-container text-primary',
-        label: 'In Progress',
-    },
-    'Confirmed': {
-        dot:   'bg-success',
-        ring:  'ring-success/25',
-        badge: 'bg-success-container text-success',
-        label: 'Confirmed',
-    },
-    'Completed': {
-        dot:   'bg-outline',
-        ring:  'ring-outline/20',
-        badge: 'bg-surface-variant text-text-sub',
-        label: 'Completed',
-    },
-    'Pending': {
-        dot:   'bg-warning',
-        ring:  'ring-warning/25',
-        badge: 'bg-warning-container text-warning',
-        label: 'Pending',
-    },
-    'Cancelled': {
-        dot:   'bg-error',
-        ring:  'ring-error/25',
-        badge: 'bg-error-container text-error',
-        label: 'Cancelled',
-    },
-};
-
-/* ─── Type → color accent (M3 tonal badge)  ─── */
-const TYPE_COLOR = {
-    Consultation: 'text-primary',
-    Surgery:      'text-error',
-    'Check-up':   'text-success',
-    'Follow-up':  'text-warning',
-    Radiology:    'text-[#6750A4]',
+    'In-Progress': { dot: 'var(--m3-primary)',  bg: 'var(--m3-primary-container)',  color: 'var(--m3-primary)',  label: 'Active'    },
+    'Confirmed':   { dot: 'var(--m3-success)',  bg: 'var(--m3-success-container)',  color: 'var(--m3-success)',  label: 'Confirmed' },
+    'Completed':   { dot: 'var(--m3-outline)',  bg: 'var(--m3-surface-variant)',    color: 'var(--m3-text-sub)', label: 'Done'      },
+    'Pending':     { dot: 'var(--m3-warning)',  bg: 'var(--m3-warning-container)',  color: 'var(--m3-warning)',  label: 'Pending'   },
+    'Cancelled':   { dot: 'var(--m3-error)',    bg: 'var(--m3-error-container)',    color: 'var(--m3-error)',    label: 'Cancelled' },
 };
 
 const FALLBACK = [
-    { id: 'APP-001', patient: 'Khalil Ibrahim',  doctor: 'Dr. Sarah Smith',  time: '14:30', date: 'Today', status: 'In-Progress', type: 'Consultation' },
-    { id: 'APP-002', patient: 'Amina Shah',       doctor: 'Dr. John Doe',     time: '15:15', date: 'Today', status: 'Confirmed',   type: 'Surgery'       },
-    { id: 'APP-003', patient: 'Yasin Malik',      doctor: 'Dr. Emily Blunt',  time: '16:00', date: 'Today', status: 'Pending',     type: 'Check-up'      },
-    { id: 'APP-004', patient: 'Zahra Khan',       doctor: 'Dr. Sarah Smith',  time: '16:45', date: 'Today', status: 'Completed',   type: 'Follow-up'     },
-    { id: 'APP-005', patient: 'Omar Abdullah',    doctor: 'Dr. Alan Rick',    time: '17:30', date: 'Today', status: 'Confirmed',   type: 'Radiology'     },
+    { id: 'APP-001', patient: 'Khalil Ibrahim', doctor: 'Dr. Sarah Smith', time: '14:30', status: 'In-Progress', type: 'Consultation' },
+    { id: 'APP-002', patient: 'Amina Shah',     doctor: 'Dr. John Doe',   time: '15:15', status: 'Confirmed',   type: 'Surgery'       },
+    { id: 'APP-003', patient: 'Yasin Malik',    doctor: 'Dr. Emily Blunt',time: '16:00', status: 'Pending',     type: 'Check-up'      },
+    { id: 'APP-004', patient: 'Zahra Khan',     doctor: 'Dr. Sarah Smith',time: '16:45', status: 'Completed',   type: 'Follow-up'     },
+    { id: 'APP-005', patient: 'Omar Abdullah',  doctor: 'Dr. Alan Rick',  time: '17:30', status: 'Confirmed',   type: 'Radiology'     },
 ];
 
-/* ─── Sub-component: single appointment row ─── */
-const AppointmentRow = ({ app, idx, onClick }) => {
-    const name   = app.patient?.full_name || app.patient;
-    const doctor = app.doctor?.full_name  || app.doctor;
-    const status = app.status_display     || app.status;
-    const cfg    = STATUS[status] ?? STATUS.Pending;
-
-    return (
-        <motion.button
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.06, duration: 0.22, ease: [0.2, 0, 0, 1] }}
-            onClick={onClick}
-            aria-label={`${name} · ${app.type} · ${app.time} · ${cfg.label}`}
-            className="w-full group flex items-stretch gap-0 text-left
-                hover:bg-surface-variant/40 active:bg-surface-variant/70
-                rounded-2xl transition-colors duration-150
-                outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
-        >
-            {/* ── Time column ── */}
-            <div className="flex flex-col items-center justify-start pt-4 pb-3 pl-3 pr-4 gap-1 shrink-0 w-[68px]">
-                <span className="text-sm font-bold text-text-main tabular leading-none">
-                    {app.time ?? app.start_time?.substring(0, 5)}
-                </span>
-                <span className="text-[9px] font-semibold uppercase tracking-wider text-text-sub opacity-50">
-                    {app.date ?? 'Today'}
-                </span>
-                {/* timeline dot + line */}
-                <div className="flex flex-col items-center mt-2 flex-1">
-                    <div className={`w-2.5 h-2.5 rounded-full ring-4 shrink-0 ${cfg.dot} ${cfg.ring}`} aria-hidden="true" />
-                    {idx < FALLBACK.length - 1 && (
-                        <div className="w-px flex-1 bg-outline-variant/50 mt-1.5" aria-hidden="true" />
-                    )}
-                </div>
-            </div>
-
-            {/* ── Content ── */}
-            <div className="flex items-center flex-1 min-w-0 gap-3 py-3.5 pr-3 border-b border-outline-variant/30 group-last:border-0">
-                {/* Patient avatar */}
-                <div
-                    className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-primary text-xs font-bold shrink-0"
-                    aria-hidden="true"
-                >
-                    {name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                </div>
-
-                {/* Name + doctor */}
-                <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[13px] font-semibold text-text-main truncate leading-tight">
-                        {name}
-                    </span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                        <User2 size={9} className="text-text-sub opacity-40 shrink-0" aria-hidden="true" />
-                        <span className="text-[11px] text-text-sub opacity-60 truncate">{doctor}</span>
-                    </div>
-                </div>
-
-                {/* Type + badge */}
-                <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest opacity-70 ${TYPE_COLOR[app.type] ?? 'text-text-sub'}`}>
-                        {app.type ?? 'Consultation'}
-                    </span>
-                    <span className={`m3-pill text-[9px] font-bold py-0.5 px-2 ${cfg.badge}`}>
-                        {cfg.label}
-                    </span>
-                </div>
-            </div>
-        </motion.button>
-    );
-};
-
-/* ─── Main component ─── */
-import { useDataStore } from '@/core/store/useDataStore';
-
 const RecentAppointmentsCard = () => {
-    const navigate = useNavigate();
-    const globalFilters = useDataStore(state => state.filters);
     const [appointments, setAppointments] = useState([]);
-    const [isLoading, setIsLoading]       = useState(true);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+    const filters  = useDataStore(s => s.filters);
 
     const load = useCallback(async (signal) => {
-        setIsLoading(true);
+        setLoading(true);
         try {
             const res  = await apiClient.get('/appointments/', { 
-                signal,
-                params: {
-                    limit: 5,
-                    department: globalFilters.department !== 'All' ? globalFilters.department : undefined,
-                    range: globalFilters.dateRange,
-                    search: globalFilters.searchQuery
-                }
+                signal, 
+                params: { 
+                    ordering: '-start_time', 
+                    limit: 10,
+                    department: filters.department !== 'All' ? filters.department : undefined,
+                    search: filters.searchQuery || undefined,
+                    // Map date range if backend supports it
+                } 
             });
-            const data = res.data.results || res.data;
-            setAppointments(Array.isArray(data) && data.length ? data.slice(0, 5) : FALLBACK);
-        } catch (err) {
-            if (err.name !== 'CanceledError') setAppointments(FALLBACK);
+            const data = res.data?.results || res.data;
+            
+            if (Array.isArray(data) && data.length > 0) {
+                const mapped = data.map(item => ({
+                    id:      item.id,
+                    patient: item.patient?.full_name || 'Anonymous',
+                    doctor:  item.doctor?.full_name || 'Assigned Physician',
+                    time:    item.start_time?.slice(0, 5) || '00:00',
+                    status:  item.status_display || item.status || 'Pending',
+                    type:    item.notes?.slice(0, 20) || 'Consultation'
+                }));
+                setAppointments(mapped);
+            } else {
+                setAppointments(FALLBACK);
+            }
+        } catch (e) {
+            if (e.name !== 'CanceledError') setAppointments(FALLBACK);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
-    }, [globalFilters]);
+    }, [filters]);
 
     useEffect(() => {
         const ctrl = new AbortController();
@@ -163,115 +68,114 @@ const RecentAppointmentsCard = () => {
         return () => ctrl.abort();
     }, [load]);
 
-    /* Next shift time (static for now) */
-    const nextShift = '18:00';
+    const activeCount = appointments.filter(a => a.status === 'In-Progress').length;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, ease: [0.2, 0, 0, 1] }}
-            className="w-full h-full bg-surface-bright border border-outline-variant rounded-[24px] elev-1 flex flex-col overflow-hidden"
-        >
-            {/* ══ Header ══ */}
-            <div className="flex items-start justify-between px-6 pt-6 pb-4">
-                {/* Left */}
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2" aria-hidden="true">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary/50" />
-                        <span className="m3-label-sm text-text-sub opacity-55">Clinical Schedule</span>
+        <div className="widget" style={{ height: '380px' }}>
+            {/* Header */}
+            <div className="widget-header">
+                <div>
+                    <div className="eyebrow">
+                        <div className="eyebrow-dot" style={{ background: 'var(--m3-primary)' }} />
+                        Today's Schedule
                     </div>
-                    <h2 className="text-[22px] font-bold text-text-main tracking-tight leading-snug">
-                        Daily Appointments
-                    </h2>
+                    <div className="widget-title" style={{ marginTop: 2 }}>Appointments</div>
                 </div>
-
-                {/* Right cluster */}
-                <div className="flex items-center gap-2 mt-1 shrink-0">
-                    {/* Next shift pill */}
-                    <div
-                        className="flex items-center gap-1.5 px-3 py-2 bg-surface-variant/60 rounded-2xl border border-outline-variant/50"
-                        aria-label={`Next shift at ${nextShift}`}
-                    >
-                        <Clock size={12} className="text-primary opacity-60" aria-hidden="true" />
-                        <span className="text-[10px] font-semibold text-text-sub uppercase tracking-wide">
-                            Next Shift: {nextShift}
-                        </span>
-                    </div>
-
-                    {/* View all */}
-                    <button
-                        onClick={() => navigate('/admin/appointments')}
-                        aria-label="View full appointment schedule"
-                        className="flex items-center gap-1 text-[11px] font-semibold text-primary
-                            hover:text-primary-hover transition-colors
-                            outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded-sm"
-                    >
-                        View Schedule
-                        <ArrowUpRight size={14} aria-hidden="true" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {activeCount > 0 && (
+                        <div className="chip" style={{
+                            background: 'var(--m3-primary-container)',
+                            color: 'var(--m3-primary)',
+                        }}>
+                            {activeCount} active
+                        </div>
+                    )}
+                    <button className="ghost-link" onClick={() => navigate('/admin/appointments')} aria-label="View all appointments">
+                        All →
                     </button>
                 </div>
             </div>
 
-            {/* ══ Date strip ══ */}
-            <div className="mx-6 mb-2 flex items-center gap-2.5 px-3 py-2.5 bg-primary/5 border border-primary/10 rounded-2xl">
-                <Calendar size={14} className="text-primary shrink-0" aria-hidden="true" />
-                <span className="text-[11px] font-semibold text-primary">
-                    {new Date().toLocaleDateString('en-US', {
-                        weekday: 'long', month: 'long', day: 'numeric'
-                    })}
-                </span>
-                <span className="ml-auto m3-pill bg-primary-container text-primary text-[9px]">
-                    {appointments.length} scheduled
-                </span>
-            </div>
-
-            {/* ══ Timeline list ══ */}
-            <div
-                className="flex-1 overflow-y-auto px-3 custom-scrollbar"
-                role="list"
-                aria-label="Today's appointments"
-            >
-                {isLoading ? (
-                    <div className="p-3"><ListSkeleton rows={5} /></div>
-                ) : appointments.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-text-sub opacity-40">
-                        <Calendar size={36} strokeWidth={1.5} aria-hidden="true" />
-                        <p className="mt-3 text-[11px] font-bold uppercase tracking-widest">No Appointments Today</p>
-                    </div>
-                ) : (
-                    <AnimatePresence>
-                        {appointments.map((app, idx) => (
-                            <div key={app.id} role="listitem">
-                                <AppointmentRow
-                                    app={app}
-                                    idx={idx}
-                                    onClick={() => navigate(`/admin/appointments/${app.id}`)}
-                                />
+            {/* List */}
+            <div className="widget-body">
+                <div className="widget-scroll-area">
+                    {loading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} style={{ display: 'flex', gap: 8, padding: '7px 0', alignItems: 'center' }} aria-hidden="true">
+                                <div className="sk" style={{ width: 3, height: 36, borderRadius: 3 }} />
+                                <div style={{ flex: 1 }}>
+                                    <div className="sk" style={{ height: 10, width: '70%', marginBottom: 4 }} />
+                                    <div className="sk" style={{ height: 8, width: '50%' }} />
+                                </div>
+                                <div className="sk" style={{ width: 40, height: 18, borderRadius: 999 }} />
                             </div>
-                        ))}
-                    </AnimatePresence>
-                )}
-            </div>
+                        ))
+                    ) : (
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }} role="list" aria-label="Today's appointments">
+                            <AnimatePresence mode="popLayout">
+                                {appointments.map((appt, i) => {
+                                    const s = STATUS[appt.status] || STATUS['Pending'];
+                                    return (
+                                        <motion.li
+                                            key={appt.id}
+                                            initial={{ opacity: 0, x: -6 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ delay: i * 0.04, duration: 0.18 }}
+                                            role="listitem"
+                                        >
+                                            <button
+                                                className="widget-row-btn"
+                                                onClick={() => navigate(`/admin/appointments/${appt.id}`)}
+                                                aria-label={`${appt.patient} · ${appt.time} · ${s.label}`}
+                                            >
+                                                {/* Status bar */}
+                                                <div style={{
+                                                    width: 3, height: 36, borderRadius: 3,
+                                                    background: s.dot, flexShrink: 0,
+                                                }} aria-hidden="true" />
 
-            {/* ══ Footer CTA ══ */}
-            <div className="px-6 pt-4 pb-6">
-                <button
-                    onClick={() => navigate('/admin/appointments?view=theater')}
-                    aria-label="Coordinate master theater operations"
-                    className="w-full flex items-center justify-between px-5 h-12
-                        bg-surface-variant/50 hover:bg-surface-variant
-                        border border-outline-variant/40 hover:border-primary/20
-                        rounded-2xl transition-colors group
-                        outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                >
-                    <span className="text-[11px] font-semibold text-text-sub group-hover:text-primary uppercase tracking-widest transition-colors">
-                        Coordinate Master Theater Operations
-                    </span>
-                    <ChevronRight size={16} className="text-text-sub group-hover:text-primary transition-colors shrink-0" aria-hidden="true" />
-                </button>
+                                                {/* Info */}
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{
+                                                        fontSize: 13, fontWeight: 600, color: 'var(--m3-text-main)',
+                                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                                    }}>
+                                                        {typeof appt.patient === 'object' ? (appt.patient?.full_name || appt.patient?.name || 'Unknown Patient') : appt.patient}
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                                        <Stethoscope size={10} style={{ color: 'var(--m3-text-sub)', opacity: 0.5, flexShrink: 0 }} aria-hidden="true" />
+                                                        <span style={{
+                                                            fontSize: 11, color: 'var(--m3-text-sub)', opacity: 0.7,
+                                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                                        }}>
+                                                            {typeof appt.doctor === 'object' ? (appt.doctor?.full_name || appt.doctor?.name || 'Unknown Doctor') : appt.doctor}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Right column */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                        <Clock size={10} style={{ color: 'var(--m3-text-sub)', opacity: 0.5 }} aria-hidden="true" />
+                                                        <time style={{ fontSize: 11, fontWeight: 700, color: 'var(--m3-text-main)', fontVariantNumeric: 'tabular-nums' }}>
+                                                            {appt.time}
+                                                        </time>
+                                                    </div>
+                                                    <div className="chip" style={{ background: s.bg, color: s.color }}>
+                                                        {s.label}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        </motion.li>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </ul>
+                    )}
+                </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

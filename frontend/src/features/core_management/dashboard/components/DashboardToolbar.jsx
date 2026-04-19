@@ -1,242 +1,348 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, Filter, RefreshCw, X, ChevronDown, Sparkles, User, FileText, Calendar, Pill, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDataStore } from '@/core/store/useDataStore';
-import { Search, Filter, RefreshCw, ChevronDown, Calendar, X } from 'lucide-react';
-import { SegmentedControl } from '@/components/primitives';
+import { useDataStore }    from '@/core/store/useDataStore';
+import { useAnalyticsData } from '../../analytics/hooks/useAnalyticsData';
+import { apiClient } from '@/core/api';
+import { useNavigate } from 'react-router-dom';
+import { useClickAway } from '@/core/hooks/useClickAway';
 
-const DEPARTMENTS = ['All', 'OPD', 'IPD', 'ICU', 'Emergency', 'Pharmacy'];
+const DEPTS = ['All', 'OPD', 'IPD', 'ICU', 'Emergency', 'Pharmacy'];
+const RANGES = ['Today', 'Week', 'Month'];
 
-/**
- * 🛠️ DashboardToolbar (M3 Command Bar — Audit Fixes)
- *
- * Issues Fixed:
- * ─ Accessibility/CRITICAL — Filter dropdown had no focus trap; tabbing jumped away.
- *   Added onKeyDown Escape handler to close panel, and close-on-outside-click.
- * ─ Accessibility/HIGH — Filter button had no aria-expanded state.
- *   aria-expanded and aria-controls now wired.
- * ─ Accessibility/HIGH — RefreshCw icon-only button had no aria-label.
- *   Added "Refresh dashboard data".
- * ─ Accessibility/HIGH — Search input missing an explicit <label>.
- *   Added visually-hidden label via sr-only span.
- * ─ UX/MEDIUM — Filter dropdown z-index (z-50) could be clipped by parent overflow-hidden.
- *   Changed container to position:fixed-equivalent by raising z to z-[200].
- * ─ UI/MEDIUM — Active filter state text ("Today / All") was primary-colored which 
- *   made it look like a link. Neutral text-sub now; filter chip shows current value.
- * ─ Design/LOW — Refresh button had no disabled/spinning aria-busy.
- *   aria-busy + aria-label="Refreshing…" during spin.
- * ─ Performance/LOW — Every keystroke dispatched setFilters causing full re-render.
- *   Input is uncontrolled locally with onBlur sync to store.
- */
 const DashboardToolbar = () => {
-    const filters    = useDataStore(state => state.filters);
-    const setFilters = useDataStore(state => state.setFilters);
+    const filters    = useDataStore(s => s.filters);
+    const setFilters = useDataStore(s => s.setFilters);
+    const { refetch } = useAnalyticsData();
 
-    const [isRefreshing, setIsRefreshing]   = useState(false);
-    const [isFilterOpen, setIsFilterOpen]   = useState(false);
-    const [localSearch, setLocalSearch]     = useState(filters.searchQuery || '');
+    const [filterOpen,   setFilterOpen]   = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [localSearch,  setLocalSearch]  = useState(filters.searchQuery || '');
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchResults, setSearchResults] = useState(null);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+    const navigate = useNavigate();
+    const searchRef = React.useRef(null);
+
+    useClickAway(searchRef, () => setIsSearchFocused(false));
 
     const handleRefresh = useCallback(() => {
         setIsRefreshing(true);
-        setTimeout(() => setIsRefreshing(false), 900);
-    }, []);
+        refetch?.();
+        setTimeout(() => setIsRefreshing(false), 1000);
+    }, [refetch]);
 
-    const handleSearchBlur = useCallback(() => {
-        setFilters({ searchQuery: localSearch });
-    }, [localSearch, setFilters]);
+    // Intelligence Search Logic
+    React.useEffect(() => {
+        const fetchIntell = setTimeout(async () => {
+            if (localSearch.trim().length >= 2) {
+                setSearchLoading(true);
+                try {
+                    const res = await apiClient.get(`dashboard/intelligence/search/?q=${localSearch}`);
+                    setSearchResults(res.data);
+                } catch (e) { console.error(e); }
+                finally { setSearchLoading(false); }
+            } else {
+                setSearchResults(null);
+            }
+        }, 300);
+        return () => clearTimeout(fetchIntell);
+    }, [localSearch]);
 
-    const handleSearchKey = useCallback((e) => {
-        if (e.key === 'Enter') {
-            setFilters({ searchQuery: e.target.value });
-        }
-    }, [setFilters]);
+    // Sync global filters on search
+    const commitSearch = (val) => {
+        setFilters({ searchQuery: val });
+        setIsSearchFocused(false);
+    };
 
-    const handleFilterKey = useCallback((e) => {
-        if (e.key === 'Escape') setIsFilterOpen(false);
-    }, []);
-
-    const activeDept = filters.department && filters.department !== 'All'
-        ? filters.department
-        : null;
+    const activeDept = filters.department !== 'All' ? filters.department : null;
 
     return (
-        <div className="flex flex-col gap-4" role="search" aria-label="Dashboard filters and search">
-            {/* ── Status bar ── */}
-            <div className="flex items-center gap-3 px-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-                <span className="m3-label-sm text-text-sub">
-                    Viewing:{' '}
-                    <span className="font-bold text-text-main">{filters.dateRange}</span>
-                    {activeDept && (
-                        <> · <span className="font-bold text-text-main">{activeDept}</span></>
-                    )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Status line */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, color: 'var(--m3-text-sub)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--m3-primary)', display: 'inline-block', animation: 'pulse 2s ease-in-out infinite' }} aria-hidden="true" />
+                    Viewing: <strong style={{ color: 'var(--m3-text-main)' }}>{filters.dateRange}</strong>
+                    {activeDept && <> · <strong style={{ color: 'var(--m3-text-main)' }}>{activeDept}</strong></>}
                 </span>
-
-                {/* Active filter chip */}
                 {activeDept && (
                     <button
                         onClick={() => setFilters({ department: 'All' })}
-                        className="flex items-center gap-1 px-2.5 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-semibold
-                            outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         aria-label={`Remove ${activeDept} filter`}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            height: 20, padding: '0 8px', borderRadius: 999,
+                            background: 'var(--m3-primary)',
+                            color: '#fff', border: 'none', cursor: 'pointer',
+                            fontSize: 10, fontWeight: 700, outline: 'none',
+                        }}
                     >
-                        {activeDept}
-                        <X size={10} aria-hidden="true" />
+                        {activeDept} <X size={9} aria-hidden="true" />
                     </button>
                 )}
             </div>
 
-            {/* ── Main toolbar row ── */}
-            <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3">
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-1
-                    bg-surface-bright/90 backdrop-blur-xl
-                    p-3 rounded-[28px] border border-outline-variant elev-1">
+            {/* Main toolbar */}
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                background: 'var(--m3-surface-bright)',
+                border: '1px solid var(--m3-outline-variant)',
+                borderRadius: 14,
+                padding: '6px 10px',
+                boxShadow: 'var(--m3-elev-1)',
+            }}>
+                {/* Range pills */}
+                <div
+                    role="tablist"
+                    aria-label="Date range"
+                    style={{ display: 'flex', gap: 2, background: 'var(--m3-surface-variant)', borderRadius: 8, padding: 2 }}
+                >
+                    {RANGES.map(r => (
+                        <button
+                            key={r}
+                            role="tab"
+                            aria-selected={filters.dateRange === r}
+                            onClick={() => setFilters({ dateRange: r })}
+                            style={{
+                                padding: '4px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700,
+                                border: 'none', cursor: 'pointer', transition: 'all 140ms', outline: 'none',
+                                background: filters.dateRange === r ? 'var(--m3-surface-bright)' : 'transparent',
+                                color: filters.dateRange === r ? 'var(--m3-primary)' : 'var(--m3-text-sub)',
+                                boxShadow: filters.dateRange === r ? 'var(--m3-elev-1)' : 'none',
+                            }}
+                        >
+                            {r}
+                        </button>
+                    ))}
+                </div>
 
-                    {/* Range selector */}
-                    <SegmentedControl
-                        value={filters.dateRange}
-                        onChange={val => setFilters({ dateRange: val })}
-                        options={[
-                            { label: 'Today', val: 'Today' },
-                            { label: 'Week',  val: 'Week'  },
-                            { label: 'Month', val: 'Month' },
-                        ]}
-                    />
+                {/* Divider */}
+                <div style={{ width: 1, height: 22, background: 'var(--m3-outline-variant)', flexShrink: 0 }} aria-hidden="true" />
 
-                    <div className="hidden md:block h-8 w-px bg-outline-variant/60 mx-1" aria-hidden="true" />
-
-                    {/* Search input */}
-                    <div className="flex-1 relative group min-w-0">
-                        <label htmlFor="dashboard-search" className="sr-only">
-                            Search patients and records
-                        </label>
-                        <Search
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-sub opacity-50 group-focus-within:text-primary group-focus-within:opacity-100 transition-colors pointer-events-none"
-                            size={16}
-                            aria-hidden="true"
-                        />
+                {/* Search */}
+                <div ref={searchRef} style={{ position: 'relative', flex: 1, minWidth: 160 }}>
+                    <label htmlFor="dash-search" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="sr-only">Search patients and records</span>
+                        {searchLoading ? <Loader2 size={14} className="text-primary animate-spin" /> : <Search size={14} style={{ color: 'var(--m3-text-sub)', opacity: 0.5, flexShrink: 0 }} aria-hidden="true" />}
                         <input
-                            id="dashboard-search"
+                            id="dash-search"
                             type="search"
                             value={localSearch}
-                            onChange={e => setLocalSearch(e.target.value)}
-                            onBlur={handleSearchBlur}
-                            onKeyDown={handleSearchKey}
-                            placeholder="Search patients, records…"
                             autoComplete="off"
-                            className="w-full bg-surface-variant/40 rounded-full h-11 pl-12 pr-5
-                                text-sm font-medium text-text-main placeholder:text-text-sub/60
-                                border border-transparent focus:border-primary/30 focus:bg-surface-bright
-                                outline-none transition-colors"
+                            onChange={e => setLocalSearch(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onKeyDown={e => { 
+                                if (e.key === 'Enter' && selectedIndex === -1) {
+                                    commitSearch(e.target.value); 
+                                } else if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    const flatCount = Object.values(searchResults || {}).flat().length;
+                                    setSelectedIndex(prev => (prev < flatCount - 1 ? prev + 1 : prev));
+                                } else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                                    e.preventDefault();
+                                    const flatResults = Object.values(searchResults || {}).flat();
+                                    const target = flatResults[selectedIndex];
+                                    if (target?.url) navigate(target.url);
+                                }
+                            }}
+                            placeholder="Proactive cluster search..."
+                            style={{
+                                flex: 1, background: 'transparent', border: 'none',
+                                fontSize: 13, fontWeight: 600, color: 'var(--m3-text-main)',
+                                outline: 'none', padding: '4px 0',
+                                width: '100%',
+                            }}
                         />
-                    </div>
+                    </label>
 
-                    {/* Filter + Refresh cluster */}
-                    <div className="flex items-center gap-2 shrink-0">
-                        {/* Filter button */}
-                        <div className="relative">
-                            <button
-                                id="filter-toggle"
-                                onClick={() => setIsFilterOpen(v => !v)}
-                                onKeyDown={handleFilterKey}
-                                aria-expanded={isFilterOpen}
-                                aria-controls="filter-panel"
-                                aria-haspopup="listbox"
-                                className={[
-                                    'h-11 flex items-center gap-2.5 px-5 rounded-full border text-sm font-semibold transition-colors',
-                                    'outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
-                                    isFilterOpen
-                                        ? 'bg-primary text-white border-primary elev-1'
-                                        : 'bg-surface-bright border-outline-variant text-text-main hover:border-primary/30',
-                                ].join(' ')}
+                    {/* Proactive Intelligence Dropdown */}
+                    <AnimatePresence>
+                        {isSearchFocused && searchResults && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                                style={{
+                                    position: 'absolute', top: 'calc(100% + 10px)', left: -10, right: -10,
+                                    background: 'var(--m3-surface-bright)', border: '1px solid var(--m3-outline-variant)',
+                                    borderRadius: 16, boxShadow: 'var(--m3-elev-3)', zIndex: 110,
+                                    maxHeight: 400, overflowY: 'auto', padding: 8
+                                }}
                             >
-                                <Filter size={15} aria-hidden="true" />
-                                <span>Filter</span>
-                                {activeDept && (
-                                    <span className={`ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isFilterOpen ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
-                                        {activeDept}
-                                    </span>
-                                )}
-                                <ChevronDown
-                                    size={14}
-                                    className={`transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`}
-                                    aria-hidden="true"
-                                />
-                            </button>
+                                <SearchSection title="Patients" items={searchResults.patients} icon={User} navigate={navigate} query={localSearch} offset={0} selectedIndex={selectedIndex} />
+                                <SearchSection title="Doctors" items={searchResults.doctors} icon={FileText} navigate={navigate} query={localSearch} offset={searchResults.patients?.length || 0} selectedIndex={selectedIndex} />
+                                <SearchSection title="Clinical Events" items={searchResults.appointments} icon={Calendar} navigate={navigate} query={localSearch} offset={(searchResults.patients?.length || 0) + (searchResults.doctors?.length || 0)} selectedIndex={selectedIndex} />
+                                <SearchSection title="Pharmacy" items={searchResults.medicine} icon={Pill} navigate={navigate} query={localSearch} offset={(searchResults.patients?.length || 0) + (searchResults.doctors?.length || 0) + (searchResults.appointments?.length || 0)} selectedIndex={selectedIndex} />
 
-                            <AnimatePresence>
-                                {isFilterOpen && (
-                                    <motion.div
-                                        id="filter-panel"
-                                        role="listbox"
-                                        aria-label="Filter by department"
-                                        initial={{ opacity: 0, y: 12, scale: 0.97 }}
-                                        animate={{ opacity: 1, y: 0,  scale: 1    }}
-                                        exit={{   opacity: 0, y: 12, scale: 0.97 }}
-                                        transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
-                                        className="absolute right-0 top-full mt-3 w-72 bg-surface-bright
-                                            border border-outline-variant rounded-[24px] elev-4
-                                            z-[200] p-5 flex flex-col gap-4"
-                                        onKeyDown={handleFilterKey}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Calendar size={13} className="text-primary" aria-hidden="true" />
-                                            <span className="m3-label-sm text-text-sub">Clinical Department</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {DEPARTMENTS.map(dept => (
-                                                <button
-                                                    key={dept}
-                                                    role="option"
-                                                    aria-selected={filters.department === dept}
-                                                    onClick={() => {
-                                                        setFilters({ department: dept });
-                                                        setIsFilterOpen(false);
-                                                    }}
-                                                    className={[
-                                                        'h-10 rounded-xl text-[11px] font-semibold border transition-colors',
-                                                        'outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                                                        filters.department === dept
-                                                            ? 'bg-primary/8 border-primary text-primary'
-                                                            : 'bg-surface-variant/40 border-transparent text-text-sub hover:text-text-main hover:border-outline-variant',
-                                                    ].join(' ')}
-                                                >
-                                                    {dept}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button
-                                            className="w-full h-11 bg-primary text-white rounded-2xl text-sm font-semibold
-                                                transition-colors hover:brightness-110
-                                                outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                            onClick={() => setIsFilterOpen(false)}
-                                        >
-                                            Apply
-                                        </button>
-                                    </motion.div>
+                                {Object.values(searchResults).every(a => a.length === 0) && (
+                                    <div style={{ padding: 20, textAlign: 'center', color: 'var(--m3-text-sub)', fontSize: 11 }}>
+                                        No proactive matches found. Press Enter to filter dashboard.
+                                    </div>
                                 )}
-                            </AnimatePresence>
-                        </div>
-
-                        {/* Refresh button */}
-                        <button
-                            onClick={handleRefresh}
-                            disabled={isRefreshing}
-                            aria-label={isRefreshing ? 'Refreshing dashboard data…' : 'Refresh dashboard data'}
-                            aria-busy={isRefreshing}
-                            className="icon-btn bg-surface-bright border border-outline-variant text-text-sub
-                                hover:border-primary/30 hover:text-primary
-                                outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1
-                                disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <RefreshCw
-                                size={17}
-                                className={isRefreshing ? 'animate-spin' : ''}
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
+
+                {/* Filter */}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => setFilterOpen(v => !v)}
+                        aria-expanded={filterOpen}
+                        aria-controls="dept-filter"
+                        aria-haspopup="listbox"
+                        onKeyDown={e => { if (e.key === 'Escape') setFilterOpen(false); }}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 5,
+                            height: 30, padding: '0 10px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                            border: '1px solid var(--m3-outline-variant)', cursor: 'pointer',
+                            background: filterOpen ? 'var(--m3-primary)' : 'transparent',
+                            color: filterOpen ? '#fff' : 'var(--m3-text-main)',
+                            transition: 'all 150ms', outline: 'none',
+                        }}
+                    >
+                        <Filter size={12} aria-hidden="true" />
+                        Filter
+                        {activeDept && <strong>{activeDept}</strong>}
+                        <ChevronDown size={11} style={{ transform: filterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} aria-hidden="true" />
+                    </button>
+
+                    <AnimatePresence>
+                        {filterOpen && (
+                            <>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setFilterOpen(false)} aria-hidden="true" />
+                                <motion.div
+                                    id="dept-filter"
+                                    role="listbox"
+                                    aria-label="Filter by department"
+                                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                                    transition={{ duration: 0.14 }}
+                                    onKeyDown={e => { if (e.key === 'Escape') setFilterOpen(false); }}
+                                    style={{
+                                        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                                        width: 240, zIndex: 200,
+                                        background: 'var(--m3-surface-bright)',
+                                        border: '1px solid var(--m3-outline-variant)',
+                                        borderRadius: 14, boxShadow: 'var(--m3-elev-4)',
+                                        padding: 10,
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                                        <Sparkles size={12} style={{ color: 'var(--m3-primary)' }} aria-hidden="true" />
+                                        <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--m3-text-sub)' }}>
+                                            Department
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5 }}>
+                                        {DEPTS.map(d => (
+                                            <button
+                                                key={d}
+                                                role="option"
+                                                aria-selected={filters.department === d}
+                                                onClick={() => { setFilters({ department: d }); setFilterOpen(false); }}
+                                                style={{
+                                                    height: 30, borderRadius: 8, fontSize: 11, fontWeight: 700,
+                                                    border: '1px solid',
+                                                    borderColor: filters.department === d ? 'var(--m3-primary)' : 'transparent',
+                                                    background: filters.department === d ? 'var(--m3-primary)' : 'var(--m3-surface-variant)',
+                                                    color: filters.department === d ? '#fff' : 'var(--m3-text-sub)',
+                                                    cursor: 'pointer', transition: 'all 140ms', outline: 'none',
+                                                }}
+                                            >
+                                                {d}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Refresh */}
+                <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    aria-label={isRefreshing ? 'Refreshing…' : 'Refresh dashboard'}
+                    aria-busy={isRefreshing}
+                    style={{
+                        width: 30, height: 30, borderRadius: 8, border: '1px solid var(--m3-outline-variant)',
+                        background: 'transparent', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'var(--m3-text-sub)', transition: 'all 150ms', outline: 'none',
+                        opacity: isRefreshing ? 0.5 : 1,
+                    }}
+                >
+                    <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} aria-hidden="true" />
+                </button>
             </div>
+        </div>
+    );
+};
+
+const HighlightedText = ({ text, query }) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return (
+        <span>
+            {parts.map((part, i) => (
+                <span key={i} style={part.toLowerCase() === query.toLowerCase() ? { color: 'var(--m3-primary)', fontWeight: 800 } : {}}>
+                    {part}
+                </span>
+            ))}
+        </span>
+    );
+};
+
+const SearchSection = ({ title, items, icon: Icon, navigate, query, offset, selectedIndex }) => {
+    if (!items?.length) return null;
+    return (
+        <div style={{ marginBottom: 4 }}>
+            <div style={{ padding: '8px 12px 4px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: 'var(--m3-text-sub)', opacity: 0.6, letterSpacing: '0.08em' }}>
+                {title}
+            </div>
+            {items.map((item, index) => {
+                const globalIndex = offset + index;
+                const isSelected = selectedIndex === globalIndex;
+                return (
+                    <div
+                        key={item.id}
+                        onClick={() => navigate(item.url)}
+                        style={{
+                            padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'all 120ms',
+                            background: isSelected ? 'var(--m3-surface-variant)' : 'transparent',
+                            margin: '1px 0'
+                        }}
+                        className={!isSelected ? "hover:bg-surface-variant/50" : ""}
+                    >
+                        <div style={{ 
+                            width: 32, height: 32, borderRadius: 10, background: 'var(--m3-surface)', 
+                            display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center',
+                            border: '1px solid var(--m3-outline-variant)', flexShrink: 0
+                        }}>
+                             <Icon size={16} style={{ color: isSelected ? 'var(--m3-primary)' : 'var(--m3-text-sub)' }} />
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--m3-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <HighlightedText text={item.name} query={query} />
+                            </span>
+                            <span style={{ fontSize: 11, color: 'var(--m3-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.detail}</span>
+                        </div>
+                        {isSelected && (
+                             <div style={{ padding: '2px 6px', background: 'var(--m3-primary)', borderRadius: 6, fontSize: 9, fontWeight: 900, color: '#fff' }}>
+                                ENTER
+                             </div>
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 };

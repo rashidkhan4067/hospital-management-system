@@ -21,6 +21,27 @@ class PatientProfile(models.Model):
         help_text=_("Associated user account for login."),
     )
 
+    mrn = models.CharField(
+        _("medical record number"),
+        max_length=20,
+        unique=True,
+        blank=True,
+        editable=False,
+        help_text=_("Format: SHI-YYYY-XXXX")
+    )
+
+    class ClinicalStatus(models.TextChoices):
+        COMPLETE   = "complete",   _("Verified/Complete")
+        INCOMPLETE = "incomplete", _("Quick-Add/Incomplete")
+        ARCHIVED   = "archived",   _("Archived")
+
+    status = models.CharField(
+        _("onboarding status"),
+        max_length=15,
+        choices=ClinicalStatus.choices,
+        default=ClinicalStatus.INCOMPLETE,
+    )
+
     blood_group = models.CharField(
         _("blood group"),
         max_length=5,
@@ -28,13 +49,22 @@ class PatientProfile(models.Model):
         blank=True,
     )
 
+    age = models.PositiveIntegerField(_("age"), null=True, blank=True)
+    cnic = models.CharField(_("CNIC"), max_length=20, blank=True, null=True)
     date_of_birth = models.DateField(_("date of birth"), null=True, blank=True)
     gender = models.CharField(_("gender"), max_length=20, blank=True)
     address = models.TextField(_("physical address"), blank=True)
     
+    occupation = models.CharField(_("occupation"), max_length=100, blank=True)
+    marital_status = models.CharField(_("marital status"), max_length=20, blank=True)
+    preferred_language = models.CharField(_("preferred language"), max_length=50, default="English")
+    
     emergency_contact_name = models.CharField(_("emergency contact"), max_length=100, blank=True)
+    emergency_contact_relationship = models.CharField(_("relationship"), max_length=50, blank=True)
     emergency_contact_phone = models.CharField(_("emergency contact phone"), max_length=20, blank=True)
 
+    privacy_consent = models.BooleanField(_("privacy consent"), default=False)
+    
     allergies = models.TextField(_("known allergies"), blank=True, help_text=_("List of drug/food allergies."))
     medical_history = models.TextField(_("chronic conditions"), blank=True, help_text=_("Diabetes, Hypertension, etc."))
     current_medications = models.TextField(_("current medications"), blank=True, help_text=_("List of active medications."))
@@ -44,6 +74,23 @@ class PatientProfile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        """
+        🚀 Institutional identity protocol.
+        Generates unique sequence-based MRN if not present.
+        """
+        if not self.mrn:
+            import random
+            # SHF-XXXXXX shape (6 digits)
+            seq = random.randint(1, 999999)
+            self.mrn = f"SHF-{str(seq).zfill(6)}"
+            
+        # If all core clinical fields are present, set status to complete
+        if self.date_of_birth and self.gender and self.blood_group and self.address:
+            self.status = self.ClinicalStatus.COMPLETE
+            
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "hospital_patient_profiles"

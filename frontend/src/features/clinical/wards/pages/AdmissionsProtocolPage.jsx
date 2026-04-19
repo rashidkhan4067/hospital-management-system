@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
     BedDouble, 
     ClipboardCheck, 
@@ -8,18 +8,71 @@ import {
     ShieldPlus, 
     Building2,
     CheckCircle2,
-    Users2
+    Users2,
+    Search,
+    AlertCircle,
+    ShieldCheck,
+    Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminPage from '@/layouts/AdminPage';
+import { apiClient } from '@/core/api';
+import { UI_TOKENS, CTA_THEMES } from '@/core/config/UI';
 
 /**
  * 🛌 AdmissionsProtocolPage (In-patient Onboarding)
  * Streamlined workflow for transitioning patients from ER/OPD to Ward assignment.
+ * Standardized to Google UI (M3) architecture.
  */
 export default function AdmissionsProtocolPage() {
     const navigate = useNavigate();
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [patients, setPatients] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [selectedPatient, setSelectedPatient] = useState(null);
+    const [selectedWard, setSelectedWard] = useState(null);
+    const [priority, setPriority] = useState('routine');
+    
+    // ── Load Clinical Nodes ──
+    useEffect(() => {
+        // Fetch non-admitted patients
+        apiClient.get('/patients/profiles/')
+            .then(res => {
+                const data = res.data.results || res.data;
+                if (Array.isArray(data)) setPatients(data.filter(p => !p.is_admitted));
+            })
+            .catch(err => console.error("Patient Registry Error:", err));
+
+        // Fetch available wards
+        apiClient.get('/wards/wards/')
+            .then(res => {
+                const data = res.data.results || res.data;
+                if (Array.isArray(data)) setWards(data);
+            })
+            .catch(err => console.error("Ward Registry Error:", err));
+    }, []);
+
+    const handleAdmission = async () => {
+        if (!selectedPatient || !selectedWard) return;
+        
+        setIsSaving(true);
+        try {
+            // Update patient admission status
+            await apiClient.patch(`/patients/profiles/${selectedPatient.id}/`, {
+                is_admitted: true,
+                room_number: selectedWard.name
+            });
+            
+            setIsConfirmed(true);
+            setTimeout(() => navigate('/admin/clinical/wards'), 3000);
+        } catch (err) {
+            console.error("Admission Write Error:", err);
+            alert("Failed to synchronize admission node. Check clinical connectivity.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     if (isConfirmed) {
         return (
@@ -27,16 +80,18 @@ export default function AdmissionsProtocolPage() {
                 <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-center max-w-sm"
+                    className={`${UI_TOKENS.SHARD_BASE} text-center max-w-sm`}
                 >
-                    <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-8">
-                        <UserPlus size={40} />
+                    <div className="w-24 h-24 rounded-full bg-blue-50 text-[#1a73e8] flex items-center justify-center mx-auto mb-8 animate-bounce">
+                        <UserPlus size={48} strokeWidth={1.5} />
                     </div>
-                    <h1 className="text-2xl font-bold text-text-main mb-3">Admission Authorized</h1>
-                    <p className="text-sm text-text-sub mb-8">
-                        Patient has been officially admitted to <strong>ICU Ward 2, Bed 14</strong>. Staff notification broadcasted.
+                    <h1 className="text-2xl font-bold text-slate-900 mb-3">Admission Authorized</h1>
+                    <p className="text-sm text-slate-600 mb-8">
+                        Patient <strong className="text-slate-900">{selectedPatient?.full_name}</strong> has been officially admitted to <strong className="text-slate-900">{selectedWard?.name}</strong>.
                     </p>
-                    <button onClick={() => navigate('/admin/clinical/wards')} className="w-full h-12 bg-primary text-white rounded-full font-bold text-[13px] hover:brightness-110">View Ward Matrix</button>
+                    <button onClick={() => navigate('/admin/clinical/wards')} className={CTA_THEMES.PRIMARY}>
+                        View Ward Matrix
+                    </button>
                 </motion.div>
             </AdminPage>
         );
@@ -44,86 +99,200 @@ export default function AdmissionsProtocolPage() {
 
     return (
         <AdminPage className="min-h-screen">
-            <div className="max-w-4xl mx-auto px-4 py-8 lg:py-16">
+            <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
                 
-                {/* ── Header ── */}
-                <header className="mb-12 text-center md:text-left">
-                    <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-                        <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                            <BedDouble size={16} />
+                {/* ── Dashboard Header ── */}
+                <header className={UI_TOKENS.HEADER}>
+                    <div className={UI_TOKENS.HEADER_LEFT}>
+                        <div className={UI_TOKENS.ICON_BOX}>
+                            <BedDouble size={20} />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Boarding Matrix v2.0</span>
+                        <div>
+                            <span className={UI_TOKENS.TEXT_SECONDARY}>In-patient Logistics</span>
+                            <h1 className={`${UI_TOKENS.TEXT_PRIMARY} text-2xl mt-1`}>Patient Admission Protocol</h1>
+                            <p className="text-sm text-slate-500 font-medium mt-1">Initialize inpatient tracking and allocate clinical facility resources.</p>
+                        </div>
                     </div>
-                    <h1 className="text-4xl font-black text-text-main tracking-tight mb-2">Patient Admission Protocol</h1>
-                    <p className="text-text-sub font-medium opacity-60">Initialize inpatient tracking and allocate facility resources.</p>
                 </header>
 
-                <div className="bg-surface-bright border border-outline-variant rounded-[48px] p-8 md:p-12 elev-2 flex flex-col gap-10">
+                <div className="grid grid-cols-12 gap-8 items-start">
                     
-                    {/* Select Patient Section */}
-                    <div className="flex flex-col gap-4">
-                        <label className="text-[11px] font-bold text-text-sub uppercase tracking-widest flex items-center gap-2 ml-1">
-                            <Users2 size={12} /> Search Admitting Identity
-                        </label>
-                        <div className="p-5 rounded-3xl bg-surface-variant/30 border border-outline-variant border-dashed flex items-center justify-between group cursor-pointer hover:bg-surface-variant/50 transition-colors">
-                            <span className="text-sm font-medium text-text-sub opacity-50">Select patient for admission...</span>
-                            <div className="w-10 h-10 rounded-2xl bg-white border border-outline-variant flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                <ArrowRight size={18} />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Ward Assignment Matrix */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="flex flex-col gap-4">
-                            <label className="text-[11px] font-bold text-text-sub uppercase tracking-widest flex items-center gap-2 ml-1">
-                                <Building2 size={12} /> Destination Ward
-                            </label>
-                            <select className="h-14 px-6 rounded-2xl bg-surface-variant/30 border border-outline-variant focus:border-primary outline-none text-sm font-bold text-text-main transition-colors">
-                                <option>General Ward A (Level 2)</option>
-                                <option>ICU / Critical Critical (Level 4)</option>
-                                <option>Surgical Post-Op (Level 3)</option>
-                                <option>Pediatrics (Level 1)</option>
-                            </select>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                            <label className="text-[11px] font-bold text-text-sub uppercase tracking-widest flex items-center gap-2 ml-1">
-                                <ClipboardCheck size={12} /> Priority Level
-                            </label>
-                            <div className="flex gap-2">
-                                <button className="flex-1 h-14 rounded-2xl bg-surface-variant/30 border border-outline-variant text-[11px] font-bold text-text-sub hover:bg-surface-variant transition-colors">Routine</button>
-                                <button className="flex-1 h-14 rounded-2xl bg-primary/10 border border-primary/20 text-[11px] font-bold text-primary">Urgent</button>
-                                <button className="flex-1 h-14 rounded-2xl bg-error/10 border border-error/20 text-[11px] font-bold text-error">Critical</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Protocol Checklist */}
-                    <div className="flex flex-col gap-4">
-                        <label className="text-[11px] font-bold text-text-sub uppercase tracking-widest flex items-center gap-2 ml-1">
-                           <ShieldPlus size={12} /> Boarding Readiness Checklist
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {['Clinical Vitals Synced', 'Consent Forms Signed', 'Insurance Authorized', 'Attending Notified'].map((txt) => (
-                                <div key={txt} className="flex items-center gap-3 p-4 rounded-2xl bg-surface-variant/20 border border-outline-variant/20">
-                                    <div className="w-5 h-5 rounded-full bg-success/20 text-success flex items-center justify-center">
-                                         <CheckCircle2 size={12} />
-                                    </div>
-                                    <span className="text-[11px] font-bold text-text-main uppercase tracking-tight">{txt}</span>
+                    {/* ── Left Column: Configuration ── */}
+                    <div className="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-8">
+                        
+                        {/* Identity Selection */}
+                        <section className={UI_TOKENS.SHARD_BASE}>
+                            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3">
+                                <Users2 size={20} className="text-[#1a73e8]" />
+                                Admitting Identity
+                            </h2>
+                            
+                            <div className="relative">
+                                <select 
+                                    className="w-full h-14 pl-12 pr-6 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold focus:bg-white focus:border-[#1a73e8] focus:ring-4 focus:ring-[#1a73e8]/10 transition-all appearance-none cursor-pointer outline-none"
+                                    onChange={(e) => {
+                                        const p = patients.find(pat => pat.id === parseInt(e.target.value));
+                                        setSelectedPatient(p);
+                                    }}
+                                    value={selectedPatient?.id || ''}
+                                >
+                                    <option value="" disabled>Search Patient Registry...</option>
+                                    {patients.map(p => (
+                                        <option key={p.id} value={p.id}>{p.full_name} ({p.email})</option>
+                                    ))}
+                                </select>
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                    <Search size={18} />
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        </section>
+
+                        {/* Ward Matrix */}
+                        <section className={UI_TOKENS.SHARD_BASE}>
+                            <h2 className="text-lg font-bold text-slate-900 mb-8 flex items-center gap-3">
+                                <Building2 size={20} className="text-[#1a73e8]" />
+                                Destination Ward Unit
+                            </h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {wards.map((ward) => (
+                                    <button
+                                        key={ward.id}
+                                        onClick={() => setSelectedWard(ward)}
+                                        className={`flex items-start gap-4 p-5 rounded-[24px] transition-all text-left bg-white
+                                            ${selectedWard?.id === ward.id 
+                                                ? 'border-2 border-[#1a73e8] shadow-md shadow-blue-500/10' 
+                                                : 'border border-slate-200 hover:border-[#1a73e8]/40 hover:shadow-sm'}
+                                        `}
+                                    >
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${selectedWard?.id === ward.id ? 'bg-[#1a73e8] text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                            <Building2 size={24} strokeWidth={1.5} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-bold text-slate-900 truncate uppercase">{ward.name}</h3>
+                                            <p className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-widest mt-1">Level {ward.floor}</p>
+                                            <div className="mt-3 flex items-center gap-2 text-slate-500">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{ward.code}</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Checklist */}
+                        <section className={UI_TOKENS.SHARD_BASE}>
+                            <h2 className="text-lg font-bold text-slate-900 mb-8 flex items-center gap-3">
+                                <ShieldPlus size={20} className="text-[#1a73e8]" />
+                                Boarding Readiness
+                            </h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {['Clinical Vitals Synced', 'Consent Forms Signed', 'Insurance Authorized', 'Attending Notified'].map((txt) => (
+                                    <div key={txt} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                        <div className="w-5 h-5 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                                             <CheckCircle2 size={12} strokeWidth={2.5} />
+                                        </div>
+                                        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">{txt}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
                     </div>
 
-                    <div className="h-px bg-outline-variant/30" />
+                    {/* ── Right Column: Summary ── */}
+                    <div className="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-6 sticky top-8">
+                        <section className={UI_TOKENS.SHARD_BASE}>
+                            <h2 className="text-lg font-bold text-slate-900 mb-8 flex items-center gap-3">
+                                <ClipboardCheck size={20} className="text-[#1a73e8]" />
+                                Allocation Summary
+                            </h2>
 
-                    <button 
-                        onClick={() => setIsConfirmed(true)}
-                        className="w-full h-16 bg-primary text-white rounded-[32px] font-black text-sm uppercase tracking-widest elev-2 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-4"
-                    >
-                        Initialize Hospital Admission
-                        <ArrowRight size={20} />
-                    </button>
+                            <div className="flex flex-col gap-6 mb-8">
+                                <div className="flex flex-col gap-2">
+                                    <p className={UI_TOKENS.TEXT_SECONDARY}>Priority Matrix</p>
+                                    <div className="flex gap-2">
+                                        {['routine', 'urgent', 'critical'].map(p => (
+                                            <button 
+                                                key={p}
+                                                onClick={() => setPriority(p)}
+                                                className={`flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all
+                                                    ${priority === p 
+                                                        ? (p === 'critical' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-[#1a73e8] text-white shadow-lg shadow-blue-500/20')
+                                                        : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}
+                                                `}
+                                            >
+                                                {p}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="h-px bg-slate-50" />
+                                
+                                <AnimatePresence mode="wait">
+                                    {!selectedPatient || !selectedWard ? (
+                                        <motion.div 
+                                            key="empty"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="flex flex-col items-center justify-center py-10 text-center gap-4 text-slate-300"
+                                        >
+                                            <AlertCircle size={32} strokeWidth={1.5} />
+                                            <p className="text-xs font-bold uppercase tracking-widest">Configuration Incomplete</p>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div 
+                                            key="selected"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="space-y-4"
+                                        >
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-slate-500 font-medium">Patient</span>
+                                                <span className="text-slate-900 font-bold">{selectedPatient.full_name}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-slate-500 font-medium">Ward</span>
+                                                <span className="text-[#1a73e8] font-bold uppercase">{selectedWard.name}</span>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                                </AnimatePresence>
+                            </div>
+
+                            <button 
+                                onClick={handleAdmission}
+                                disabled={!selectedPatient || !selectedWard || isSaving}
+                                className={CTA_THEMES.PRIMARY + " w-full !h-14 !rounded-2xl shadow-xl shadow-blue-500/20"}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3" />
+                                        Syncing Registry...
+                                    </>
+                                ) : (
+                                    <>
+                                        Initialize Hospital Admission <ArrowRight size={20} className="ml-2" />
+                                    </>
+                                )}
+                            </button>
+                            
+                            <div className="mt-8 flex items-center justify-center gap-2 text-[10px] text-slate-300 font-bold uppercase tracking-widest">
+                                <ShieldCheck size={14} className="text-green-400" />
+                                HIPAA COMPLIANT SESSION
+                            </div>
+                        </section>
+                        
+                        <div className="p-6 rounded-[24px] bg-slate-50 border border-slate-100 flex items-center gap-4">
+                            <Clock size={20} className="text-slate-400" />
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                                Clinical Gate v4.2 Active
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </AdminPage>

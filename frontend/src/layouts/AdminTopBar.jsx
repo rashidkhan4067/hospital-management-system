@@ -53,14 +53,14 @@ const AdminTopBar = () => {
             <Menu size={20} aria-hidden="true" />
           </button>
           <div className="flex items-center gap-4 group cursor-default">
-            <div className="w-10 h-10 rounded-xl bg-[#6750A4] flex items-center justify-center text-white text-xl font-black shadow-lg shadow-[#6750A4]/20 transition-transform group-hover:scale-110">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white text-xl font-black shadow-lg shadow-primary/20 transition-transform group-hover:scale-110">
               S
             </div>
             <div className="hidden sm:flex flex-col">
-              <h1 className="text-[22px] font-bold tracking-tight leading-none text-[#6750A4]" style={{ fontFamily: '"Google Sans Display", sans-serif' }}>
+              <h1 className="text-[22px] font-bold tracking-tight leading-none text-primary" style={{ fontFamily: '"Google Sans Display", sans-serif' }}>
                 Shifaa HMS
               </h1>
-              <span className="text-[12px] font-bold text-[#49454F] tracking-widest uppercase opacity-60">
+              <span className="text-[12px] font-bold text-text-sub tracking-widest uppercase opacity-60">
                 Admin Panel
               </span>
             </div>
@@ -94,7 +94,7 @@ const AdminTopBar = () => {
           <Settings size={22} strokeWidth={2} aria-hidden="true" />
         </button>
 
-        <div className="h-8 w-px bg-[#CAC4D0]/60 mx-1 hidden xs:block" />
+        <div className="h-8 w-px bg-outline-variant/60 mx-1 hidden xs:block" />
 
         <ProfileMenu user={user} />
       </div>

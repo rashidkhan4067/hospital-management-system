@@ -16,6 +16,7 @@ const AdminSidebar = () => {
   const { user, logout } = useAuthStore();
   const {
     isExpanded,
+    setSidebarExpanded,
     toggleSidebar,
     isMobile,
     isMobileMenuOpen,
@@ -23,6 +24,17 @@ const AdminSidebar = () => {
     isGroupOpen,
     toggleGroup
   } = useSidebar();
+
+  // 🛰️ Automatic Responsive Payload Orchestration (MD3 Viewport Adapter)
+  React.useEffect(() => {
+    if (isMobile) {
+      setSidebarExpanded(false);
+    } else {
+      // Auto-expand on large screens (>1024px), auto-collapse on tablet (768px-1024px)
+      const isDesktop = window.innerWidth >= 1024;
+      setSidebarExpanded(isDesktop);
+    }
+  }, [isMobile, setSidebarExpanded]);
 
   const width = isMobile ? 0 : (isExpanded ? 280 : 80);
 
@@ -34,8 +46,8 @@ const AdminSidebar = () => {
       </div>
       {(isExpanded || isMobile) && (
         <div className="flex flex-col">
-          <span className="text-[18px] font-black text-[#6750A4] tracking-tight leading-none uppercase">Shifaa</span>
-          <span className="text-[10px] font-bold text-[#49454F] tracking-[0.2em] opacity-40 uppercase">Intelligence Matrix</span>
+          <span className="text-[18px] font-black text-primary tracking-tight leading-none uppercase">Shifaa</span>
+          <span className="text-[10px] font-bold text-text-sub tracking-[0.2em] opacity-40 uppercase">Intelligence Matrix</span>
         </div>
       )}
     </div>
@@ -43,17 +55,16 @@ const AdminSidebar = () => {
 
   // 👤 Profile Command Cluster Component
   const ProfileCommand = () => {
-    const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'AD';
     return (
       <div className={`mt-auto bg-surface border-t border-outline-variant/30 p-4 ${!isExpanded && !isMobile ? 'flex flex-col items-center gap-6 p-2' : ''}`}>
         <div className={`flex items-center gap-4 ${isExpanded ? 'px-2 py-2 mb-4 bg-surface-variant/20 rounded-2xl' : ''}`}>
-          <div className="w-10 h-10 rounded-full bg-[#EADDFF] flex items-center justify-center text-[#21005D] text-sm font-black ring-1 ring-[#6750A4]/10 shrink-0">
-            {initials}
+          <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-primary text-sm font-black ring-1 ring-primary/10 shrink-0">
+            {user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AD'}
           </div>
           {(isExpanded || isMobile) && (
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-[#1C1B1F] truncate group-hover:text-primary transition-colors">{user?.name || 'Director Rashid'}</span>
-              <span className="text-[10px] font-black text-[#49454F] uppercase tracking-[0.1em] opacity-60 truncate">{user?.role || 'Administrator'}</span>
+              <span className="text-sm font-bold text-text-main truncate group-hover:text-primary transition-colors">{user?.full_name || 'Director Rashid'}</span>
+              <span className="text-[10px] font-black text-text-sub uppercase tracking-[0.1em] opacity-60 truncate">{user?.role || 'Administrator'}</span>
             </div>
           )}
         </div>
@@ -73,10 +84,10 @@ const AdminSidebar = () => {
         {!isMobile && (
           <button
             onClick={toggleSidebar}
-            className={`mt-4 w-full flex items-center transition-all hover:bg-primary/5 text-[#49454F] rounded-full group ${isExpanded ? 'gap-4 px-4 py-3' : 'justify-center w-12 h-12 mx-auto'}`}
+            className={`mt-4 w-full flex items-center transition-all hover:bg-primary/5 text-text-sub rounded-full group ${isExpanded ? 'gap-4 px-4 py-3' : 'justify-center w-12 h-12 mx-auto'}`}
           >
             {isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-            {isExpanded && <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#49454F]/60">Collapse Console</span>}
+            {isExpanded && <span className="text-xs font-bold uppercase tracking-[0.1em] text-text-sub/60">Collapse Console</span>}
           </button>
         )}
       </div>
@@ -91,7 +102,7 @@ const AdminSidebar = () => {
           initial={false}
           animate={{ width }}
           transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
-          className="h-screen bg-[#FEF7FF] flex flex-col border-r border-[#CAC4D0]/40 shrink-0 relative z-[101]"
+          className="h-screen bg-surface flex flex-col border-r border-outline-variant/40 shrink-0 relative z-[101]"
           aria-label="Admin Navigation Console"
         >
           <BrandHead />

@@ -14,8 +14,8 @@ import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
 // Advanced Ward Shards
 import WardCard from '../components/WardCard';
 import AdmittedPatientShard from '../components/AdmittedPatientShard';
-import WardSidebar from '../components/WardSidebar';
 import { WARD_TYPES } from '../constants/wardConstants';
+
 import { useWards } from '../hooks/useWards';
 
 // Modals
@@ -151,20 +151,6 @@ export default function WardsBeds() {
                   </div>
                </div>
 
-               {/* 🛰 SIDEBAR INTELLIGENCE CLUSTER (Right Space) */}
-               <div className="lg:col-span-4 h-full relative">
-                  <WardSidebar 
-                     byType={by_type} 
-                     onAdmit={() => setIsAdmissionModalOpen(true)}
-                     onTransfer={() => {
-                        if (admissions?.length > 0) {
-                           handleTransferInitiation(admissions[0]);
-                        } else {
-                           alert('No active admissions found for migration.');
-                        }
-                     }}
-                  />
-               </div>
 
             </div>
          </div>

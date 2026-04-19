@@ -1,341 +1,183 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import {
-    Activity, Bed, ShieldPlus, Baby,
-    Heart, UserPlus, ArrowUpRight, AlertCircle,
-    RefreshCw, TrendingUp, TrendingDown, Minus,
-} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Activity, Bed, ShieldPlus, Baby, Heart, UserPlus, RefreshCw, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-/* ─── Occupancy thresholds ─── */
-const getOccupancyMeta = (pct) => {
-    if (pct >= 90) return {
-        color:    'var(--m3-error)',
-        bgCls:    'bg-error-container',
-        textCls:  'text-error',
-        ringCls:  'ring-error/20',
-        label:    'Critical',
-        trend:    <TrendingUp size={11} aria-hidden="true" />,
-    };
-    if (pct >= 75) return {
-        color:    'var(--m3-warning)',
-        bgCls:    'bg-warning-container',
-        textCls:  'text-warning',
-        ringCls:  'ring-warning/20',
-        label:    'High',
-        trend:    <TrendingUp size={11} aria-hidden="true" />,
-    };
-    if (pct >= 50) return {
-        color:    'var(--m3-primary)',
-        bgCls:    'bg-primary-container',
-        textCls:  'text-primary',
-        ringCls:  'ring-primary/20',
-        label:    'Moderate',
-        trend:    <Minus size={11} aria-hidden="true" />,
-    };
-    return {
-        color:    'var(--m3-success)',
-        bgCls:    'bg-success-container',
-        textCls:  'text-success',
-        ringCls:  'ring-success/20',
-        label:    'Available',
-        trend:    <TrendingDown size={11} aria-hidden="true" />,
-    };
-};
+import { apiClient } from '@/core/api';
+import { useDataStore } from '@/core/store/useDataStore';
 
 const WARDS = [
-    { name: 'ICU / Acute Care',  occupancy: 92, total: 12,  occupied: 11, icon: Activity  },
-    { name: 'General Ward',      occupancy: 65, total: 120, occupied: 78, icon: Bed        },
-    { name: 'Surgical Wing',     occupancy: 42, total: 45,  occupied: 19, icon: ShieldPlus },
-    { name: 'Maternity Unit',    occupancy: 78, total: 25,  occupied: 19, icon: Baby       },
-    { name: 'Pediatric Ward',    occupancy: 55, total: 30,  occupied: 16, icon: Heart      },
-    { name: 'Private Suites',    occupancy: 30, total: 10,  occupied: 3,  icon: UserPlus   },
+    { name: 'ICU / Acute Care', occupancy: 92, total: 12,  occupied: 11, Icon: Activity  },
+    { name: 'General Ward',     occupancy: 65, total: 120, occupied: 78, Icon: Bed        },
+    { name: 'Surgical Wing',    occupancy: 42, total: 45,  occupied: 19, Icon: ShieldPlus },
+    { name: 'Maternity Unit',   occupancy: 78, total: 25,  occupied: 19, Icon: Baby       },
+    { name: 'Pediatric Ward',   occupancy: 55, total: 30,  occupied: 16, Icon: Heart      },
+    { name: 'Private Suites',   occupancy: 30, total: 10,  occupied: 3,  Icon: UserPlus   },
 ];
 
-const SUMMARY_STATS = [
-    { label: 'Aggregate Occupancy', value: '62.4%',    note: '+2.1% vs yesterday' },
-    { label: 'Available Beds',      value: '84 Units',  note: '28% of total capacity' },
-    { label: 'Projected Discharges',value: '12 Patients',note: 'Next 6 hours' },
-    { label: 'Admission Queue',     value: '28 In Queue',note: '5 urgent priority' },
+const SUMMARY = [
+    { label: 'Aggregate Occ.', value: '62.4%',       note: '+2.1% vs yesterday' },
+    { label: 'Available Beds', value: '84',           note: '28% of capacity'   },
+    { label: 'Discharges',     value: '12',           note: 'Next 6 hours'      },
+    { label: 'Queue',          value: '28',           note: '5 urgent'          },
 ];
 
-/* ─── Single ward row ─── */
-const WardRow = ({ ward, idx }) => {
-    const meta = getOccupancyMeta(ward.occupancy);
-    const WardIcon = ward.icon;
-    const free = ward.total - ward.occupied;
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.07, duration: 0.24, ease: [0.2, 0, 0, 1] }}
-            className="flex flex-col gap-3"
-        >
-            {/* ── Ward label row ── */}
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                    {/* Icon chip */}
-                    <div
-                        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${meta.bgCls} ${meta.textCls}`}
-                        aria-hidden="true"
-                    >
-                        <WardIcon size={16} strokeWidth={2} />
-                    </div>
-                    {/* Name */}
-                    <span className="text-[13px] font-semibold text-text-main truncate">
-                        {ward.name}
-                    </span>
-                </div>
-
-                {/* Right cluster: label + pct */}
-                <div className="flex items-center gap-2 shrink-0">
-                    <span
-                        className={`m3-pill text-[9px] font-bold ${meta.bgCls} ${meta.textCls}`}
-                        aria-label={`${meta.label} occupancy`}
-                    >
-                        {meta.label}
-                    </span>
-                    <span
-                        className={`text-sm font-bold tabular ${meta.textCls}`}
-                        aria-label={`${ward.occupancy}% occupied`}
-                    >
-                        {ward.occupancy}%
-                    </span>
-                </div>
-            </div>
-
-            {/* ── Progress track ── */}
-            <div
-                className="relative h-2 w-full bg-surface-variant rounded-full overflow-hidden"
-                role="progressbar"
-                aria-label={`${ward.name} bed occupancy`}
-                aria-valuenow={ward.occupancy}
-                aria-valuemin={0}
-                aria-valuemax={100}
-            >
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${ward.occupancy}%` }}
-                    transition={{ delay: 0.2 + idx * 0.07, duration: 0.9, ease: [0.2, 0, 0, 1] }}
-                    className="h-full rounded-full relative overflow-hidden"
-                    style={{ backgroundColor: meta.color }}
-                >
-                    {/* Shimmer on critical */}
-                    {ward.occupancy >= 90 && (
-                        <motion.div
-                            animate={{ x: ['-100%', '200%'] }}
-                            transition={{ repeat: Infinity, duration: 1.8, ease: 'linear' }}
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                            aria-hidden="true"
-                        />
-                    )}
-                </motion.div>
-            </div>
-
-            {/* ── Bed count sub-row ── */}
-            <div className="flex items-center justify-between px-0.5">
-                <span className="text-[10px] font-medium text-text-sub opacity-60">
-                    {ward.occupied} of {ward.total} beds occupied
-                </span>
-                <span
-                    className={`text-[10px] font-semibold ${free <= 2 ? 'text-error' : 'text-text-sub opacity-50'}`}
-                >
-                    {free} free
-                </span>
-            </div>
-        </motion.div>
-    );
+const wardMeta = (pct) => {
+    if (pct >= 90) return { color: 'var(--m3-error)',   bg: 'var(--m3-error-container)',   label: 'Critical' };
+    if (pct >= 75) return { color: 'var(--m3-warning)', bg: 'var(--m3-warning-container)', label: 'High'     };
+    if (pct >= 50) return { color: 'var(--m3-primary)', bg: 'var(--m3-primary-container)', label: 'Moderate' };
+    return              { color: 'var(--m3-success)', bg: 'var(--m3-success-container)', label: 'Low'      };
 };
 
-/* ─── Summary stat chip ─── */
-const SummaryChip = ({ stat, idx }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 + idx * 0.07, duration: 0.22 }}
-        className="flex flex-col gap-1.5 p-5 bg-surface-variant/40 hover:bg-surface-variant/70
-            border border-outline-variant/40 hover:border-outline-variant
-            rounded-2xl transition-colors group"
-    >
-        <span className="m3-label-sm text-text-sub opacity-55">{stat.label}</span>
-        <span className="text-xl font-bold text-text-main tracking-tight tabular">{stat.value}</span>
-        <span className="text-[10px] font-medium text-text-sub opacity-45">{stat.note}</span>
-    </motion.div>
-);
-
-/* ═══ Main Component ═══ */
 const BedOccupancyCard = () => {
     const navigate = useNavigate();
-    const [wards, setWards]         = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [lastUpdated, setLastUpdated] = useState(null);
+    const [wards,    setWards]    = useState([]);
+    const [summary,  setSummary]  = useState(SUMMARY);
+    const [loading,  setLoading]  = useState(true);
+    const [lastSync, setLastSync] = useState(null);
+    const filters = useDataStore(s => s.filters);
 
-    const load = useCallback(async () => {
-        setIsLoading(true);
+    const load = useCallback(async (signal) => {
+        setLoading(true);
         try {
-            await new Promise(r => setTimeout(r, 720));
-            setWards(WARDS);
-            setLastUpdated(new Date());
-        } catch {
-            setWards(WARDS);
+            const res  = await apiClient.get('/wards/wards/stats/', { 
+                signal,
+                params: { department: filters.department !== 'All' ? filters.department : undefined }
+            });
+            const data = res.data;
+            
+            if (data?.ward_matrix) {
+                const mappedWards = data.ward_matrix.map(w => ({
+                    name:      w.name,
+                    occupancy: Math.round((w.occupied / w.total) * 100) || 0,
+                    total:     w.total,
+                    occupied:  w.occupied,
+                    Icon:      w.name.toLowerCase().includes('icu') ? Activity : Bed
+                }));
+                setWards(mappedWards);
+                
+                if (data.overview) {
+                    setSummary([
+                        { label: 'Aggregate Occ.', value: data.overview.occupancy_rate, note: 'Real-time' },
+                        { label: 'Available Beds', value: data.overview.available,      note: `${((data.overview.available/data.overview.total_beds)*100).toFixed(0)}% capacity` },
+                        { label: 'ICU Capacity',   value: data.overview.icu_stats,      note: 'Occupied/Total' },
+                        { label: 'Maintenance',    value: data.overview.maintenance,    note: 'In-service' },
+                    ]);
+                }
+            } else {
+                setWards(WARDS);
+            }
+            setLastSync(new Date());
+        } catch (e) {
+            if (e.name !== 'CanceledError') setWards(WARDS);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
-    }, []);
+    }, [filters]);
 
-    useEffect(() => { load(); }, [load]);
-
-    const criticalCount = wards.filter(w => w.occupancy >= 90).length;
+    useEffect(() => {
+        const ctrl = new AbortController();
+        load(ctrl.signal);
+        return () => ctrl.abort();
+    }, [load]);
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
-            className="w-full bg-surface-bright border border-outline-variant rounded-[28px] elev-1 overflow-hidden"
-        >
-            {/* ══════════════════════════════════
-                HEADER
-            ══════════════════════════════════ */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-8 pt-8 pb-6
-                border-b border-outline-variant/40">
-                {/* Left */}
-                <div className="flex items-center gap-4">
-                    {/* Icon */}
-                    <div
-                        className="w-12 h-12 rounded-2xl bg-primary-container flex items-center justify-center text-primary shrink-0"
-                        aria-hidden="true"
-                    >
-                        <Activity size={22} strokeWidth={2} />
+        <div className="widget" style={{ height: '380px' }}>
+            <div className="widget-header" style={{ padding: '14px 16px 0', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                        width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                        background: 'var(--m3-primary-container)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'var(--m3-primary)',
+                    }}>
+                        <Bed size={18} strokeWidth={2.5} />
                     </div>
-                    <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-2" aria-hidden="true">
-                            <span className="m3-label-sm text-text-sub opacity-55">Facility Capacity Center</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-text-main tracking-tight">
-                            Bed Occupancy Inventory
-                        </h2>
+                    <div>
+                        <div className="eyebrow" style={{ marginBottom: 0 }}>Clinical Infrastructure</div>
+                        <div className="widget-title">Bed Occupancy</div>
                     </div>
                 </div>
-
-                {/* Right: alerts + actions */}
-                <div className="flex items-center gap-3 flex-wrap">
-                    {/* Critical alert */}
-                    {criticalCount > 0 && (
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1,   opacity: 1 }}
-                            className="flex items-center gap-2 px-4 py-2.5
-                                bg-error-container border border-error/20 rounded-2xl"
-                            role="status"
-                            aria-label={`${criticalCount} ward${criticalCount > 1 ? 's' : ''} at critical occupancy`}
-                        >
-                            <AlertCircle size={14} className="text-error animate-pulse" aria-hidden="true" />
-                            <span className="text-[11px] font-semibold text-error">
-                                {criticalCount} ward{criticalCount > 1 ? 's' : ''} critical
-                            </span>
-                        </motion.div>
-                    )}
-
-                    {/* Threshold badge */}
-                    <div
-                        className="flex items-center gap-2 px-3 py-2 bg-surface-variant/60 rounded-2xl border border-outline-variant/50"
-                        aria-label="Alert threshold at 85% occupancy"
-                    >
-                        <span className="text-[10px] font-semibold text-text-sub uppercase tracking-wide">
-                            Threshold: 85%
-                        </span>
-                    </div>
-
-                    {/* Refresh */}
-                    <button
-                        onClick={load}
-                        disabled={isLoading}
-                        aria-label={isLoading ? 'Refreshing occupancy data…' : 'Refresh occupancy data'}
-                        className="icon-btn border border-outline-variant text-text-sub hover:text-primary hover:border-primary/30
-                            outline-none focus-visible:ring-2 focus-visible:ring-primary
-                            disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} aria-hidden="true" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button className="ghost-link" onClick={() => load()} disabled={loading} style={{ padding: 8 }}>
+                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     </button>
-
-                    {/* View full */}
-                    <button
-                        onClick={() => navigate('/admin/clinical/wards')}
-                        aria-label="View full bed management system"
-                        className="flex items-center gap-2 h-10 px-5 rounded-full
-                            bg-primary text-white text-[11px] font-semibold
-                            hover:brightness-110 active:scale-[0.97]
-                            elev-1 transition-colors
-                            outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                    >
-                        View Beds
-                        <ArrowUpRight size={14} aria-hidden="true" />
-                    </button>
+                    <button className="ghost-link" onClick={() => navigate('/admin/clinical/wards')}>Detail →</button>
                 </div>
             </div>
 
-            {/* ══════════════════════════════════
-                WARD GRID
-            ══════════════════════════════════ */}
-            <div className="px-8 py-8">
-                {isLoading ? (
-                    /* Skeleton grid — exact same shape as real content */
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                        {[0,1,2,3,4,5].map(i => (
-                            <div key={i} className="flex flex-col gap-3" aria-hidden="true">
-                                <div className="flex items-center gap-3">
-                                    <div className="skeleton-shimmer w-9 h-9 rounded-2xl" />
-                                    <div className="skeleton-shimmer h-3 w-32 rounded-md" />
-                                    <div className="skeleton-shimmer h-5 w-12 rounded-full ml-auto" />
-                                </div>
-                                <div className="skeleton-shimmer h-2 w-full rounded-full" />
-                                <div className="flex justify-between">
-                                    <div className="skeleton-shimmer h-2 w-28 rounded-md" />
-                                    <div className="skeleton-shimmer h-2 w-10 rounded-md" />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div
-                        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
-                        role="list"
-                        aria-label="Ward occupancy details"
-                    >
-                        {wards.map((ward, idx) => (
-                            <div key={ward.name} role="listitem">
-                                <WardRow ward={ward} idx={idx} />
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Last updated */}
-                {lastUpdated && !isLoading && (
-                    <p className="mt-5 text-[10px] font-medium text-text-sub opacity-40 text-right">
-                        Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                )}
-            </div>
-
-            {/* ══════════════════════════════════
-                SUMMARY STATS FOOTER
-            ══════════════════════════════════ */}
-            <div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4
-                    px-8 py-6 border-t border-outline-variant/40 bg-surface-variant/20"
-                role="list"
-                aria-label="Capacity summary statistics"
-            >
-                {SUMMARY_STATS.map((stat, idx) => (
-                    <div key={stat.label} role="listitem">
-                        <SummaryChip stat={stat} idx={idx} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mx-4 my-3 py-3 border-y border-[var(--m3-outline-variant)] flex-shrink-0">
+                {summary.map(s => (
+                    <div key={s.label}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--m3-text-main)' }}>{s.value}</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--m3-text-sub)', opacity: 0.6, marginTop: 1 }}>{s.label}</div>
                     </div>
                 ))}
             </div>
-        </motion.div>
+
+            <div className="widget-body" style={{ padding: '0 16px 16px', minHeight: 0 }}>
+                <div className="widget-scroll-area">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+                        {wards.map((ward, idx) => {
+                            const meta = wardMeta(ward.occupancy);
+                            const Icon = ward.Icon || Bed;
+                            return (
+                                <motion.div
+                                    key={ward.name}
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.04 }}
+                                    style={{
+                                        padding: 10, borderRadius: 12,
+                                        background: 'var(--m3-surface-bright)',
+                                        border: '1px solid var(--m3-outline-variant)',
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                        <div style={{ color: meta.color }}><Icon size={14} /></div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--m3-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {ward.name}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                        <span style={{ fontSize: 12, fontWeight: 900, color: meta.color }}>{ward.occupancy}%</span>
+                                        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--m3-text-sub)' }}>{ward.occupied}/{ward.total}</span>
+                                    </div>
+                                    <div className="progress-track" style={{ background: 'var(--m3-surface-variant)' }}>
+                                        <div className="progress-fill" style={{ width: `${ward.occupancy}%`, background: meta.color }} />
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+
+                    <div style={{ 
+                        marginTop: 14, padding: '10px 14px', 
+                        background: 'var(--m3-primary-container)', border: '1px solid var(--m3-primary)',
+                        borderRadius: 14, display: 'flex', alignItems: 'center', gap: 10,
+                        cursor: 'pointer'
+                    }} onClick={() => navigate('/admin/clinical/admissions')}>
+                        <div style={{ 
+                            width: 28, height: 28, borderRadius: '50%', 
+                            background: 'var(--m3-primary)', color: 'white',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                            <UserPlus size={14} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--m3-primary)' }}>New Patient Admission</div>
+                            <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--m3-primary)', opacity: 0.7 }}>Protocol ready for ER arrival</div>
+                        </div>
+                        <ArrowUpRight size={14} style={{ color: 'var(--m3-primary)' }} />
+                    </div>
+                </div>
+            </div>
+
+            {lastSync && (
+                <div style={{ padding: '6px 16px', fontSize: 8, fontWeight: 800, color: 'var(--m3-text-sub)', opacity: 0.4, textAlign: 'right', borderTop: '1px solid var(--m3-outline-variant)', flexShrink: 0 }}>
+                    LAST SYNC: {lastSync.toLocaleTimeString()}
+                </div>
+            )}
+        </div>
     );
 };
 

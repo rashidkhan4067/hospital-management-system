@@ -20,7 +20,7 @@ export const useAuthStore = create(
       token: getAccessToken(),
       refreshToken: getRefreshToken(),
       isAuthenticated: !!getAccessToken(),
-      loading: false,
+      loading: true,
       error: null,
 
       // 💉 Session Lifecycle Handlers
@@ -53,10 +53,19 @@ export const useAuthStore = create(
           } else {
               clearAuthSession();
           }
-      }
+      },
+      setLoading: (loading) => set({ loading })
     }),
     {
       name: 'shifaa-auth-storage',
+      onRehydrateStorage: (state) => {
+        // When hydration starts, keep loading true
+        return (state, error) => {
+          if (state) {
+            state.setLoading(false);
+          }
+        };
+      },
       partialize: (state) => ({ 
         token: state.token, 
         refreshToken: state.refreshToken, 

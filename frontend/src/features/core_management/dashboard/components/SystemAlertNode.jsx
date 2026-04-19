@@ -1,27 +1,51 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, X, ArrowRight, ExternalLink } from 'lucide-react';
+import { ShieldAlert, X, ArrowRight, TriangleAlert } from 'lucide-react';
+
+const TYPE_CFG = {
+    Critical: {
+        banner: 'bg-error-container border-error/20',
+        bar:    'bg-error',
+        icon:   'bg-error text-white',
+        badge:  'text-error',
+        glow:   'bg-error/5',
+        btn:    'bg-error text-white hover:brightness-110 shadow-error/20',
+        dismiss: 'hover:bg-error/10 hover:text-error',
+    },
+    Warning: {
+        banner: 'bg-warning-container border-warning/20',
+        bar:    'bg-warning',
+        icon:   'bg-warning text-white',
+        badge:  'text-warning',
+        glow:   'bg-warning/5',
+        btn:    'bg-warning text-white hover:brightness-110 shadow-warning/20',
+        dismiss: 'hover:bg-warning/10 hover:text-warning',
+    },
+    Info: {
+        banner: 'bg-primary-container border-primary/20',
+        bar:    'bg-primary',
+        icon:   'bg-primary text-white',
+        badge:  'text-primary',
+        glow:   'bg-primary/5',
+        btn:    'bg-primary text-white hover:brightness-110 shadow-primary/20',
+        dismiss: 'hover:bg-primary/10 hover:text-primary',
+    },
+};
 
 /**
- * 🚨 SystemAlertNode (Banner Alert — Audit Fixes)
+ * 🚨 SystemAlertNode — Redesigned (M3 Production)
  *
- * Issues Fixed:
- * ─ Accessibility/CRITICAL — Banner had no role="alert" for screen readers.
- *   role="alert" + aria-live="assertive" set (critical = assertive).
- * ─ Accessibility/HIGH — "Execute Protocol" CTA had no aria-label.
- *   Descriptive label with message context added.
- * ─ Accessibility/HIGH — Dismiss button had no aria-label.
- *   "Dismiss alert" added.
- * ─ UX/MEDIUM — AnimatePresence was wrapping the motion.div but the parent div
- *   (col-span-12) was outside the animation, causing animation to fail on exit.
- *   Restructured: AnimatePresence wraps top-level dismiss-aware div.
- * ─ Design/MEDIUM — Background blur behind left-bar accent lost in dark mode.
- *   Using CSS var tokens for the gradient overlay.
- * ─ Design/LOW — Dismiss button re-render caused the whole banner to repaint.
- *   onDismiss wrapped in useCallback for memo stability.
+ * Improvements:
+ * ─ Supports type prop: Critical / Warning / Info
+ * ─ Thick left accent bar themed per type
+ * ─ Ambient glow effect per severity
+ * ─ Icon chip filled with type color
+ * ─ Pulse animation on icon for critical alerts
+ * ─ "Execute Protocol" CTA themed per type
+ * ─ Full ARIA: role=alert, aria-live=assertive for SR
  */
 const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
-    const [dismissed, setDismissed] = React.useState(false);
+    const [dismissed, setDismissed] = useState(false);
 
     const handleDismiss = useCallback(() => {
         setDismissed(true);
@@ -29,6 +53,8 @@ const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
     }, [onDismiss]);
 
     if (!message || dismissed) return null;
+
+    const cfg = TYPE_CFG[type] ?? TYPE_CFG.Critical;
 
     return (
         <AnimatePresence>
@@ -39,30 +65,33 @@ const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.24, ease: [0.2, 0, 0, 1] }}
-                className="relative overflow-hidden bg-surface-bright border border-error/20 rounded-[24px]
-                    elev-1 shadow-error/5"
+                transition={{ duration: 0.26, ease: [0.2, 0, 0, 1] }}
+                className={`relative overflow-hidden border rounded-[24px] elev-1 ${cfg.banner}`}
             >
-                {/* ── Left accent bar (decorative) ── */}
-                <div className="absolute top-0 left-0 w-1 h-full bg-error rounded-l-[24px]" aria-hidden="true" />
-                {/* ── Ambient glow ── */}
-                <div className="absolute -top-12 -left-12 w-40 h-40 bg-error/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
+                {/* Left accent bar */}
+                <div className={`absolute top-0 left-0 w-1 h-full ${cfg.bar} rounded-l-[24px]`} aria-hidden="true" />
 
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 pl-6">
-                    {/* ── Body ── */}
-                    <div className="flex items-center gap-4 relative z-10">
+                {/* Ambient glow blob */}
+                <div className={`absolute -top-16 -left-16 w-48 h-48 ${cfg.glow} rounded-full blur-3xl pointer-events-none`} aria-hidden="true" />
+
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 pl-7 relative z-10">
+                    {/* Body */}
+                    <div className="flex items-center gap-4">
                         <div
-                            className="w-12 h-12 rounded-2xl bg-error-container flex items-center justify-center text-error shrink-0"
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${cfg.icon} elev-1`}
                             aria-hidden="true"
                         >
-                            <ShieldAlert size={22} strokeWidth={2.5} />
+                            <ShieldAlert
+                                size={20}
+                                strokeWidth={2.5}
+                                className={type === 'Critical' ? 'animate-pulse' : ''}
+                            />
                         </div>
-                        <div className="flex flex-col gap-0.5">
+                        <div className="flex flex-col gap-0.5 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[10px] font-bold uppercase text-error tracking-[0.2em]">
-                                    Priority Alert
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${cfg.badge}`}>
+                                    {type === 'Critical' ? '⚠️' : type === 'Warning' ? '⚡' : 'ℹ️'} Priority Alert
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-outline-variant" aria-hidden="true" />
                                 <time className="text-[10px] font-medium text-text-sub opacity-50">Just Now</time>
                             </div>
                             <p className="text-sm font-semibold text-text-main leading-snug max-w-xl">
@@ -71,26 +100,29 @@ const SystemAlertNode = ({ message, type = 'Critical', onDismiss }) => {
                         </div>
                     </div>
 
-                    {/* ── Actions ── */}
-                    <div className="flex items-center gap-3 relative z-10 shrink-0">
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
                         <button
-                            className="flex items-center gap-2 h-10 px-5 bg-error text-white rounded-full
-                                text-[11px] font-semibold uppercase tracking-wide
-                                hover:brightness-110 active:scale-[0.97]
-                                elev-1 shadow-error/20
-                                outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                            className={`flex items-center gap-2 h-9 px-5 rounded-full
+                                text-[11px] font-bold uppercase tracking-wide
+                                active:scale-[0.97] elev-1 transition-all
+                                outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+                                ${cfg.btn}`}
                             aria-label={`Execute protocol for: ${message}`}
                         >
-                            Execute Protocol
-                            <ArrowRight size={14} aria-hidden="true" />
+                            Respond
+                            <ArrowRight size={13} aria-hidden="true" />
                         </button>
                         <button
                             onClick={handleDismiss}
                             aria-label="Dismiss this alert"
-                            className="icon-btn bg-surface-variant/60 border border-outline-variant text-text-sub hover:text-error hover:bg-error/8
-                                outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-1"
+                            className={`w-9 h-9 rounded-full flex items-center justify-center
+                                text-text-sub transition-colors border border-transparent
+                                hover:border-current/20
+                                outline-none focus-visible:ring-2 focus-visible:ring-current
+                                ${cfg.dismiss}`}
                         >
-                            <X size={16} aria-hidden="true" />
+                            <X size={15} aria-hidden="true" />
                         </button>
                     </div>
                 </div>

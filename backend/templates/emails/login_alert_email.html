@@ -1,46 +1,57 @@
 {% extends "emails/base_email.html" %}
 
 {% block content %}
-<h2>New Login Detected</h2>
+<div style="border-left: 4px solid {% if risk_level == 'HIGH' %}#dc2626{% else %}#f59e0b{% endif %}; padding-left: 20px; margin-bottom: 30px;">
+    <h1 style="color: #111827; margin: 0; font-size: 24px;">Institutional Security Alert</h1>
+    <p style="color: #6b7280; margin: 5px 0 0 0;">
+        {% if risk_level == 'HIGH' %}
+        Urgent: Suspicious authentication signature detected.
+        {% else %}
+        Notification: New identity shard (Device/IP) detected.
+        {% endif %}
+    </p>
+</div>
+
 <p>Hello <strong>{{ user.first_name }}</strong>,</p>
 
-<p>We noticed a successful login to your <strong>Al Shifaa Clinic</strong> account. If this was you, you can safely disregard this message.</p>
+<p>The Shifaa HMS Security Shard has detected a successful authentication mapped to your identity from an <strong>unfamiliar context</strong>. As part of our clinical security protocol, we are notifying you of this event.</p>
 
-<div class="alert-box">
-    <div class="alert-title">Security Notice</div>
-    <div class="alert-content">
-        A new login signal was received for your account. We're sending this email to ensure your account remains secure.
-    </div>
+<div style="background-color: #f9fafb; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid #e5e7eb;">
+    <h3 style="margin-top: 0; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em;">Access Forensic Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; color: #6b7280; width: 120px;">Timestamp:</td>
+            <td style="padding: 8px 0; color: #111827; font-weight: 500;">{{ login_time }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; color: #6b7280;">Identity Shard:</td>
+            <td style="padding: 8px 0; color: #111827; font-weight: 500;">{{ ip_address }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; color: #6b7280;">Interface:</td>
+            <td style="padding: 8px 0; color: #111827; font-weight: 500;">{{ user_agent }}</td>
+        </tr>
+    </table>
 </div>
 
-<h3>Login Details</h3>
-<div class="details-grid">
-    <div class="detail-item">
-        <div class="detail-label">Time</div>
-        <div class="detail-value">{{ login_time }} (Pakistan Standard Time)</div>
-    </div>
-    <div class="detail-item">
-        <div class="detail-label">IP Address</div>
-        <div class="detail-value">{{ ip_address }}</div>
-    </div>
-    <div class="detail-item">
-        <div class="detail-label">Device & Browser</div>
-        <div class="detail-value">{{ user_agent }}</div>
-    </div>
+<div style="background-color: {% if risk_level == 'HIGH' %}#fef2f2{% else %}#fffbeb{% endif %}; border-radius: 8px; padding: 20px; border: 1px solid {% if risk_level == 'HIGH' %}#fee2e2{% else %}#fef3c7{% endif %};">
+    <h4 style="margin: 0 0 8px 0; color: {% if risk_level == 'HIGH' %}#991b1b{% else %}#92400e{% endif %};">Action Required: Was this you?</h4>
+    <p style="margin: 0; font-size: 14px; color: {% if risk_level == 'HIGH' %}#b91c1c{% else %}#b45309{% endif %};">
+        If you do not recognize this access pattern, your credentials may be compromised. 
+        <strong>Please secure your clinical identity immediately.</strong>
+    </p>
 </div>
 
-<div class="alert-box danger">
-    <div class="alert-title">Wasn't you?</div>
-    <div class="alert-content">
-        If you don't recognized this activity, please <strong>change your password immediately</strong> and contact our support team at <a href="mailto:alshifaaclinic99@gmail.com" style="color: #dc2626; font-weight: 600;">alshifaaclinic99@gmail.com</a>.
-    </div>
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ site_url }}/change-password" 
+       style="background-color: #111827; color: #ffffff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">
+        Secure Identity Matrix
+    </a>
 </div>
 
-<div style="text-align: center;">
-    <a href="{{ site_url }}/change-password" class="btn">Secure Your Account</a>
-</div>
-
-<p style="margin-top: 32px;">Stay safe,<br>
-<span style="color: #111827; font-weight: 600;">The Al Shifaa Clinic Team</span></p>
+<p style="margin-top: 40px; color: #6b7280; font-size: 13px; text-align: center;">
+    Clinical Identity Shard: {{ user.cnic|slice:":5" }}-XXXXXXX-X<br>
+    © Shifaa Hospital Management System | Security Operations Center
+</p>
 {% endblock %}
 

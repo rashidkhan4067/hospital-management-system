@@ -31,8 +31,10 @@ const queryClient = new QueryClient({
 
 // ─── Route Guard ───
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, loading } = useAuthStore();
   const role = user?.role;
+
+  if (loading) return <Loading />;
 
   if (isAuthenticated) {
     const redirectMap = {
@@ -47,6 +49,10 @@ const PublicRoute = ({ children }) => {
 
 
 export default function App() {
+  const { loading } = useAuthStore();
+
+  if (loading) return <Loading />;
+
   return (
     <QueryClientProvider client={queryClient}>
       <TeleSystem>

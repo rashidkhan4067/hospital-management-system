@@ -12,7 +12,9 @@ from .views import (
     UserProfileView,
     ChangePasswordView,
     LogoutView,
-    UserManagementViewSet
+    UserManagementViewSet,
+    VerifyOTPView,
+    VerifyEmailAPIView
 )
 
 from .auth_views import (
@@ -37,4 +39,6 @@ urlpatterns = [
     path("google/", GoogleLogin.as_view(), name="google-login"),
     path("magic-link/send/", SendMagicLinkView.as_view(), name="magic-link-send"),
     path("magic-link/verify/", VerifyMagicLinkView.as_view(), name="magic-link-verify"),
+    path("verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
+    path("verify-email/", VerifyEmailAPIView.as_view(), name="verify-email"),
 ]

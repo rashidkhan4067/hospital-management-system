@@ -13,7 +13,7 @@ import {
 import { Badge, Button, Card, PageHeader, TableActions, FilterBar } from '@/components/primitives';
 import { useNavigate } from 'react-router-dom';
 import AdminTable from '@/components/primitives/AdminTable';
-import UnifiedKpiGrid from '@/components/composed/UnifiedKpiGrid';
+import KpiGrid from '@/features/core_management/dashboard/components/KpiGrid'; // Fallback import
 import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 import AdjustShiftModal from '@/features/clinical/doctors/components/AdjustShiftModal';
 import AddDoctorModal from '../components/list/AddDoctorModal';
@@ -156,15 +156,7 @@ export default function AdminDoctors({ autoOpenAdd = false }) {
       />
 
       {/* ── Unified KPI Hub ── */}
-      <UnifiedKpiGrid 
-        loading={loading}
-        stats={[
-          { title: "Total Doctors", value: stats?.overview?.total || doctors.length, icon: Stethoscope, trend: "Current" },
-          { title: "Specializations", value: stats?.specializations?.length || [...new Set(doctors.map(d => d.specialization))].length, icon: Award, trend: "Current" },
-          { title: "Available Now", value: stats?.overview?.active || doctors.filter(d => d.is_available).length, icon: Activity, trend: "Active" },
-          { title: "Verified", value: "100%", icon: ShieldCheck, trend: "Secure" },
-        ]}
-      />
+      <KpiGrid />
 
       {/* ── Practitioner Availability Matrix — Admin Intelligence Shard ── */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">

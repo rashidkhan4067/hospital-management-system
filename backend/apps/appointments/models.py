@@ -38,6 +38,7 @@ Design decisions:
 """
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
@@ -142,6 +143,20 @@ class Appointment(models.Model):
         help_text=_("Transaction status of this appointment."),
     )
 
+    class Priority(models.TextChoices):
+        ROUTINE = "routine", _("Routine")
+        URGENT = "urgent", _("Urgent (24h)")
+        EMERGENCY = "emergency", _("Emergency (Immediate)")
+        
+    priority = models.CharField(max_length=15, choices=Priority.choices, default=Priority.ROUTINE)
+    
+    class AppointmentType(models.TextChoices):
+        IN_PERSON = "in_person", _("In-Person Consultation")
+        TELEHEALTH = "telehealth", _("Telehealth/Virtual")
+        FOLLOW_UP = "follow_up", _("Follow-up Review")
+        
+    appointment_type = models.CharField(max_length=20, choices=AppointmentType.choices, default=AppointmentType.IN_PERSON)
+
     # ── Content Fields ────────────────────────────────────────────────────────
 
     # Patient's reason for the appointment (symptoms, concerns).
@@ -187,7 +202,7 @@ class Appointment(models.Model):
 
     # When the appointment was booked.
     created_at = models.DateTimeField(
-        auto_now_add=True,
+        default=timezone.now,
         help_text=_("When the appointment was booked."),
     )
 

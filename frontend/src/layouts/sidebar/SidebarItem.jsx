@@ -21,10 +21,10 @@ const SidebarItem = ({
   const isActive = location.pathname === path || (path !== '/admin' && location.pathname.startsWith(path));
 
   // 🎨 MD3 Color Tokens
-  const primary = isAI ? '#7c3aed' : '#6750A4';
-  const onPrimaryContainer = isAI ? '#2e1065' : '#1D192B';
-  const primaryContainer = isAI ? '#ede9fe' : '#EADDFF';
-  const onSurfaceVariant = '#49454F';
+  const primary = isAI ? 'var(--m3-text-main)' : 'var(--m3-primary)';
+  const onPrimaryContainer = isAI ? 'var(--m3-text-main)' : 'var(--m3-text-main)'; // Using text main for consistency in contrast
+  const primaryContainer = isAI ? 'var(--m3-surface-variant)' : 'var(--m3-primary-container)';
+  const onSurfaceVariant = 'var(--m3-text-sub)';
 
   return (
     <NavLink 
@@ -81,10 +81,10 @@ const SidebarItem = ({
 
       {/* 🫧 MD3 Rail Tooltip */}
       {!isExpanded && (
-        <div className="absolute left-[calc(100%+8px)] px-3 py-1.5 bg-[#49454F] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-[250] shadow-xl pointer-events-none">
+        <div className="absolute left-[calc(100%+8px)] px-3 py-1.5 bg-text-sub text-surface-bright text-[11px] font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-[250] shadow-xl pointer-events-none">
             {label}
-            {badge && <span className="ml-2 text-primaryContainer font-black">· {badge}</span>}
-            <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-[#49454F]" />
+            {badge && <span className="ml-2 text-primary-container font-black">· {badge}</span>}
+            <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-text-sub" />
         </div>
       )}
     </NavLink>

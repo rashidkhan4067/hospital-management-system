@@ -11,6 +11,7 @@ const RegisterPage        = lazy(() => import('@/features/auth/pages/RegisterPag
 const ForgotPasswordPage  = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 const ResetPasswordPage   = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
 const VerifyMagicLinkPage = lazy(() => import('@/features/auth/pages/VerifyMagicLinkPage'));
+const VerifyEmailPage    = lazy(() => import('@/features/auth/pages/VerifyEmailPage'));
 const PatientOnboarding   = lazy(() => import('@/features/auth/pages/PatientOnboarding'));
 
 // ─── CORE NODE ───
@@ -172,5 +173,6 @@ export const AUTH_ROUTES = [
     { path: '/login', element: LoginPage },
     { path: '/register', element: RegisterPage },
     { path: '/forgot-password', element: ForgotPasswordPage },
-    { path: '/magic-link/verify', element: VerifyMagicLinkPage }
+    { path: '/magic-link/verify', element: VerifyMagicLinkPage },
+    { path: '/verify-email', element: VerifyEmailPage }
 ];

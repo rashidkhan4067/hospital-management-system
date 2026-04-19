@@ -5,3 +5,4 @@
 
 export { useForm } from './useForm';
 export { useNotifications } from './useNotifications';
+export { useClickAway } from './useClickAway';

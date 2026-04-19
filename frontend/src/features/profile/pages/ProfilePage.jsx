@@ -31,10 +31,11 @@ export default function ProfilePage() {
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
     phone_number: user?.phone_number || '',
+    notify_on_all_logins: user?.notify_on_all_logins || false
   });
 
   const handleUpdate = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     try {
       const resp = await api.patch('/auth/me/', formData);
@@ -45,6 +46,16 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 🧪 Atomic Toggle Handler
+  const toggleNotification = (val) => {
+    const newData = { ...formData, notify_on_all_logins: val };
+    setFormData(newData);
+    // Auto-save on toggle for better UX
+    api.patch('/auth/me/', { notify_on_all_logins: val })
+       .then(resp => setUser(resp.data))
+       .catch(err => console.error("Toggle sync failed:", err));
   };
 
   return (
@@ -198,7 +209,25 @@ export default function ProfilePage() {
                         <ShieldCheck size={24}/>
                     </div>
                     <h3 className="text-xl font-bold text-[#202124] mb-4">Account Integrity</h3>
-                    <p className="text-sm text-[#5F6368] mb-8 leading-relaxed">Your clinical node is protected with multi-factor biometric sync and enterprise encryption.</p>
+                    <p className="text-sm text-[#5F6368] mb-8 leading-relaxed">Your clinical node is protected with multi-factor encryption and real-time risk telemetry.</p>
+                    
+                    {/* 🛡️ SECURITY PREFERENCE: NOTIFY ON EVERY LOGIN */}
+                    <div className="flex items-center justify-between p-4 bg-white/60 rounded-[24px] border border-gray-100 mb-6">
+                        <div className="space-y-0.5">
+                            <h4 className="text-sm font-bold text-[#202124]">Login Transparency</h4>
+                            <p className="text-[10px] text-[#5F6368] font-medium">Verify every successful login via email.</p>
+                        </div>
+                        <button 
+                            onClick={() => toggleNotification(!formData.notify_on_all_logins)}
+                            className={`relative w-12 h-6 rounded-full transition-all duration-300 flex items-center px-1 ${formData.notify_on_all_logins ? 'bg-[#1a73e8]' : 'bg-gray-200'}`}
+                        >
+                            <motion.div 
+                                animate={{ x: formData.notify_on_all_logins ? 24 : 0 }}
+                                className="w-4 h-4 bg-white rounded-full shadow-sm"
+                            />
+                        </button>
+                    </div>
+
                     <div className="flex items-center gap-2 text-[#34A853] font-black text-xs uppercase tracking-widest">
                         <div className="w-2 h-2 bg-[#34A853] rounded-full animate-pulse"/>
                         Fully Secure Site-6

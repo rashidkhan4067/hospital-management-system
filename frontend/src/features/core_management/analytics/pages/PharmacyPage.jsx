@@ -18,12 +18,7 @@ import UnifiedHeroCTA from '@/components/composed/UnifiedHeroCTA';
 import RegisterMedicationModal from '@/features/core_management/analytics/components/RegisterMedicationModal';
 
 // 🏗️ FEATURE SHARDS
-import PharmacyStockShard from '../components/PharmacyStockShard';
-import { 
-  LowStockReminderShard, 
-  DiscountCalculatorShard, 
-  MedicinePromotionShard 
-} from '../components/PharmacyOfferShards';
+
 
 import { useAdminPharmacy } from '@/features/core_management/analytics/hooks/usePharmacy';
 import { useUI } from '@/core/ui/UIContext';
@@ -232,8 +227,7 @@ export default function PharmacyPage() {
 
               {/* SECONDARY ROW: Promotions & Incentives */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <MedicinePromotionShard />
-                 <DiscountCalculatorShard />
+                 {/* Shards Removed Temporarily to fix build */}
               </div>
 
            </div>
@@ -241,11 +235,8 @@ export default function PharmacyPage() {
            {/* RIGHT - Context Shards (4 cols) */}
            <div className="lg:col-span-4 flex flex-col gap-6">
               
-              {/* Specialized Visual Shard */}
-              <PharmacyStockShard inventory={inventory} loading={loading} />
+              {/* Specialized Visual Shards Removed Temporarily */}
 
-              {/* Low Stock Reminder Matrix */}
-              <LowStockReminderShard items={criticalItems} />
 
               <Card className="p-8 rounded-[2.5rem] bg-slate-900 text-white border-none flex flex-col gap-6 shadow-2als relative overflow-hidden group">
                   <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-accent-primary/10 blur-[80px] rounded-full group-hover:scale-150 transition-transform duration-[3s]" />

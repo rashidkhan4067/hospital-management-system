@@ -3,7 +3,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import PatientProfile, ClinicalRecord
-from .serializers import PatientProfileSerializer, PatientCreateSerializer, ClinicalRecordSerializer
+from .serializers import (
+    PatientProfileSerializer, 
+    PatientCreateSerializer, 
+    ClinicalRecordSerializer,
+    AdministrativePatientCreateSerializer
+)
 from apps.accounts.permissions import IsAdminUser
 
 class PatientViewSet(viewsets.ModelViewSet):
@@ -15,12 +20,12 @@ class PatientViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
     filterset_fields = ["blood_group", "is_admitted"]
-    search_fields = ["user__first_name", "user__last_name", "user__email", "address"]
+    search_fields = ["user__first_name", "user__last_name", "user__email", "user__cnic", "user__phone_number", "address"]
     ordering_fields = ["created_at"]
 
     def get_serializer_class(self):
         if self.action == "create":
-            return PatientCreateSerializer
+            return AdministrativePatientCreateSerializer
         if self.action == "complete_onboarding":
             return PatientProfileSerializer
         return PatientProfileSerializer

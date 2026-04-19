@@ -50,6 +50,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         ],
     )
 
+    # cnic: Primary identity shard (unique)
+    cnic = serializers.CharField(
+        required=True,
+        help_text="National Identity Card Number (13 digits). Dashes/spaces will be stripped."
+    )
+
     # password: write_only=True means it is NEVER returned in any response.
     # This prevents password hashes from leaking in API responses.
     password = serializers.CharField(
@@ -70,6 +76,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id",
+            "cnic",
             "email",
             "first_name",
             "last_name",
@@ -81,9 +88,35 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         # id is returned in the response so the frontend knows the new user's ID
         read_only_fields = ["id"]
         extra_kwargs = {
-            "first_name": {"required": True},
-            "last_name":  {"required": True},
+            "first_name": {
+                "required": True, 
+                "allow_blank": False,
+                "error_messages": {"required": "Legal First Name is required for health records.", "blank": "First name cannot be empty."}
+            },
+            "last_name": {
+                "required": True, 
+                "allow_blank": False,
+                "error_messages": {"required": "Legal Last Name is required for health records.", "blank": "Last name cannot be empty."}
+            },
         }
+
+    def validate_cnic(self, value):
+        """
+        🏥 CNIC Validation Shard
+        Uses shared utility to ensure 13-digit standard and PK format compliance.
+        Checks uniqueness against the clinical registry.
+        """
+        from .models import validate_cnic_format
+        try:
+            normalized_cnic = validate_cnic_format(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(str(e.message))
+        
+        # Uniqueness check
+        if User.objects.filter(cnic=normalized_cnic).exists():
+            raise serializers.ValidationError("An account with this National ID (CNIC) already exists.")
+            
+        return normalized_cnic
 
     def validate_role(self, value):
         """
@@ -135,6 +168,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         # create_user() is defined in UserManager and calls set_password() internally
         user = User.objects.create_user(
             email=validated_data["email"],
+            cnic=validated_data["cnic"],
             password=validated_data["password"],
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),
@@ -149,15 +183,27 @@ class UserAdminCreateSerializer(serializers.ModelSerializer):
     Specialized serializer for provisioning identities via the administrative hub.
     Allows creating any role, including specialized faculty and administrative staff.
     """
+    cnic = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
         fields = [
-            'email', 'first_name', 'last_name', 
+            'cnic', 'email', 'first_name', 'last_name', 
             'phone_number', 'role', 'password', 'confirm_password'
         ]
+
+    def validate_cnic(self, value):
+        from .models import validate_cnic_format
+        try:
+            normalized = validate_cnic_format(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(str(e.message))
+            
+        if User.objects.filter(cnic=normalized).exists():
+            raise serializers.ValidationError("CNIC already taken.")
+        return normalized
 
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
@@ -229,42 +275,20 @@ class UserAdminUpdateSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """
     Read-only representation of a User.
-
-    Used in:
-      - Response body after successful registration / login
-      - Nested inside DoctorSerializer (to show doctor's user details)
-      - Profile endpoints (GET /api/v1/auth/me/ — future extension)
-
-    `full_name` is a SerializerMethodField because it is a model @property
-    (not a DB column) — DRF cannot auto-detect @property fields.
     """
-
-    # Returns user.full_name (first_name + last_name, falls back to email)
     full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            "id",
-            "email",
-            "full_name",
-            "first_name",
-            "last_name",
-            "phone_number",
-            "role",
-            "auth_provider",
-            "onboarding_completed",
-            "is_active",
-            "created_at",
+            "id", "cnic", "email", "full_name", 
+            "first_name", "last_name", "phone_number", 
+            "role", "auth_provider", "onboarding_completed",
+            "notify_on_all_logins", "is_active", "created_at",
         ]
-        # All fields are read-only in this serializer — it is output-only
         read_only_fields = fields
 
     def get_full_name(self, obj) -> str:
-        """
-        SerializerMethodField handler.
-        Must be named get_<field_name> — DRF calls this automatically.
-        """
         return obj.full_name
 
 
@@ -274,7 +298,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "phone_number", "role"]
+        fields = ["first_name", "last_name", "phone_number", "role", "notify_on_all_logins"]
 
     def validate_role(self, value):
         """

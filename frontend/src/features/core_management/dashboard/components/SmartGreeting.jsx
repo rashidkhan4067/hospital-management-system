@@ -34,7 +34,7 @@ const SmartGreeting = () => {
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <h1 className="text-2xl font-black text-[#1C1B1F] tracking-tight">
-                            {getGreeting()}, <span className="text-primary">{user?.name?.split(' ')[0] || 'Director'}</span>
+                            {getGreeting()}, <span className="text-primary">{user?.full_name?.split(' ')[0] || 'Director'}</span>
                         </h1>
                         <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[10px] font-black uppercase tracking-wider border border-emerald-100">
                             Matrix Online

@@ -52,9 +52,12 @@ export const useDataStore = create(
 
       // Sync Protocol (URL -> Store)
       syncFiltersFromUrl: (params) => {
+        if (!params || params.size === 0) return; // Prevent reset on clean URL refresh
+        
         const dateRange = params.get('range') || 'Today';
         const department = params.get('unit') || 'All';
         const doctor = params.get('doctor') || 'All Doctors';
+        
         set((state) => ({
             filters: { ...state.filters, dateRange, department, doctor }
         }));

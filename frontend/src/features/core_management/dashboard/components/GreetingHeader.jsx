@@ -1,96 +1,164 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/core/store/useAuthStore';
-import { Zap } from 'lucide-react';
+import { Clock, Activity, Users } from 'lucide-react';
 
 /**
- * 👋 GreetingHeader (M3 8px Standard — Audit Fixes)
- *
- * Issues Fixed:
- * ─ Accessibility/CRITICAL — h1 font-black at opacity-60 opacity on sub-text
- *   created contrast < 3:1. The sub-text now uses text-sub token directly.
- * ─ Accessibility/HIGH — Animated pulse dot is decorative; aria-hidden added.
- * ─ UI/MEDIUM — Staff readiness pill floated in isolation with bg-white, 
- *   inconsistent with card system. Uses m3-card class now.
- * ─ UX/LOW — Shift summary text was always hardcoded. Added dynamic time display.
- * ─ Design/MEDIUM — "italic" on the user name clashes with Inter's geometry.
- *   Replaced with font-bold + color, no italic.
- * ─ Layout/MEDIUM — section's col-span-12 was meaningless outside a grid context.
- *   Removed the col-span utility when section is a flex child.
+ * GreetingHeader — Compact Google-style
+ * Clean identity block + live clock + 2 stat chips
  */
 const GreetingHeader = () => {
-    const user  = useAuthStore(state => state.user);
-    const date  = new Date();
-    const hour  = date.getHours();
-    const name  = user?.full_name || 'Administrator';
+    const user = useAuthStore(s => s.user);
+    const [time, setTime] = useState(new Date());
 
-    const greeting = hour < 12 ? 'Good morning'
-                   : hour < 18 ? 'Good afternoon'
-                   :             'Good evening';
+    useEffect(() => {
+        const id = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(id);
+    }, []);
 
-    const dateLabel = date.toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    const hour     = time.getHours();
+    const name     = user?.full_name?.split(' ')[0] || 'Administrator';
+    const initials = user?.full_name
+        ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : 'AD';
+
+    const greeting =
+        hour < 5  ? 'Good night'     :
+        hour < 12 ? 'Good morning'   :
+        hour < 17 ? 'Good afternoon' :
+        hour < 21 ? 'Good evening'   : 'Good night';
+
+    const timeLabel = time.toLocaleTimeString('en-US', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    const dateLabel = time.toLocaleDateString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric',
     });
 
+    const stats = [
+        { Icon: Users,    value: '142',   label: 'Staff on duty' },
+        { Icon: Activity, value: '98.6%', label: 'System health' },
+    ];
+
     return (
-        <section
-            className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 md:gap-8"
-            aria-label="Dashboard greeting"
-        >
-            {/* ── Identity Cluster ── */}
-            <motion.div
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.32, ease: [0.2, 0, 0, 1] }}
-                className="flex flex-col gap-2"
-            >
-                {/* Live indicator + date */}
-                <div className="flex items-center gap-2">
-                    <div
-                        className="w-2 h-2 rounded-full bg-primary animate-pulse"
-                        aria-hidden="true"
-                    />
-                    <time
-                        dateTime={date.toISOString()}
-                        className="text-[11px] font-semibold uppercase text-primary tracking-[0.15em] leading-none"
-                    >
-                        {dateLabel}
-                    </time>
-                </div>
-
-                {/* Greeting h1 */}
-                <h1 className="text-4xl lg:text-5xl font-black text-text-main tracking-tighter leading-none">
-                    {greeting},{' '}
-                    <span className="text-primary font-black">{name}</span>
-                </h1>
-
-                {/* Sub-label with accessible contrast */}
-                <p className="text-sm font-medium text-text-sub mt-1">
-                    Morning Rotation Active · Next Huddle at{' '}
-                    <span className="font-semibold text-text-main">2:00 PM</span>
-                </p>
-            </motion.div>
-
-            {/* ── Staff readiness pill ── */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.32, delay: 0.08, ease: [0.2, 0, 0, 1] }}
-            >
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+        }}>
+            {/* Left: avatar + greeting */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Avatar */}
                 <div
-                    className="flex items-center gap-4 bg-surface-bright border border-outline-variant rounded-full px-6 py-3 elev-1"
-                    aria-label="142 staff currently on shift"
+                    style={{
+                        width: 42, height: 42, borderRadius: 12,
+                        background: 'var(--m3-primary)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 15, fontWeight: 900, flexShrink: 0,
+                        boxShadow: 'var(--m3-elev-2)',
+                    }}
+                    aria-hidden="true"
                 >
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0" aria-hidden="true">
-                        <Zap size={16} aria-hidden="true" />
+                    {initials}
+                </div>
+
+                <div>
+                    {/* Live indicator */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                        <span style={{
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: 'var(--m3-success)', display: 'inline-block',
+                            animation: 'pulse 2s ease-in-out infinite',
+                        }} aria-hidden="true" />
+                        <span style={{
+                            fontSize: 10, fontWeight: 800, color: 'var(--m3-success)',
+                            textTransform: 'uppercase', letterSpacing: '0.12em',
+                        }}>
+                            {dateLabel}
+                        </span>
                     </div>
-                    <div className="flex flex-col">
-                        <span className="m3-label-sm text-text-sub opacity-50">Active Readiness</span>
-                        <span className="text-sm font-bold text-text-main tabular">142 Staff on Shift</span>
+
+                    {/* Headline */}
+                    <h1 style={{
+                        fontSize: 'clamp(20px, 3vw, 26px)',
+                        fontWeight: 900,
+                        color: 'var(--m3-text-main)',
+                        letterSpacing: '-0.03em',
+                        lineHeight: 1,
+                        margin: 0,
+                    }}>
+                        {greeting},{' '}
+                        <span style={{ color: 'var(--m3-primary)' }}>{name}</span>
+                    </h1>
+
+                    <p style={{
+                        fontSize: 12, color: 'var(--m3-text-sub)', margin: '3px 0 0',
+                        fontWeight: 500,
+                    }}>
+                        Morning Rotation Active · Next Huddle <strong>2:00 PM</strong>
+                    </p>
+                </div>
+            </div>
+
+            {/* Right: clock + stat chips */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {/* Live clock */}
+                <div
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 7,
+                        padding: '7px 12px',
+                        background: 'var(--m3-surface-bright)',
+                        border: '1px solid var(--m3-outline-variant)',
+                        borderRadius: 10,
+                        boxShadow: 'var(--m3-elev-1)',
+                    }}
+                    aria-label={`Current time: ${timeLabel}`}
+                >
+                    <Clock size={14} style={{ color: 'var(--m3-primary)' }} aria-hidden="true" />
+                    <div>
+                        <time style={{ fontSize: 14, fontWeight: 900, color: 'var(--m3-text-main)', fontVariantNumeric: 'tabular-nums', fontFamily: 'ui-monospace, monospace', display: 'block', letterSpacing: '-0.01em' }}>
+                            {timeLabel}
+                        </time>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--m3-text-sub)', textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.6 }}>
+                            PKT Local
+                        </span>
                     </div>
                 </div>
-            </motion.div>
-        </section>
+
+                {/* Stat chips */}
+                {stats.map(({ Icon, value, label }) => (
+                    <div
+                        key={label}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 7,
+                            padding: '7px 12px',
+                            background: 'var(--m3-surface-bright)',
+                            border: '1px solid var(--m3-outline-variant)',
+                            borderRadius: 10,
+                            boxShadow: 'var(--m3-elev-1)',
+                        }}
+                    >
+                        <div style={{
+                            width: 26, height: 26, borderRadius: 8,
+                            background: 'var(--m3-primary-container)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'var(--m3-primary)', flexShrink: 0,
+                        }} aria-hidden="true">
+                            <Icon size={14} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--m3-text-main)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                                {value}
+                            </div>
+                            <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--m3-text-sub)', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.6, marginTop: 2 }}>
+                                {label}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 };
 

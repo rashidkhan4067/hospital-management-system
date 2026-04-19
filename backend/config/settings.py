@@ -53,6 +53,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(","
 # Essential for @react-oauth/google popups when COOP headers are set.
 # 'same-origin-allow-popups' allows the login popup to communicate back.
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+SITE_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
 
 
@@ -220,11 +221,19 @@ AUTHENTICATION_BACKENDS = [
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 10. PASSWORD VALIDATION
+# 10. PASSWORD HASHING AND VALIDATION
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Industry-standard Argon2 is used for identity credential protection.
+# It is resistant to GPU-based brute force and side-channel attacks.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+]
+
 # Django runs these validators in order when a user sets or changes a password.
-# They reject weak passwords before they reach the database.
 AUTH_PASSWORD_VALIDATORS = [
     {   # Rejects passwords similar to the user's username/email
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -238,6 +247,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {   # Rejects entirely numeric passwords (e.g., "12345678")
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+    {   # 🛡️ custom Complexity Validator: Upper, Lower, Number, Special
+        "NAME": "apps.accounts.validators.ComplexityValidator",
     },
 ]
 
@@ -326,6 +338,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "10000/day",     # Increased to prevent dev lockouts (e.g. login)
         "user": "50000/day",     # Protects regular authenticated users
+        "login": "5/min",        # Strict limit on authentication attempts
     }
 }
 
@@ -340,10 +353,9 @@ SIMPLE_JWT = {
     # if a token is compromised.
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
 
-    # Refresh token lifetime: 7 days.
-    # Long enough that users don't need to log in daily, short enough to
-    # revoke access within a week if a device is lost.
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    # Refresh token lifetime: 30 days.
+    # Long enough that users don't need to log in daily, but rotated on every use.
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 
     # ROTATE_REFRESH_TOKENS=True: every time a refresh token is used to get
     # a new access token, a brand-new refresh token is also issued.
@@ -355,8 +367,7 @@ SIMPLE_JWT = {
     # if intercepted. Requires "rest_framework_simplejwt.token_blacklist" in INSTALLED_APPS.
     "BLACKLIST_AFTER_ROTATION": True,
 
-    # Algorithm: HS256 uses our SECRET_KEY. RS256 (asymmetric) is better for
-    # microservices but adds key management complexity — HS256 is fine for FYP.
+    # Algorithm: HS256 uses our SECRET_KEY.
     "ALGORITHM": "HS256",
     "SIGNING_KEY": config("DJANGO_SECRET_KEY"),  # Same as Django's SECRET_KEY
 
@@ -368,7 +379,6 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 
     # USER_ID_FIELD: the field on the User model used as the JWT subject (sub) claim.
-    # We keep it as "id" (the default BigAutoField primary key).
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
 }
@@ -486,8 +496,10 @@ ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
 # ✅ Modern Allauth Identity Protocols
 ACCOUNT_LOGIN_METHODS = {"email"}           # Previously ACCOUNT_AUTHENTICATION_METHOD
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "none"         # Set to 'mandatory' for production
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"     # Enforced clinical verification
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = f"{SITE_URL}/verify-email/"
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = f"{SITE_URL}/verify-email/"
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Al Shifaa Clinic] "
 ACCOUNT_PRESERVE_CONFIRMATION_AS_NEW = True
 

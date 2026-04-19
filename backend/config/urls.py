@@ -29,8 +29,8 @@ urlpatterns = [
     
     # API endpoints
     path('api/v1/auth/', include('apps.accounts.urls', namespace='accounts')),
-    path('api/v1/auth/', include('dj_rest_auth.urls')),
-    path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
+    # path('api/v1/auth/', include('dj_rest_auth.urls')),
+    # path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
 
     # Allauth URLs (required for email verification links etc)
     path('accounts/', include('allauth.urls')),

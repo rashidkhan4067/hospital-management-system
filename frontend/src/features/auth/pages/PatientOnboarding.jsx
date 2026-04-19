@@ -9,6 +9,7 @@ import IdentityStep from './steps/IdentityStep';
 import ClinicalStep from './steps/ClinicalStep';
 import EmergencyStep from './steps/EmergencyStep';
 import ConsentStep from './steps/ConsentStep';
+import WelcomeStep from './steps/WelcomeStep';
 
 /**
  * 🏥 PatientOnboarding - Modular Clinical Shell
@@ -17,8 +18,8 @@ import ConsentStep from './steps/ConsentStep';
 export default function PatientOnboarding() {
   const { user, setUser } = useAuthStore();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const [step, setStep] = useState(0); // Start at Welcome (Step 0)
+  const totalSteps = 4; // 1-4 for forms, 0 is welcome
   const [loading, setLoading] = useState(false);
 
   // Early exit if onboarding is already finalized
@@ -82,8 +83,9 @@ export default function PatientOnboarding() {
   ];
 
   const renderStep = () => {
-    const props = { formData, setFormData, isGoogleUser };
+    const props = { formData, setFormData, isGoogleUser, user };
     switch(step) {
+        case 0: return <WelcomeStep {...props} />;
         case 1: return <IdentityStep {...props} />;
         case 2: return <ClinicalStep {...props} />;
         case 3: return <EmergencyStep {...props} />;
@@ -119,34 +121,36 @@ export default function PatientOnboarding() {
         )}
       </header>
 
-      <main className="w-full sm:max-w-[448px] bg-white border-[#DADCE0] border-[1px] rounded-[28px] p-8 sm:p-10 flex flex-col shadow-sm animate-in fade-in zoom-in-95 duration-500 overflow-hidden relative min-h-[500px]">
+      <main className="w-full sm:max-w-[480px] bg-white border-[#DADCE0] border-[1px] rounded-[32px] p-8 sm:p-12 flex flex-col shadow-sm animate-in fade-in zoom-in-95 duration-500 overflow-hidden relative min-h-[560px]">
         <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
           
-          <div className="mb-10 text-center">
-              <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-[#4285F4] uppercase tracking-[0.15em]">STEP {step} OF {totalSteps}</span>
-                  <span className="text-[10px] font-bold text-[#5f6368] uppercase tracking-[0.05em]">{progressLabels[step-1]}</span>
-              </div>
-              <div className="w-full h-[4px] bg-[#f1f3f4] rounded-full overflow-hidden flex gap-1">
-                  {[...Array(totalSteps)].map((_, i) => (
-                    <div 
-                        key={i}
-                        className={`h-full flex-grow transition-all duration-500 ${i < step ? 'bg-[#4285F4]' : 'bg-[#e8eaed]'}`} 
-                    />
-                  ))}
-              </div>
-          </div>
+          {step > 0 && (
+            <div className="mb-10 text-center animate-in fade-in duration-500">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-[#4285F4] uppercase tracking-[0.15em]">STEP {step} OF {totalSteps}</span>
+                    <span className="text-[10px] font-bold text-[#5f6368] uppercase tracking-[0.05em]">{progressLabels[step-1]}</span>
+                </div>
+                <div className="w-full h-[4px] bg-[#f1f3f4] rounded-full overflow-hidden flex gap-1">
+                    {[...Array(totalSteps)].map((_, i) => (
+                      <div 
+                          key={i+1}
+                          className={`h-full flex-grow transition-all duration-500 ${(i + 1) <= step ? 'bg-[#4285F4]' : 'bg-[#e8eaed]'}`} 
+                      />
+                    ))}
+                </div>
+            </div>
+          )}
 
           <form onSubmit={handleNext} className="space-y-6">
               
               {renderStep()}
 
-              <div className="pt-6 flex gap-3">
+              <div className="pt-8 flex gap-3">
                   {step > 1 && (
                       <button 
                         type="button"
                         onClick={handleBack}
-                        className="flex-grow h-[48px] rounded-full border border-[#dadce0] text-[14px] font-medium text-[#3c4043] hover:bg-[#f1f3f4] transition-all"
+                        className="flex-grow h-[52px] rounded-full border border-[#dadce0] text-[14px] font-semibold text-[#3c4043] hover:bg-[#f8f9fa] transition-all"
                       >
                           Back
                       </button>
@@ -154,9 +158,9 @@ export default function PatientOnboarding() {
                   <Button 
                       type="submit" 
                       disabled={loading}
-                      className={`h-[48px] rounded-full text-[14px] font-medium shadow-none transition-all active:scale-[0.98] ${step === 1 ? 'w-full' : 'flex-grow'} bg-[#4285F4]`}
+                      className={`h-[52px] rounded-full text-[14px] font-bold shadow-none transition-all active:scale-[0.98] ${step <= 1 ? 'w-full' : 'flex-grow'} bg-[#4285F4] hover:bg-[#3367D6] text-white`}
                   >
-                      {loading ? (step === totalSteps ? "Provisioning..." : "One moment...") : step === totalSteps ? "Complete Profile" : "Continue"}
+                      {loading ? (step === totalSteps ? "Provisioning..." : "One moment...") : step === 0 ? "Get Started" : step === totalSteps ? "Complete Profile" : "Continue"}
                   </Button>
               </div>
           </form>
@@ -169,13 +173,22 @@ export default function PatientOnboarding() {
         </motion.div>
       </main>
 
-      <div className="w-full max-w-[448px] mt-8 hidden sm:flex flex-wrap items-center justify-between gap-4 px-4">
-        <span className="text-[11px] text-[#5F6368]">Universal Health Data Protection</span>
+      <div className="w-full max-w-[480px] mt-8 flex flex-wrap items-center justify-between gap-4 px-4">
         <div className="flex gap-4">
           <span className="text-[11px] text-[#5F6368] hover:underline cursor-pointer">Help</span>
           <span className="text-[11px] text-[#5F6368] hover:underline cursor-pointer">Privacy</span>
           <span className="text-[11px] text-[#5F6368] hover:underline cursor-pointer">Terms</span>
         </div>
+        
+        <button 
+          onClick={() => {
+            useAuthStore.getState().logout();
+            navigate('/login');
+          }}
+          className="text-[11px] font-bold text-[#4285F4] hover:bg-blue-50 px-3 py-1.5 rounded-full transition-all"
+        >
+          Not you? Sign out
+        </button>
       </div>
     </div>
   );

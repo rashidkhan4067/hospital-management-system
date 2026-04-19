@@ -36,7 +36,7 @@ class PatientProfileSerializer(serializers.ModelSerializer):
         model = PatientProfile
         fields = [
             'id', 'user_details', 'full_name', 'email', 'phone',
-            'blood_group', 'date_of_birth', 'gender', 'address',
+            'mrn', 'status', 'blood_group', 'date_of_birth', 'gender', 'address',
             'emergency_contact_name', 'emergency_contact_phone',
             'allergies', 'medical_history', 'current_medications', 'is_admitted', 
             'room_number', 'records', 'created_at', 'updated_at'
@@ -50,3 +50,88 @@ class PatientCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientProfile
         fields = ['user', 'blood_group', 'date_of_birth', 'gender', 'address', 'emergency_contact_name', 'emergency_contact_phone']
+
+class AdministrativePatientCreateSerializer(serializers.Serializer):
+    """
+    🏥 Global Patient Provisioning Serializer
+    Handles atomic creation of both Account Identity and Clinical Shard.
+    """
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+    fullName = serializers.CharField(required=True)
+    phone_number = serializers.CharField(required=True)
+    
+    # Clinical Fields
+    age = serializers.IntegerField(required=False, allow_null=True)
+    cnic = serializers.CharField(required=False, allow_blank=True)
+    marital_status = serializers.CharField(required=False, allow_blank=True)
+    occupation = serializers.CharField(required=False, allow_blank=True)
+    preferred_language = serializers.CharField(required=False, allow_blank=True)
+    
+    # Emergency Contact
+    emergency_contact_name = serializers.CharField(required=False, allow_blank=True)
+    emergency_contact_relationship = serializers.CharField(required=False, allow_blank=True)
+    emergency_contact_phone = serializers.CharField(required=False, allow_blank=True)
+    
+    # Compliance
+    privacy_consent = serializers.BooleanField(required=False, default=False)
+    
+    date_of_birth = serializers.DateField(required=True)
+    gender = serializers.CharField(required=True)
+    blood_group = serializers.CharField(required=False, allow_blank=True)
+    address = serializers.CharField(required=False, allow_blank=True)
+    allergies = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_email(self, value):
+        from apps.accounts.models import User
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("An account with this institutional email already exists.")
+        return value
+
+    def validate_cnic(self, value):
+        from apps.accounts.models import User
+        if value and User.objects.filter(cnic=value).exists():
+            raise serializers.ValidationError("A clinical record with this National ID already exists.")
+        return value
+
+    def create(self, validated_data):
+        from apps.accounts.models import User
+        
+        # 1. Identity Orchestration
+        email = validated_data.pop('email')
+        password = validated_data.pop('password')
+        fullName = validated_data.pop('fullName', 'New Patient')
+        phone = validated_data.pop('phone_number', '')
+        
+        # Split name securely
+        name_parts = fullName.strip().split(' ')
+        first_name = name_parts[0]
+        last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ""
+        
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone,
+            role=User.Role.PATIENT,
+            onboarding_completed=True
+        )
+        
+        # 2. Clinical Shard Update
+        # Profile is auto-created by signal, we update it
+        profile = PatientProfile.objects.get(user=user)
+        for attr, value in validated_data.items():
+            if hasattr(profile, attr):
+                setattr(profile, attr, value)
+        profile.save()
+        
+        return profile
+
+    def to_representation(self, instance):
+        """
+        🚀 Output Shard Transition
+        We transition from the input schema to the full PatientProfile schema for the response.
+        """
+        return PatientProfileSerializer(instance).data
+

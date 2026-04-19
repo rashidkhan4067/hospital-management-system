@@ -1,150 +1,149 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Layers, Info } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
+import { useAnalyticsData } from '../../analytics/hooks/useAnalyticsData';
 
-const data = [
-    { name: 'Cardiology', value: 35, color: 'var(--m3-primary)'  },
-    { name: 'Pediatrics', value: 25, color: 'var(--m3-success)'  },
-    { name: 'Emergency',  value: 20, color: 'var(--m3-error)'    },
-    { name: 'Radiology',  value: 20, color: 'var(--m3-warning)'  },
+const PALETTE = [
+    'var(--m3-primary)',
+    'var(--m3-success)',
+    'var(--m3-error)',
+    'var(--m3-warning)',
+    'var(--m3-outline)',
 ];
 
-/**
- * 🥧 DepartmentDistributionCard (M3 Resource Triage — Audit Fixes)
- *
- * Issues Fixed:
- * ─ Accessibility/CRITICAL — SVG chart has no accessible description.
- *   Added aria-label on the container div; also legend provides text alternative.
- * ─ Accessibility/HIGH — Legend color swatches have no aria-hidden.
- *   Adding aria-hidden to decorative color circles.
- * ─ Accessibility/HIGH — Pie chart had no role=img with aria-label.
- *   Wrapped ResponsiveContainer in aria-hidden; legend IS the accessible equivalent.
- * ─ Design/CRITICAL — Colors were hardcoded hex (#1A73E8 etc.), breaking dark mode.
- *   Replaced with CSS var() tokens from M3 system.
- * ─ Design/MEDIUM — Legend item name labels near opacity: 0.50 fail contrast.
- *   Using text-text-sub (7.2:1) without additional opacity reduction.
- * ─ UI/LOW — Chart container min-h-[220px] could collapse on slow paint.
- *   Fixed to min-h and height: 220px to hold stable during animation.
- * ─ UX/LOW — Tooltip background hardcoded white, broken in dark mode.
- *   Custom tooltip using CSS tokens.
- */
-const CustomTooltip = ({ active, payload }) => {
+const FALLBACK = [
+    { name: 'Cardiology', value: 35 },
+    { name: 'Pediatrics', value: 25 },
+    { name: 'Emergency',  value: 20 },
+    { name: 'Radiology',  value: 20 },
+];
+
+const Tip = ({ active, payload }) => {
     if (!active || !payload?.length) return null;
     return (
-        <div
-            className="bg-surface-bright border border-outline-variant rounded-2xl px-4 py-3 elev-3 text-xs"
-            role="tooltip"
-        >
-            <p className="font-bold text-text-main">{payload[0].name}</p>
-            <p className="text-text-sub mt-0.5">{payload[0].value}% of total</p>
+        <div className="widget" style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11 }} role="tooltip">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: payload[0].payload.color, display: 'block' }} aria-hidden="true" />
+                <strong style={{ color: 'var(--m3-text-main)' }}>{payload[0].name}</strong>
+            </div>
+            <div style={{ color: 'var(--m3-text-sub)', marginTop: 2 }}>{payload[0].value}% of total</div>
         </div>
     );
 };
 
-import { useAnalyticsData } from '../../analytics/hooks/useAnalyticsData';
-
-const COLORS = ['var(--m3-primary)', 'var(--m3-success)', 'var(--m3-error)', 'var(--m3-warning)', 'var(--m3-outline)'];
-
 const DepartmentDistributionCard = () => {
     const { data: telemetry, isLoading } = useAnalyticsData();
-    
-    const chartData = telemetry?.deptDistribution?.length > 0
+    const navigate = useNavigate();
+
+    const chartData = (telemetry?.deptDistribution?.length > 0)
         ? telemetry.deptDistribution.map((d, i) => ({
-            ...d,
-            color: COLORS[i % COLORS.length]
+            name:  d.name,
+            value: typeof d.value === 'number' ? d.value : Math.round(parseFloat(d.value) || 0),
+            color: PALETTE[i % PALETTE.length],
         }))
-        : data;
+        : FALLBACK.map((d, i) => ({ ...d, color: PALETTE[i] }));
+
+    const total = chartData.reduce((s, d) => s + d.value, 0) || 100;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.28, ease: [0.2, 0, 0, 1] }}
-            className="w-full h-full bg-surface-bright border border-outline-variant rounded-[24px] p-6 elev-1 flex flex-col"
-        >
-            {/* ── Header ── */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2" aria-hidden="true">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                        <span className="m3-label-sm text-text-sub opacity-60">Unit Occupancy Shard</span>
+        <div className="widget" style={{ height: '380px' }}>
+            {/* Header */}
+            <div className="widget-header" style={{ flexShrink: 0 }}>
+                <div>
+                    <div className="eyebrow">
+                        <div className="eyebrow-dot" style={{ background: 'var(--m3-primary)' }} />
+                        Dept. Distribution
                     </div>
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-bold text-text-main tracking-tight">Active Load</h2>
-                        {isLoading && <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-1" />}
-                    </div>
+                    <div className="widget-title" style={{ marginTop: 2 }}>Active Load</div>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {isLoading && (
+                        <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--m3-primary)', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} aria-hidden="true" />
+                    )}
+                    <button className="ghost-link" onClick={() => navigate('/admin/analytics?type=departments')} aria-label="View department breakdown">
+                        Detail →
+                    </button>
+                </div>
+            </div>
+
+            <div className="widget-body">
+                {/* Donut chart */}
                 <div
-                    className="w-9 h-9 rounded-xl bg-surface-variant flex items-center justify-center text-primary"
+                    style={{ height: 150 }}
                     aria-hidden="true"
                 >
-                    <Layers size={17} />
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={chartData}
+                                innerRadius="52%"
+                                outerRadius="75%"
+                                paddingAngle={4}
+                                dataKey="value"
+                                stroke="none"
+                                animationDuration={600}
+                            >
+                                {chartData.map((entry, i) => (
+                                    <Cell key={i} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <Tooltip content={<Tip />} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Bar-strip legend */}
+                <div
+                    style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}
+                    role="list"
+                    aria-label="Department load breakdown"
+                >
+                    {chartData.map((item, i) => {
+                        const pct = Math.round((item.value / total) * 100);
+                        return (
+                            <div
+                                key={item.name}
+                                role="listitem"
+                                aria-label={`${item.name}: ${pct}%`}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{
+                                            width: 8, height: 8, borderRadius: '50%',
+                                            background: item.color, display: 'block', flexShrink: 0,
+                                        }} aria-hidden="true" />
+                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--m3-text-main)' }}>
+                                            {item.name}
+                                        </span>
+                                    </div>
+                                    <span style={{ fontSize: 12, fontWeight: 900, color: item.color, fontVariantNumeric: 'tabular-nums' }}>
+                                        {pct}%
+                                    </span>
+                                </div>
+                                <div
+                                    className="progress-track"
+                                    style={{ background: 'var(--m3-surface-variant)' }}
+                                    role="progressbar"
+                                    aria-valuenow={pct}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                    aria-label={`${item.name} load`}
+                                >
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${pct}%` }}
+                                        transition={{ delay: 0.2 + i * 0.07, duration: 0.7, ease: [0.2, 0, 0, 1] }}
+                                        className="progress-fill"
+                                        style={{ background: item.color }}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
-
-            {/* ── Pie chart ── */}
-            <div
-                className="w-full flex items-center justify-center"
-                style={{ height: '220px' }}
-                aria-hidden="true"
-            >
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={chartData}
-                            innerRadius={68}
-                            outerRadius={88}
-                            paddingAngle={6}
-                            dataKey="value"
-                            stroke="none"
-                            isAnimationActive={true}
-                            animationBegin={100}
-                            animationDuration={600}
-                        >
-                            {chartData.map((entry, i) => (
-                                <Cell key={i} fill={entry.color} />
-                            ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* ── Legend ── */}
-            <div
-                className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pt-5 border-t border-outline-variant/40"
-                role="list"
-                aria-label="Department distribution breakdown"
-            >
-                {chartData.map(item => (
-                    <div
-                        key={item.name}
-                        className="flex items-center gap-2.5"
-                        role="listitem"
-                        aria-label={`${item.name}: ${item.value}%`}
-                    >
-                        <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: item.color }}
-                            aria-hidden="true"
-                        />
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-[10px] font-semibold text-text-sub truncate">{item.name}</span>
-                            <span className="text-xs font-bold text-text-main tabular">{item.value}%</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* ── Insight callout ── */}
-            <div className="mt-5 p-4 bg-primary-container/40 rounded-2xl border border-primary/10 flex items-start gap-3">
-                <Info size={14} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                <p className="text-[11px] font-medium text-text-sub leading-relaxed">
-                    Live department load synchronized with <span className="font-bold text-text-main">Facility Telemetry</span>.
-                </p>
-            </div>
-        </motion.div>
+        </div>
     );
 };
 
