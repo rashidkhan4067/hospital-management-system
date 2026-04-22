@@ -38,16 +38,10 @@ const SectionHeader = ({ title }) => (
     </div>
 );
 
-export default function AdmitPatientForm({ onFormStateChange, initialPatient, formErrors = {} }) {
-  const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [patientFound, setPatientFound] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [cnicSearch, setCnicSearch] = useState('');
-
+export default function AdmitPatientForm({ onFormStateChange, initialPatient, initialName = '', formErrors = {} }) {
   const [formData, setFormData] = useState({
     patient: initialPatient?.id || null,
-    patientName: initialPatient?.full_name || '',
+    patientName: initialPatient?.name || initialPatient?.full_name || initialName,
     admission_date: new Date().toISOString().slice(0, 16),
     source: 'outpatient',
     ward: '',
@@ -59,6 +53,12 @@ export default function AdmitPatientForm({ onFormStateChange, initialPatient, fo
     clinical_notes: '',
     is_emergency: false
   });
+
+  const [step, setStep] = useState(initialPatient ? 1 : 0);
+  const [loading, setLoading] = useState(false);
+  const [patientFound, setPatientFound] = useState(!!initialPatient);
+  const [hasSearched, setHasSearched] = useState(!!initialName || !!initialPatient);
+  const [cnicSearch, setCnicSearch] = useState(initialName);
 
   const [wards, setWards] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -94,22 +94,40 @@ export default function AdmitPatientForm({ onFormStateChange, initialPatient, fo
     } else { setBeds([]); updateField('bed', ''); }
   }, [formData.room]);
 
-  const handleSearch = async () => {
-      if (!cnicSearch || cnicSearch.length < 5) return;
-      setLoading(true);
-      setHasSearched(false);
-      try {
-          const { data } = await api.get(`patients/profiles/?search=${cnicSearch}`);
-          if (data.results?.length > 0) {
-              const p = data.results[0];
-              setFormData(prev => ({ ...prev, patient: p.id, patientName: p.full_name }));
-              setPatientFound(true);
-          } else {
-              setPatientFound(false);
-          }
-          setHasSearched(true);
-      } catch (err) { console.error(err); } finally { setLoading(false); }
+  // 🔍 Rapid Identity Verification
+  const executeAutoSearch = async (term) => {
+    if (!term || term.length < 2) return;
+    setLoading(true);
+    setHasSearched(false);
+    try {
+        const { data } = await api.get(`patients/profiles/?search=${term}`);
+        const results = data.results || [];
+        if (results.length === 1) {
+            const p = results[0];
+            setFormData(prev => ({ ...prev, patient: p.id, patientName: p.full_name }));
+            setPatientFound(true);
+            setStep(1); // ⚡ Auto-advance to Clinical Matrix
+        } else if (results.length > 0) {
+            setFormData(prev => ({ ...prev, patient: results[0].id, patientName: results[0].full_name }));
+            setPatientFound(true);
+        } else {
+            setPatientFound(false);
+        }
+        setHasSearched(true);
+    } catch (err) { 
+        console.error("Auto-selection failure:", err); 
+    } finally { 
+        setLoading(false); 
+    }
   };
+
+  useEffect(() => {
+    if (initialName && !initialPatient) {
+       executeAutoSearch(initialName);
+    }
+  }, [initialName, initialPatient]);
+
+  const handleSearch = () => executeAutoSearch(cnicSearch);
 
   const updateField = (name, value) => setFormData(prev => ({ ...prev, [name]: value }));
   const handleDoctorSelect = (doctor) => updateField('admitted_by', doctor.id);

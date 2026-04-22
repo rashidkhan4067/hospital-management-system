@@ -87,8 +87,12 @@ const BedOccupancyCard = () => {
                         <Activity size={20} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <div className="text-[10px] font-black uppercase tracking-[0.12em] text-text-sub opacity-50">Clinical Infrastructure</div>
-                        <h3 className="text-sm font-black text-text-main tracking-tight">Bed Occupancy</h3>
+                        <div className="text-[10px] font-black uppercase tracking-[0.12em] text-text-sub opacity-50">
+                            {filters.department?.toLowerCase() === 'emergency' ? 'Unit Readiness' : 'Clinical Infrastructure'}
+                        </div>
+                        <h3 className="text-sm font-black text-text-main tracking-tight">
+                            {filters.department?.toLowerCase() === 'emergency' ? 'Emergency Bay Status' : 'Bed Occupancy'}
+                        </h3>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -99,7 +103,7 @@ const BedOccupancyCard = () => {
                         className="px-4 py-1.5 rounded-full bg-surface-variant/50 hover:bg-surface-variant text-[11px] font-black tracking-wide text-text-main transition-all"
                         onClick={() => navigate('/admin/clinical/wards')}
                     >
-                        Registry
+                        {filters.department?.toLowerCase() === 'emergency' ? 'Bays' : 'Registry'}
                     </button>
                 </div>
             </div>

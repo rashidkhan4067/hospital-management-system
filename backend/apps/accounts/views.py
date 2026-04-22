@@ -136,46 +136,58 @@ class CustomTokenObtainPairView(APIView):
     throttle_scope = 'login'
 
     def post(self, request, *args, **kwargs):
-        # 🧪 Forensic Debugging Node
-        # This will show up in the backend terminal to verify what the frontend is sending
-        print(f"--- [DEBUG] Login attempt received: {request.data} ---")
-        
-        # 🛰️ Identity Validation Phase
-        serializer = CustomTokenObtainPairSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # 🛰️ Identity Validation Phase
+            # Windows Resiliency: De-initialize colorama to restore standard streams and prevent ansitowin32 crashes
+            try:
+                import colorama
+                colorama.deinit()
+            except ImportError:
+                pass
 
-        user = serializer.user
-        
-        # 🛡️ Risk Assessment Shard
-        ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
-        user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
-        risk_level = classify_login_risk(user, ip, user_agent)
-        
-        # 🧪 Heuristic: Trigger Identity Challenge for High-Risk nodes
-        if risk_level == LoginRecord.RiskLevel.HIGH:
-            otp = generate_verification_otp(user)
-            send_otp_email(user, otp.otp_code)
-            return Response({
-                "status": "challenge_required",
-                "user_id": user.id,
-                "detail": "High-risk login detected. Verification code dispatched to your clinical email."
-            }, status=status.HTTP_200_OK)
+            serializer = CustomTokenObtainPairSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # 🛰️ Capture Telemetry
-        LoginRecord.objects.create(
-            user=user, 
-            ip_address=ip, 
-            user_agent=user_agent,
-            risk_level=risk_level, 
-            is_successful=True
-        )
-        
-        # 📧 Trigger Alert Stream if enabled
-        if user.notify_on_all_logins:
-            send_login_alert_email(user, request, risk_level)
+            user = serializer.user
             
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+            # 🛡️ Risk Assessment Shard
+            ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
+            user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
+            risk_level = classify_login_risk(user, ip, user_agent)
+            
+            # 🧪 Heuristic: Trigger Identity Challenge for High-Risk nodes
+            if risk_level == LoginRecord.RiskLevel.HIGH:
+                otp = generate_verification_otp(user)
+                send_otp_email(user, otp.otp_code)
+                return Response({
+                    "status": "challenge_required",
+                    "user_id": user.id,
+                    "detail": "High-risk login detected. Verification code dispatched to your clinical email."
+                }, status=status.HTTP_200_OK)
+
+            # 🛰️ Capture Telemetry
+            LoginRecord.objects.create(
+                user=user, 
+                ip_address=ip, 
+                user_agent=user_agent,
+                risk_level=risk_level, 
+                is_successful=True
+            )
+            
+            # 📧 Trigger Alert Stream if enabled
+            if user.notify_on_all_logins:
+                send_login_alert_email(user, request, risk_level)
+                
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        except (OSError, Exception) as e:
+            # 🛡️ Anti-Gravity OS Shield: Intercept Windows stream errors & General Failures
+            error_code = "OS_STREAM_FAILURE" if isinstance(e, OSError) else "AUTH_FAILURE"
+            return Response({
+                "error": error_code,
+                "detail": "The identity gateway encountered a synchronization or OS failure.",
+                "context": str(e) if settings.DEBUG else "Gateway restricted."
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VerifyOTPView(APIView):
     """
@@ -289,8 +301,7 @@ class RegisterView(generics.CreateAPIView):
         try:
             email_instance.send_confirmation(self.request, signup=True)
         except Exception as e:
-            # Fallback for older versions or configuration misses
-            print(f"[DEBUG] Verification email dispatch failed: {str(e)}")
+            pass
         
         # 3. Also send our custom welcome email (optional)
         send_welcome_email(user)

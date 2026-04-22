@@ -21,10 +21,10 @@ const AnalyticsGrid = ({ isLoading }) => {
     }
 
     const kpis = [
-        { id: 'pat', title: "Total Patients", value: data?.kpis?.find(k => k.id === 'pat')?.value || "1,482", trend: "12%", isUp: true, icon: Users },
-        { id: 'appt', title: "Appointments", value: data?.kpis?.find(k => k.id === 'appt')?.value || "128", trend: "5%", isUp: true, icon: Calendar },
-        { id: 'rev', title: "Revenue Flux", value: data?.kpis?.find(k => k.id === 'rev')?.value || "4.8M", trend: "18%", isUp: true, icon: DollarSign },
-        { id: 'occ', title: "Load Capacity", value: data?.kpis?.find(k => k.id === 'doc')?.value || "84%", trend: "2%", isUp: false, icon: Activity },
+        { id: 'pat', title: "Total Patients", ...data?.kpis?.find(k => k.id === 'pat'), icon: Users },
+        { id: 'appt', title: "Appointments", ...data?.kpis?.find(k => k.id === 'appt'), icon: Calendar },
+        { id: 'rev', title: "Revenue Flux", ...data?.kpis?.find(k => k.id === 'rev'), icon: DollarSign },
+        { id: 'doc', title: "Resource Pulse", ...data?.kpis?.find(k => k.id === 'doc'), icon: Activity },
     ];
 
     return (

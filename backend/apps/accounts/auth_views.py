@@ -33,7 +33,7 @@ class GoogleLogin(SocialLoginView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code != 200:
-            print(f"[DEBUG] Google Auth Failed: {response.data}")
+            pass
         return response
 
 

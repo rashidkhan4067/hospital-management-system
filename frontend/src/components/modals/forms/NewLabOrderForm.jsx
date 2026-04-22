@@ -47,18 +47,18 @@ const SectionHeader = ({ title }) => (
  * 🧪 NewLabOrderForm - Rapid Diagnostic Requisition
  * Optimized for <1 minute clinical order creation.
  */
-export default function NewLabOrderForm({ onFormStateChange, onClose }) {
+export default function NewLabOrderForm({ onFormStateChange, onClose, initialName = '' }) {
     const [step, setStep] = useState(0); // 0: Identity, 1: Details, 2: Confirmation
     const [loading, setLoading] = useState(false);
     const [patientFound, setPatientFound] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false);
-    const [cnicSearch, setCnicSearch] = useState('');
+    const [hasSearched, setHasSearched] = useState(!!initialName);
+    const [cnicSearch, setCnicSearch] = useState(initialName);
     const [tests, setTests] = useState([]);
     const [submittedOrder, setSubmittedOrder] = useState(null);
 
     const [formData, setFormData] = useState({
         patient: null,
-        patientName: '',
+        patientName: initialName,
         context_type: 'WALKIN',
         tests: [],
         doctor_notes: ''
@@ -74,22 +74,40 @@ export default function NewLabOrderForm({ onFormStateChange, onClose }) {
         fetchTests();
     }, []);
 
-    const handleSearch = async () => {
-        if (!cnicSearch || cnicSearch.length < 5) return;
+    // 🔍 Rapid Identity Verification
+    const executeAutoSearch = async (term) => {
+        if (!term || term.length < 2) return;
         setLoading(true);
         setHasSearched(false);
         try {
-            const { data } = await api.get(`patients/profiles/?search=${cnicSearch}`);
-            if (data.results?.length > 0) {
-                const p = data.results[0];
+            const { data } = await api.get(`patients/profiles/?search=${term}`);
+            const results = data.results || [];
+            if (results.length === 1) {
+                const p = results[0];
                 setFormData(prev => ({ ...prev, patient: p.id, patientName: p.full_name }));
+                setPatientFound(true);
+                setStep(1); // ⚡ Auto-advance to Diagnostics
+            } else if (results.length > 0) {
+                setFormData(prev => ({ ...prev, patient: results[0].id, patientName: results[0].full_name }));
                 setPatientFound(true);
             } else {
                 setPatientFound(false);
             }
             setHasSearched(true);
-        } catch (err) { console.error(err); } finally { setLoading(false); }
+        } catch (err) { 
+            console.error(err); 
+        } finally { 
+            setLoading(false); 
+        }
     };
+
+    useEffect(() => {
+        if (initialName) {
+            executeAutoSearch(initialName);
+        }
+    }, [initialName]);
+
+    const handleSearch = () => executeAutoSearch(cnicSearch);
 
     const toggleTest = (testId) => {
         const current = [...formData.tests];

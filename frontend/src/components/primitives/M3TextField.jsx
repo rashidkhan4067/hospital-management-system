@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
 
 /**
@@ -23,13 +23,26 @@ export default function M3TextField({
   const [showPassword, setShowPassword] = useState(false);
 
   const isDateType = ['date', 'time', 'datetime-local', 'month'].includes(type);
-  const isLabelShrunk = isFocused || hasValue || isDateType || props.value || props.defaultValue;
+  
+  // 🛡️ Robust Label Shrinkage (Handles numeric 0, external updates, and date types)
+  const incomingValue = props.value !== undefined && props.value !== null && props.value !== "";
+  const defaultHasValue = props.defaultValue !== undefined && props.defaultValue !== null && props.defaultValue !== "";
+  const isLabelShrunk = isFocused || hasValue || isDateType || incomingValue || defaultHasValue;
 
   const handleInputChange = (e) => {
     setHasValue(e.target.value.length > 0);
     if (props.onChange) props.onChange(e);
   };
 
+  // 🧪 Autofill Resilience: Check DOM value directly for browser-filled content
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputRef.current?.value) setHasValue(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const inputRef = useRef(null);
   const { fullWidth, className = "", ...inputProps } = props;
   const inputType = type === 'password' && showPassword ? 'text' : type;
   const InputComponent = multiline ? 'textarea' : 'input';
@@ -63,6 +76,7 @@ export default function M3TextField({
 
         {/* Input/Textarea */}
         <InputComponent
+          ref={inputRef}
           type={multiline ? undefined : inputType}
           rows={multiline ? rows : undefined}
           onFocus={() => setIsFocused(true)}

@@ -37,7 +37,7 @@ const KpiGrid = () => {
     const kpis = [
         {
             id:    'patients',
-            title: 'Total Patients',
+            title: filters?.department === 'Emergency' ? 'Emergency Admits' : 'Total Patients',
             value: telemetry.patients.total,
             trend: telemetry.patients.trend,
             isUp:  telemetry.patients.isUp,
@@ -47,7 +47,7 @@ const KpiGrid = () => {
         },
         {
             id:    'appointments',
-            title: 'Today\'s Appointments',
+            title: filters?.department === 'Emergency' ? 'Walk-in Registrations' : 'Today\'s Appointments',
             value: telemetry.appointments.total,
             trend: telemetry.appointments.trend,
             isUp:  telemetry.appointments.isUp,
@@ -57,7 +57,7 @@ const KpiGrid = () => {
         },
         {
             id:    'revenue',
-            title: 'Revenue Today',
+            title: filters?.department === 'Emergency' ? 'Emergency Revenue' : 'Revenue Today',
             value: telemetry.revenue.total,
             trend: telemetry.revenue.trend,
             isUp:  telemetry.revenue.isUp,
@@ -67,10 +67,10 @@ const KpiGrid = () => {
         },
         {
             id:    'beds',
-            title: 'Bed Occupancy',
+            title: filters?.department === 'Emergency' ? 'ER Bay Status' : 'Bed Occupancy',
             value: `${bedsOcc}%`,
             trend: bedsLabel,
-            isUp:  bedsPct < 70,
+            isUp:  bedsOcc < 85, // Safety first in emergency
             Icon:  Bed,
             path:  '/admin/clinical/wards',
             range: 'Today',

@@ -2,7 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useDashboardStats } from '@/core/hooks/useDashboardStats';
+import { useDashboardStats } from '../../../../core/hooks/useDashboardStats';
+import { useDataStore } from '../../../../core/store/useDataStore';
 
 const STATUS = {
     'In-Progress': { dot: 'var(--m3-primary)',  bg: 'var(--m3-primary-container)',  color: 'var(--m3-primary)',  label: 'Active'    },
@@ -23,6 +24,8 @@ const FALLBACK = [
 const RecentAppointmentsCard = () => {
     const { appointments: rawAppointments, loading } = useDashboardStats();
     const navigate = useNavigate();
+    const department = useDataStore(s => s.filters.department);
+    const isEmergency = department?.toLowerCase() === 'emergency';
 
     const appointments = React.useMemo(() => {
         if (!rawAppointments || rawAppointments.length === 0) return FALLBACK;
@@ -44,18 +47,20 @@ const RecentAppointmentsCard = () => {
             <div className="widget-header">
                 <div>
                     <div className="eyebrow">
-                        <div className="eyebrow-dot" style={{ background: 'var(--m3-primary)' }} />
-                        Today's Schedule
+                        <div className="eyebrow-dot" style={{ background: isEmergency ? 'var(--m3-error)' : 'var(--m3-primary)' }} />
+                        {isEmergency ? 'Clinical Intake' : "Today's Schedule"}
                     </div>
-                    <div className="widget-title" style={{ marginTop: 2 }}>Appointments</div>
+                    <div className="widget-title" style={{ marginTop: 2 }}>
+                        {isEmergency ? 'Walk-in Registrations' : 'Appointments'}
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {activeCount > 0 && (
                         <div className="chip" style={{
-                            background: 'var(--m3-primary-container)',
-                            color: 'var(--m3-primary)',
+                            background: isEmergency ? 'var(--m3-error-container)' : 'var(--m3-primary-container)',
+                            color: isEmergency ? 'var(--m3-error)' : 'var(--m3-primary)',
                         }}>
-                            {activeCount} active
+                            {activeCount} {isEmergency ? 'Triage' : 'active'}
                         </div>
                     )}
                     <button className="ghost-link" onClick={() => navigate('/admin/appointments')} aria-label="View all appointments">

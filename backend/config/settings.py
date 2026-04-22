@@ -454,18 +454,18 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "class": "logging.StreamHandler",
+            "class": "logging.StreamHandler",  # Restored for traceback visibility
             "formatter": "verbose",
         },
     },
     "root": {
         "handlers": ["console"],
-        "level": "WARNING",  # Only warnings and errors in the console
+        "level": "WARNING",
     },
     "loggers": {
         "django": {
             "handlers": ["console"],
-            "level": "INFO",          # Log INFO-level messages from Django itself
+            "level": "INFO",
             "propagate": False,
         },
         "apps": {

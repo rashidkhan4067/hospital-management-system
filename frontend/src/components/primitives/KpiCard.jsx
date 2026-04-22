@@ -10,6 +10,7 @@ const KpiCard = memo(({
     title,
     value,
     trend,
+    detail,
     isUp       = true,
     icon: Icon,
     color      = 'var(--m3-primary)',
@@ -101,12 +102,17 @@ const KpiCard = memo(({
                     <div
                         style={{
                             display: 'flex', alignItems: 'center', gap: '3px',
-                            fontSize: '11px', fontWeight: 700, color: trendColor,
+                            fontSize: '10px', fontWeight: 700, color: trendColor,
                         }}
-                        aria-label={`${isUp ? 'Up' : 'Down'} ${trend}`}
+                        aria-label={`${isUp ? 'Up' : 'Down'} ${trend} ${detail || ''}`}
                     >
                         <TrendIcon size={11} aria-hidden="true" />
                         <span>{trend}</span>
+                        {detail && (
+                          <span style={{ color: 'var(--m3-text-sub)', opacity: 0.4, fontSize: '9px', fontWeight: 600, marginLeft: '2px' }}>
+                            {detail}
+                          </span>
+                        )}
                     </div>
                 )}
             </div>

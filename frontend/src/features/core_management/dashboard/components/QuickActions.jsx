@@ -60,32 +60,59 @@ const QuickActions = () => {
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-2" role="group" aria-label="Quick action shortcuts">
-                {ACTIONS.map((action, idx) => (
-                    <motion.div
-                        key={action.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05, duration: 0.24 }}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                    >
-                        <button
-                            onClick={() => openModal(action.id)}
-                            className={[
-                                'flex items-center gap-2.5 px-4 h-10 rounded-full',
-                                'text-[13px] font-semibold tracking-tight',
-                                'transition-all duration-150 border-none cursor-pointer',
-                                'outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                                action.color,
-                                action.shadow,
-                            ].join(' ')}
-                            aria-label={action.label}
+                {ACTIONS.map((action, idx) => {
+                    const isAddPatient = action.id === 'ADD_PATIENT';
+                    
+                    return (
+                        <motion.div
+                            key={action.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05, duration: 0.24 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="relative"
                         >
-                            <action.icon size={17} strokeWidth={2.2} aria-hidden="true" />
-                            <span>{action.label}</span>
-                        </button>
-                    </motion.div>
-                ))}
+                            {/* 🌊 Liquid Glow Effect (2026 Aesthetic) */}
+                            {isAddPatient && (
+                                <motion.div 
+                                    animate={{ 
+                                        scale: [1, 1.1, 1],
+                                        opacity: [0.3, 0.6, 0.3]
+                                    }}
+                                    transition={{ 
+                                        duration: 3, 
+                                        repeat: Infinity, 
+                                        ease: "easeInOut" 
+                                    }}
+                                    className="absolute inset-0 rounded-full blur-md bg-[#6750A4]/40 -z-10"
+                                />
+                            )}
+                            
+                            <button
+                                onClick={() => openModal(action.id)}
+                                className={[
+                                    'flex items-center gap-2.5 px-5 h-10 rounded-full relative overflow-hidden group',
+                                    'text-[13px] font-bold tracking-tight',
+                                    'transition-all duration-300 border-none cursor-pointer',
+                                    'outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                                    action.color,
+                                    action.shadow,
+                                    isAddPatient ? 'animate-pulse-slow ring-2 ring-[#6750A4]/20' : ''
+                                ].join(' ')}
+                                aria-label={action.label}
+                            >
+                                {/* Subtle inner glow for premium feel */}
+                                {isAddPatient && (
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+                                )}
+                                
+                                <action.icon size={17} strokeWidth={2.5} className={isAddPatient ? 'animate-bounce-subtle' : ''} aria-hidden="true" />
+                                <span>{action.label}</span>
+                            </button>
+                        </motion.div>
+                    );
+                })}
             </div>
 
             {/* Keyboard shortcut hint */}

@@ -14,10 +14,12 @@ import OperationsPulseCard from '../components/OperationsPulseCard';
 import DemographicDistributionCard from '../components/DemographicDistributionCard';
 import InsuranceVelocityCard from '../components/InsuranceVelocityCard';
 import WardCapacityWidget from '../components/WardCapacityWidget';
+import ResourceUtilizationHeatmap from '../components/ResourceUtilizationHeatmap';
 
 import InstitutionalAlertStream from '../components/InstitutionalAlertStream';
 import AnalyticalRegistry from '../components/AnalyticalRegistry';
 import AnalyticsKpiGrid from '../components/AnalyticsKpiGrid';
+import AISummaryCard from '../components/AISummaryCard';
 
 // 🏛️ Advanced Operational Shards (Utility-First)
 import AdmissionChannelShard from '../components/AdmissionChannelShard';
@@ -39,11 +41,16 @@ const AnalyticsPage = () => {
         setFilters({ searchQuery: query });
     }, [searchParams, setFilters]);
 
+    if (isLoading && !data) return <Loading />;
+
     return (
         <AdminPage>
             <main className="flex flex-col gap-6 p-6 max-w-[1600px] mx-auto w-full font-sans animate-in fade-in duration-700">
                 
                 <section aria-label="Analytical Toolbar"><DashboardToolbar /></section>
+
+                {/* 🤖 Agentic AI Insight (2026 Fleet Standard) */}
+                <AISummaryCard isLoading={isLoading} />
 
                 {/* 📊 KPI Registry */}
                 <AnalyticsKpiGrid isLoading={isLoading} />
@@ -59,10 +66,12 @@ const AnalyticsPage = () => {
                     <div className="xl:col-span-4">
                         <InstitutionalAlertStream data={data?.alerts} isLoading={isLoading} />
                     </div>
-                </section>                {/* 📊 Row 5: Diagnostic Performance Trio */}
+                </section>
+
+                {/* 📊 Row 5: Diagnostic Performance Trio */}
                 <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]" aria-label="Diagnostic Metrics">
                     <DemographicDistributionCard data={data?.demographics} isLoading={isLoading} />
-                    <InsuranceVelocityCard data={data?.insuranceVelocity} isLoading={isLoading} />
+                    <ResourceUtilizationHeatmap data={data?.wardHeatmap} isLoading={isLoading} />
                     <WardCapacityWidget data={data?.wardCapacity} isLoading={isLoading} />
                 </section>
 

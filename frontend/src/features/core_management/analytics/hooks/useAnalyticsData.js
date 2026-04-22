@@ -17,10 +17,16 @@ export function useAnalyticsData() {
     queryKey: ['clinical-telemetry', globalFilters],
     queryFn: async () => {
       try {
+        // 🔮 Context-Aware Precision Logic
+        const params = { ...globalFilters };
+        if (globalFilters.department.toLowerCase() === 'emergency' && globalFilters.dateRange === 'Today') {
+            params.granularity = 'hourly';
+        }
+
         // 🧠 Fetch Parallel Intelligence Shards
         const [statsRes, pulseRes] = await Promise.all([
-            apiClient.get('/dashboard/stats/', { params: globalFilters }),
-            apiClient.get('/analytics/pulse/', { params: globalFilters })
+            apiClient.get('/dashboard/stats/', { params }),
+            apiClient.get('/analytics/pulse/', { params })
         ]);
 
         const stats = statsRes.data;
@@ -134,20 +140,36 @@ function generateSimulationTelemetry(filters) {
   const unitMult = isAllUnits ? 1 : 0.35;
   const seed = (department.length + (doctor?.length || 0)) % 20;
 
-  const pulseSeries = Array.from({ length: 7 }, (_, i) => ({
+  const pulseSeries = Array.from({ length: 9 }, (_, i) => {
+    const baseVolume = Math.floor((150 + seed * 5 + i * 10) * unitMult);
+    const baseRevenue = Math.floor((120000 + seed * 5000 + i * 8000) * unitMult);
+    // 🔮 Intelligence Modeling: The last 2 points are "Future" (Ghost Lines)
+    const isFuture = i > 6;
+    return {
       name: `${i+10} May`,
-      volume: Math.floor((150 + seed * 5 + i * 10) * unitMult),
-      revenue: Math.floor((120000 + seed * 5000 + i * 8000) * unitMult)
-  }));
+      volume: isFuture ? null : baseVolume,
+      revenue: isFuture ? null : baseRevenue,
+      predictedVolume: isFuture || i === 6 ? baseVolume * (1 + (Math.random() * 0.15)) : null,
+      predictedRevenue: isFuture || i === 6 ? baseRevenue * (1 + (Math.random() * 0.12)) : null,
+    };
+  });
 
   return {
     kpis: [
-      { id: 'pat', value: "1,250", trend: "+12.4%", isUp: true },
-      { id: 'appt', value: "480", trend: "+5.1%", isUp: true },
-      { id: 'rev', value: "PKR 4.2M", trend: "+18.2%", isUp: true },
-      { id: 'doc', value: "45", trend: "Sync'd", isUp: true },
+      { id: 'pat', value: "1,250", trend: "↑ 12.4%", isUp: true, detail: "vs last week" },
+      { id: 'appt', value: "480", trend: "↑ 5.1%", isUp: true, detail: "vs last week" },
+      { id: 'rev', value: "PKR 4.2M", trend: "↑ 18.2%", isUp: true, detail: "vs last week" },
+      { id: 'doc', value: "45", trend: "↓ 2%", isUp: false, detail: "vs last week" },
     ],
     pulseSeries,
+    wardHeatmap: [
+        { ward: 'General Ward', morning: 85, afternoon: 92, evening: 78, night: 45 },
+        { ward: 'ICU', morning: 95, afternoon: 98, evening: 100, night: 92 },
+        { ward: 'Paediatrics', morning: 40, afternoon: 60, evening: 85, night: 30 },
+        { ward: 'Maternity', morning: 70, afternoon: 75, evening: 80, night: 65 },
+        { ward: 'Emergency', morning: 90, afternoon: 95, evening: 100, night: 110 },
+        { ward: 'Surgical', morning: 60, afternoon: 85, evening: 70, night: 40 },
+    ],
     deptPerformance: [
         { name: 'OPD', efficiency: 88, caseload: 450, revenue: 1200000 },
         { name: 'IPD', efficiency: 92, caseload: 320, revenue: 4500000 },

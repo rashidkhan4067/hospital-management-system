@@ -106,9 +106,23 @@ const ClinicalPulseChart = ({ data, isLoading }) => {
                                 name="Volume"
                                 stroke="var(--m3-primary)" 
                                 strokeWidth={3}
+                                strokeDasharray="0"
                                 fillOpacity={1} 
                                 fill="url(#volGrad)" 
                                 animationDuration={2000}
+                                connectNulls
+                            />
+                            <Area 
+                                yAxisId="left"
+                                type="monotone" 
+                                dataKey="predictedVolume" 
+                                name="Predicted Load"
+                                stroke="var(--m3-primary)" 
+                                strokeWidth={2}
+                                strokeDasharray="4 4"
+                                fill="transparent"
+                                animationDuration={3000}
+                                connectNulls
                             />
                             <Area 
                                 yAxisId="right"
@@ -120,6 +134,19 @@ const ClinicalPulseChart = ({ data, isLoading }) => {
                                 fillOpacity={1} 
                                 fill="url(#revGrad)" 
                                 animationDuration={2500}
+                                connectNulls
+                            />
+                            <Area 
+                                yAxisId="right"
+                                type="monotone" 
+                                dataKey="predictedRevenue" 
+                                name="Predicted Fiscal"
+                                stroke="var(--m3-success)" 
+                                strokeWidth={2}
+                                strokeDasharray="4 4"
+                                fill="transparent"
+                                animationDuration={3500}
+                                connectNulls
                             />
                         </AreaChart>
                     </ResponsiveContainer>
@@ -139,6 +166,10 @@ const ClinicalPulseChart = ({ data, isLoading }) => {
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-primary" style={{ boxShadow: '0 0 8px var(--m3-primary)' }} />
                         <span className="text-[9px] font-bold text-text-sub uppercase tracking-wider opacity-60">Census Load</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 border border-dashed border-primary bg-transparent" />
+                        <span className="text-[9px] font-bold text-primary uppercase tracking-wider">AI Forecast</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-success" style={{ boxShadow: '0 0 8px var(--m3-success)' }} />

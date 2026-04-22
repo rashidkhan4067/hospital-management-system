@@ -99,7 +99,13 @@ export default function M3Select({
                             onClick={(e) => e.stopPropagation()}
                         />
                     ) : (
-                        hasValue ? <span className="text-slate-800">{selectedOption?.label}</span> : <span className="text-slate-300 font-bold opacity-70">{placeholder}</span>
+                        hasValue ? (
+                            <span className="text-slate-800">{selectedOption?.label}</span>
+                        ) : (
+                            isLabelShrunk ? (
+                                <span className="text-slate-300 font-bold opacity-70">{placeholder}</span>
+                            ) : null
+                        )
                     )}
                 </div>
 

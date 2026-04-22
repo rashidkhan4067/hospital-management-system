@@ -7,6 +7,7 @@ import {
 import { TrendingUp, Users, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAnalyticsData } from '../../analytics/hooks/useAnalyticsData';
+import { useDataStore } from '../../../../core/store/useDataStore';
 
 const FALLBACK = [
     { name: 'Mon', opd: 142, ipd: 45, total: 187 },
@@ -42,6 +43,8 @@ const Tip = ({ active, payload, label }) => {
 const AppointmentTrendCard = () => {
     const { data: telemetry, isLoading } = useAnalyticsData();
     const navigate = useNavigate();
+    const department = useDataStore(s => s.filters.department);
+    const isEmergency = department?.toLowerCase() === 'emergency';
     const [tab, setTab] = useState('total');
 
     const data = telemetry?.patientTrend?.length > 0
@@ -53,26 +56,30 @@ const AppointmentTrendCard = () => {
         }))
         : FALLBACK;
 
-    const { color } = TABS.find(t => t.id === tab) || TABS[0];
+    const { color: baseColor } = TABS.find(t => t.id === tab) || TABS[0];
+    const color = isEmergency ? 'var(--m3-error)' : baseColor;
+
     const values  = data.map(d => d[tab] || 0);
     const total   = values.reduce((a, b) => a + b, 0);
     const avg     = Math.round(total / values.length);
     const peakDay = data.reduce((m, d) => (d[tab] || 0) > (m.val || 0) ? { name: d.name, val: d[tab] } : m, {});
 
     return (
-        <div className="widget" style={{ height: '380px' }}>
+        <div className="widget" style={{ height: '380px', borderColor: isEmergency ? 'var(--m3-error)' : 'var(--m3-outline-variant)' }}>
             {/* Header */}
             <div className="widget-header">
                 <div>
                     <div className="eyebrow">
-                        <div className="eyebrow-dot" style={{ background: 'var(--m3-primary)' }} />
-                        Clinical Volume
+                        <div className="eyebrow-dot" style={{ background: isEmergency ? 'var(--m3-error)' : 'var(--m3-primary)' }} />
+                        {isEmergency ? 'Trauma Center Pulse' : 'Clinical Volume'}
                     </div>
-                    <div className="widget-title" style={{ marginTop: 2 }}>Patient Traffic</div>
+                    <div className="widget-title" style={{ marginTop: 2 }}>
+                        {isEmergency ? 'Emergency Case Velocity' : 'Patient Traffic'}
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {/* Segmented tab */}
-                    <div
+                    {!isEmergency && <div
                         role="tablist"
                         aria-label="Traffic view"
                         style={{
@@ -104,13 +111,13 @@ const AppointmentTrendCard = () => {
                                 {t.label}
                             </button>
                         ))}
-                    </div>
+                    </div>}
                     <button
                         className="ghost-link"
                         onClick={() => navigate('/admin/appointments')}
                         aria-label="View all appointments"
                     >
-                        All →
+                        {isEmergency ? 'Triage →' : 'All →'}
                     </button>
                 </div>
             </div>
@@ -121,19 +128,19 @@ const AppointmentTrendCard = () => {
                 gap: 8, padding: '10px 16px',
             }}>
                 {[
-                    { label: 'Weekly Total', value: total,       icon: Calendar },
-                    { label: 'Daily Avg',    value: avg,         icon: Users    },
-                    { label: 'Peak Day',     value: peakDay.name || '—', icon: TrendingUp },
+                    { label: isEmergency ? 'Last 24h' : 'Weekly Total', value: total,       icon: Calendar },
+                    { label: isEmergency ? 'Peak Intensity' : 'Daily Avg',    value: `${avg}/hr` , icon: Users    },
+                    { label: isEmergency ? 'Critical Hour' : 'Peak Day',     value: peakDay.name || '—', icon: TrendingUp },
                 ].map(({ label, value, icon: Icon }) => (
                     <div
                         key={label}
                         style={{
-                            background: 'var(--m3-surface-variant)',
+                            background: isEmergency ? 'rgba(179, 38, 30, 0.08)' : 'var(--m3-surface-variant)',
                             borderRadius: 10,
                             padding: '8px 10px',
                         }}
                     >
-                        <div style={{ fontSize: 10, color: 'var(--m3-text-sub)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        <div style={{ fontSize: 10, color: isEmergency ? 'var(--m3-error)' : 'var(--m3-text-sub)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                             {label}
                         </div>
                         <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--m3-text-main)', marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>

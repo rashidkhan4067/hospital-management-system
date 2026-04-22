@@ -26,27 +26,36 @@ const GENDERS = [
 ];
 
 const Stepper = ({ currentStep }) => (
-  <div className="flex items-center justify-center gap-2 mb-6">
-    {[0, 1].map((s) => (
-      <div key={s} className="flex items-center">
-        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 
-          ${currentStep >= s ? 'bg-[#0051d9] text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
-          {currentStep > s ? <CheckCircle2 size={14} strokeWidth={3} /> : s + 1}
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {[0, 1].map((s) => (
+        <div key={s} className="flex items-center">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 
+            ${currentStep >= s ? 'bg-[#0051d9] text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
+            {currentStep > s ? <CheckCircle2 size={14} strokeWidth={3} /> : s + 1}
+          </div>
+          {s === 0 && (
+            <div className={`w-10 h-[2px] mx-1.5 rounded-full transition-all duration-300 
+              ${currentStep > 0 ? 'bg-[#0051d9]' : 'bg-slate-100'}`} />
+          )}
         </div>
-        {s === 0 && (
-          <div className={`w-10 h-[2px] mx-1.5 rounded-full transition-all duration-300 
-            ${currentStep > 0 ? 'bg-[#0051d9]' : 'bg-slate-100'}`} />
-        )}
-      </div>
-    ))}
-  </div>
+      ))}
+    </div>
 );
 
-export default function AddPatientForm({ onFormStateChange, formErrors = {} }) {
+const SectionHeader = ({ title }) => (
+    <div className="flex items-center gap-2 mb-3">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#0051d9] animate-pulse" />
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+            {title}
+        </span>
+    </div>
+);
+
+export default function AddPatientForm({ onFormStateChange, formErrors = {}, initialName = '' }) {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
-    fullName: '',
-    cnic: '',
+    fullName: initialName && isNaN(initialName.charAt(0)) ? initialName : '',
+    cnic: initialName && !isNaN(initialName.charAt(0)) ? initialName : '',
     date_of_birth: '',
     age: '',
     gender: '',
@@ -102,22 +111,35 @@ export default function AddPatientForm({ onFormStateChange, formErrors = {} }) {
     setFormData(prev => ({ ...prev, [name]: value, age: Math.max(0, age) }));
   };
 
-  const handleIdentityVerify = async () => {
-    const cleanedCnic = formData.cnic?.replace(/-/g, '');
-    if (!cleanedCnic || cleanedCnic.length < 5) return;
+  const handleIdentityVerify = async (term) => {
+    const searchTarget = term || formData.cnic || formData.fullName;
+    const cleanedSearch = searchTarget?.replace(/-/g, '') || '';
+    if (cleanedSearch.length < 2) return;
     
     setIsSearching(true);
     setHasSearched(false);
     try {
-      const { data } = await api.get(`patients/profiles/?search=${cleanedCnic}`);
-      setSearchResults(data.results || []);
+      const { data } = await api.get(`patients/profiles/?search=${cleanedSearch}`);
+      const results = data.results || [];
+      setSearchResults(results);
       setHasSearched(true);
+      
+      // ⚡ Strategic Optimization: If unique match found, stay on Step 0 but show result clearly
+      // If no match found and we're in "Register" mode, we could auto-advance but it's safer to show "Available"
     } catch (err) { 
       console.error("Identity verification failure", err); 
     } finally { 
       setIsSearching(false); 
     }
   };
+
+  useEffect(() => {
+    if (initialName) {
+      handleIdentityVerify(initialName);
+    }
+  }, [initialName]);
+
+  const onSearchClick = () => handleIdentityVerify();
 
   const isValid = step === 1 && formData.fullName && formData.cnic && formData.email && 
                   formData.phone_number && formData.password && formData.privacy_consent &&
@@ -132,7 +154,7 @@ export default function AddPatientForm({ onFormStateChange, formErrors = {} }) {
         subtitle: step === 0 ? "Identity Verification" : "Profile Creation",
         submitLabel: step === 0 ? "Verify ID" : "Register Patient",
         successMessage: "Patient successfully onboarded.",
-        hideFooter: step === 0 && (hasSearched && searchResults.length > 0)
+        hideFooter: step === 0
       });
     }
   }, [formData, isValid, step, hasSearched, searchResults, onFormStateChange, validationErrors]);
@@ -189,8 +211,8 @@ export default function AddPatientForm({ onFormStateChange, formErrors = {} }) {
                    onKeyDown={(e) => e.key === 'Enter' && handleIdentityVerify()}
                  />
                  <button 
-                   onClick={handleIdentityVerify}
-                   disabled={isSearching || (formData.cnic?.length || 0) < 5}
+                   onClick={() => handleIdentityVerify()}
+                   disabled={isSearching || (formData.cnic?.length || 0) < 2}
                    className="absolute right-2 top-2 bottom-2 px-5 bg-[#0051d9] text-white rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-md active:scale-95 disabled:opacity-30 transition-all"
                  >
                    {isSearching ? <Activity size={16} className="animate-spin" /> : "Search"}
@@ -310,59 +332,71 @@ export default function AddPatientForm({ onFormStateChange, formErrors = {} }) {
             key="step-1"
             initial={{ opacity: 0, scale: 0.99 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col space-y-4"
+            className="flex flex-col space-y-6"
           >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 rounded-full bg-[#0051d9] animate-pulse" />
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Quick Registration</span>
+            {/* Header Intelligence Node */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col">
+                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Onboarding Node</span>
+                 <span className="text-sm font-bold text-slate-800">{formData.fullName || "New Profiling"}</span>
               </div>
-              <button onClick={() => setStep(0)} className="text-[9px] font-bold text-[#0051d9] uppercase tracking-widest hover:underline px-2 py-1 bg-blue-50 rounded-lg">Reset Verification</button>
+              <button 
+                onClick={() => setStep(0)} 
+                className="text-[9px] font-bold text-[#0051d9] uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all flex items-center gap-1.5"
+              >
+                <ArrowLeft size={12} strokeWidth={3} />
+                Back to Shards
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-3.5">
-              {/* Primary Identity Group */}
-              <div className="space-y-3.5">
-                <M3TextField label="Legal Name *" placeholder="Patient Full Name" icon={User} required fullWidth name="fullName" onChange={onChange} value={formData.fullName || ''} className="h-11" />
+            {/* 📋 Identity Card */}
+            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-4">
+              <SectionHeader title="Core Identity" />
+              <div className="space-y-4">
+                <M3TextField label="Legal Name *" placeholder="Patient Full Name" icon={User} required fullWidth name="fullName" onChange={onChange} value={formData.fullName || ''} className="bg-white h-11" />
                 
-                <div className="grid grid-cols-2 gap-3.5">
-                   <M3TextField label="Phone Number *" type="tel" icon={Phone} placeholder="+92 XXX XXXXXXX" required name="phone_number" onChange={onChange} value={formData.phone_number || ''} className="h-11" />
-                   <M3TextField label="Clinical ID (CNIC) *" icon={Fingerprint} placeholder="ID Number" required name="cnic" onChange={onChange} value={formData.cnic || ''} className="h-11" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <M3TextField label="Phone Number *" type="tel" icon={Phone} placeholder="+92 XXX XXXXXXX" required name="phone_number" onChange={onChange} value={formData.phone_number || ''} className="bg-white h-11" />
+                   <M3TextField label="Clinical ID (CNIC) *" icon={Fingerprint} placeholder="XXXXX-XXXXXXX-X" required name="cnic" onChange={onChange} value={formData.cnic || ''} className="bg-white h-11" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3.5">
-                   <M3TextField label="Birth Date *" type="date" icon={Calendar} required name="date_of_birth" onChange={handleDobChange} value={formData.date_of_birth || ''} className="h-11" />
-                   <M3Select label="Gender *" icon={Users} options={GENDERS} value={formData.gender || ''} onChange={(e) => setFormData(p => ({ ...p, gender: e.target.value }))} placeholder="Select" required className="h-11" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <M3TextField label="Birth Date *" type="date" icon={Calendar} required name="date_of_birth" onChange={handleDobChange} value={formData.date_of_birth || ''} className="bg-white h-11" />
+                   <M3Select label="Gender *" icon={Users} options={GENDERS} value={formData.gender || ''} onChange={(e) => setFormData(p => ({ ...p, gender: e.target.value }))} placeholder="Select" required className="bg-white h-11" />
                 </div>
               </div>
+            </div>
 
-              {/* Minimal Account Group */}
-              <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl space-y-3.5">
-                <div className="grid grid-cols-2 gap-3.5">
-                   <M3TextField label="Email Address *" type="email" icon={Mail} placeholder="name@clinc.com" required name="email" onChange={onChange} value={formData.email || ''} className="h-11" />
-                   <M3Select label="Blood Group" icon={Heart} options={BLOOD_GROUPS} value={formData.blood_group || ''} onChange={(e) => setFormData(p => ({ ...p, blood_group: e.target.value }))} placeholder="Select" className="h-11" />
+            {/* 🛡️ Secure Registry Data */}
+            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-4">
+              <SectionHeader title="Clinical Profile" />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <M3TextField label="Email Address *" type="email" icon={Mail} placeholder="name@clinic.com" required name="email" onChange={onChange} value={formData.email || ''} className="bg-white h-11" />
+                   <M3Select label="Blood Group" icon={Heart} options={BLOOD_GROUPS} value={formData.blood_group || ''} onChange={(e) => setFormData(p => ({ ...p, blood_group: e.target.value }))} placeholder="Select" className="bg-white h-11" />
                 </div>
 
-                <M3TextField label="Physical Address" placeholder="Street, Sector, City" icon={MapPin} fullWidth name="address" onChange={onChange} value={formData.address || ''} className="h-11" />
+                <M3TextField label="Physical Address" placeholder="Residential detail..." icon={MapPin} fullWidth name="address" onChange={onChange} value={formData.address || ''} className="bg-white h-11" />
 
-                <div className="grid grid-cols-1 gap-3.5">
-                   <M3TextField label="Access Password *" type="password" icon={Lock} placeholder="••••••••" required name="password" onChange={onChange} value={formData.password || ''} className="h-11" />
-                </div>
+                <M3TextField label="Access Password *" type="password" icon={Lock} placeholder="••••••••" required name="password" onChange={onChange} value={formData.password || ''} className="bg-white h-11" />
 
-                <div className={`p-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between
-                  ${formData.privacy_consent ? 'bg-white border-[#0051d9]/20 shadow-sm' : 'bg-white/50 border-transparent hover:border-slate-100'}`}
-                  onClick={() => setFormData(p => ({ ...p, privacy_consent: !p.privacy_consent }))}>
-                   <div className="flex items-center gap-2.5">
-                     <div className={`w-7 h-7 rounded flex items-center justify-center transition-all ${formData.privacy_consent ? 'bg-[#0051d9] text-white' : 'bg-slate-200 text-slate-400'}`}>
-                       <ShieldCheck size={14} />
+                {/* Privacy Shard */}
+                <div 
+                  className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between
+                    ${formData.privacy_consent ? 'bg-white border-[#0051d9]/20 shadow-sm' : 'bg-white/50 border-transparent hover:border-slate-100'}`}
+                  onClick={() => setFormData(p => ({ ...p, privacy_consent: !p.privacy_consent }))}
+                >
+                   <div className="flex items-center gap-3">
+                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${formData.privacy_consent ? 'bg-[#0051d9] text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>
+                       <ShieldCheck size={16} />
                      </div>
                      <div className="flex flex-col">
-                       <span className="text-[9px] font-bold uppercase text-slate-800 tracking-tight leading-none mb-0.5">Authorization</span>
-                       <span className="text-[8px] text-slate-400 font-medium leading-none">I accept clinical PHI metadata terms.</span>
+                       <span className="text-[10px] font-black uppercase text-slate-800 tracking-tight leading-none mb-1">Authorization</span>
+                       <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter leading-none">Accept PHI metadata terms</span>
                      </div>
                    </div>
-                   <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${formData.privacy_consent ? 'bg-[#0051d9] border-[#0051d9]' : 'bg-white border-slate-200'}`}>
-                     {formData.privacy_consent && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.privacy_consent ? 'bg-[#0051d9] border-[#0051d9]' : 'bg-white border-slate-200'}`}>
+                     {formData.privacy_consent && <div className="w-2 h-2 rounded-full bg-white" />}
                    </div>
                 </div>
               </div>

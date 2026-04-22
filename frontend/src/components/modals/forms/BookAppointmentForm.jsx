@@ -53,16 +53,16 @@ const SectionHeader = ({ title }) => (
 /**
  * 📅 BookAppointmentForm (Clinical Scheduling Node)
  */
-export default function BookAppointmentForm({ onFormStateChange, formErrors = {}, initialPatient = null }) {
+export default function BookAppointmentForm({ onFormStateChange, formErrors = {}, initialPatient = null, initialName = '' }) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [patientFound, setPatientFound] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [cnicSearch, setCnicSearch] = useState('');
+  const [patientFound, setPatientFound] = useState(!!initialPatient);
+  const [hasSearched, setHasSearched] = useState(!!initialName);
+  const [cnicSearch, setCnicSearch] = useState(initialName);
 
   const [formData, setFormData] = useState({
       patient_id: initialPatient?.id || null,
-      patientName: initialPatient?.full_name || '',
+      patientName: initialPatient?.full_name || initialName,
       doctor_id: null,
       appointment_type: 'in_person',
       appointment_date: '',
@@ -74,27 +74,47 @@ export default function BookAppointmentForm({ onFormStateChange, formErrors = {}
   useEffect(() => {
       if (initialPatient) {
         setPatientFound(true);
+        setStep(1); // ⚡ Auto-advance for agentic flow
       }
   }, [initialPatient]);
 
-  const handleSearch = async () => {
-      if (!cnicSearch || cnicSearch.length < 5) return;
-      setLoading(true);
-      setHasSearched(false);
-      try {
-          const { data } = await api.get(`patients/profiles/?search=${cnicSearch}`);
-          if (data.results?.length > 0) {
-              const p = data.results[0];
-              // 💡 Identity mapping: Appointment model expects User ID, not PatientProfile ID
-              const userId = p.user || p.user_details?.id || p.id;
-              setFormData(prev => ({ ...prev, patient_id: userId, patientName: p.full_name }));
-              setPatientFound(true);
-          } else {
-              setPatientFound(false);
-          }
-          setHasSearched(true);
-      } catch (err) { console.error(err); } finally { setLoading(false); }
+  // 🔍 Rapid Identity Verification
+  const executeAutoSearch = async (term) => {
+    if (!term || term.length < 2) return;
+    setLoading(true);
+    setHasSearched(false);
+    try {
+        const { data } = await api.get(`patients/profiles/?search=${term}`);
+        const results = data.results || [];
+        if (results.length === 1) {
+            const p = results[0];
+            const userId = p.user || p.user_details?.id || p.id;
+            setFormData(prev => ({ ...prev, patient_id: userId, patientName: p.full_name }));
+            setPatientFound(true);
+            setStep(1); // ⚡ Auto-advance to Temporal Matrix
+        } else if (results.length > 0) {
+            const p = results[0];
+            const userId = p.user || p.user_details?.id || p.id;
+            setFormData(prev => ({ ...prev, patient_id: userId, patientName: p.full_name }));
+            setPatientFound(true);
+        } else {
+            setPatientFound(false);
+        }
+        setHasSearched(true);
+    } catch (err) { 
+        console.error("Auto-selection failure:", err); 
+    } finally { 
+        setLoading(false); 
+    }
   };
+
+  useEffect(() => {
+    if (initialName && !initialPatient) {
+       executeAutoSearch(initialName);
+    }
+  }, [initialName, initialPatient]);
+
+  const handleSearch = () => executeAutoSearch(cnicSearch);
 
   const onChange = (e) => {
     const { name, value } = e.target;

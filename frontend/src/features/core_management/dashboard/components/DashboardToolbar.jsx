@@ -50,10 +50,43 @@ const DashboardToolbar = () => {
         return () => clearTimeout(fetchIntell);
     }, [localSearch]);
 
-    // Sync global filters on search
-    const commitSearch = (val) => {
-        setFilters({ searchQuery: val });
-        setIsSearchFocused(false);
+    // Sync global filters on search (Now with Intelligence Interpretation)
+    const commitSearch = async (val) => {
+        if (!val.trim()) return;
+        setSearchLoading(true);
+        try {
+            const res = await apiClient.post('dashboard/intelligence/interpret/', { query: val });
+            const data = res.data;
+
+            if (data.intent === 'lens' && data.filters) {
+                // 👁️ Apply the Lens (Reshape Dashboard Data)
+                setFilters({
+                    ...filters,
+                    ...data.filters,
+                    searchQuery: data.filters.searchQuery || ''
+                });
+                
+                // Show a brief intelligence pulse notification
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-primary text-white rounded-2xl shadow-2xl z-[120] font-bold text-sm animate-bounce flex items-center gap-3';
+                toast.innerHTML = `<span class="p-1 bg-white/20 rounded-lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></span> ${data.interpretation?.applied_lens_label || 'Dashboard Lens Applied'}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+
+            } else if (data.intent === 'action' && data.interpretation?.action_url) {
+                 // Forward to global search logic or navigate if it's an action
+                 navigate(data.interpretation.action_url);
+            } else {
+                // Fallback to basic string filter
+                setFilters({ searchQuery: val });
+            }
+        } catch (err) {
+            console.error("Lens interpretation failed:", err);
+            setFilters({ searchQuery: val });
+        } finally {
+            setSearchLoading(false);
+            setIsSearchFocused(false);
+        }
     };
 
     const activeDept = filters.department !== 'All' ? filters.department : null;
@@ -177,9 +210,13 @@ const DashboardToolbar = () => {
                                 <SearchSection title="Patients" items={searchResults.patients} icon={User} navigate={navigate} query={localSearch} offset={0} selectedIndex={selectedIndex} />
                                 <SearchSection title="Doctors" items={searchResults.doctors} icon={FileText} navigate={navigate} query={localSearch} offset={searchResults.patients?.length || 0} selectedIndex={selectedIndex} />
                                 <SearchSection title="Clinical Events" items={searchResults.appointments} icon={Calendar} navigate={navigate} query={localSearch} offset={(searchResults.patients?.length || 0) + (searchResults.doctors?.length || 0)} selectedIndex={selectedIndex} />
-                                <SearchSection title="Pharmacy" items={searchResults.medicine} icon={Pill} navigate={navigate} query={localSearch} offset={(searchResults.patients?.length || 0) + (searchResults.doctors?.length || 0) + (searchResults.appointments?.length || 0)} selectedIndex={selectedIndex} />
+                                <SearchSection title="Financial Shards" items={searchResults.invoices} icon={FileText} navigate={navigate} query={localSearch} offset={(searchResults.patients?.length || 0) + (searchResults.doctors?.length || 0) + (searchResults.appointments?.length || 0)} selectedIndex={selectedIndex} />
+                                <SearchSection title="Pharmacy" items={searchResults.medicine} icon={Pill} navigate={navigate} query={localSearch} offset={(searchResults.patients?.length || 0) + (searchResults.doctors?.length || 0) + (searchResults.appointments?.length || 0) + (searchResults.invoices?.length || 0)} selectedIndex={selectedIndex} />
 
-                                {Object.values(searchResults).every(a => a.length === 0) && (
+                                {Object.entries(searchResults).every(([key, val]) => {
+                                    if (key === 'ai_interpretation') return !val;
+                                    return Array.isArray(val) && val.length === 0;
+                                }) && (
                                     <div style={{ padding: 20, textAlign: 'center', color: 'var(--m3-text-sub)', fontSize: 11 }}>
                                         No proactive matches found. Press Enter to filter dashboard.
                                     </div>

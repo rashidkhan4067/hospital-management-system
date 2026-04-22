@@ -55,18 +55,18 @@ const SectionHeader = ({ title }) => (
 /**
  * 🧾 NewInvoiceForm - Date-Safe & Professional
  */
-export default function NewInvoiceForm({ onFormStateChange, initialPatient = null }) {
+export default function NewInvoiceForm({ onFormStateChange, initialPatient = null, initialName = '' }) {
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [patientFound, setPatientFound] = useState(false);
-    const [cnicSearch, setCnicSearch] = useState('');
+    const [patientFound, setPatientFound] = useState(!!initialPatient);
+    const [cnicSearch, setCnicSearch] = useState(initialName);
     
     const [appointments, setAppointments] = useState([]);
     const [admissions, setAdmissions] = useState([]);
     
     const [formData, setFormData] = useState({
         patient: initialPatient?.id || null,
-        patientName: initialPatient?.full_name || '',
+        patientName: initialPatient?.full_name || initialName,
         context_type: 'WALKIN',
         context_id: null,
         payment_method: 'CASH',
@@ -87,23 +87,42 @@ export default function NewInvoiceForm({ onFormStateChange, initialPatient = nul
 
     const [hasSearched, setHasSearched] = useState(false);
 
-    const handleSearch = async () => {
-        if (!cnicSearch || cnicSearch.length < 5) return;
+    // 🔍 Rapid Identity Verification
+    const executeAutoSearch = async (term) => {
+        if (!term || term.length < 2) return;
         setLoading(true);
         setHasSearched(false);
         try {
-            const { data } = await api.get(`patients/profiles/?search=${cnicSearch}`);
-            if (data.results?.length > 0) {
-                const p = data.results[0];
+            const { data } = await api.get(`patients/profiles/?search=${term}`);
+            const results = data.results || [];
+            if (results.length === 1) {
+                const p = results[0];
                 setFormData(prev => ({ ...prev, patient: p.id, patientName: p.full_name }));
                 setPatientFound(true);
                 fetchPatientContext(p.id);
+                setStep(1); // ⚡ Auto-advance to Sharding
+            } else if (results.length > 0) {
+                const p = results[0];
+                setFormData(prev => ({ ...prev, patient: p.id, patientName: p.full_name }));
+                setPatientFound(true);
             } else {
                 setPatientFound(false);
             }
             setHasSearched(true);
-        } catch (err) { console.error(err); } finally { setLoading(false); }
+        } catch (err) { 
+            console.error(err); 
+        } finally { 
+            setLoading(false); 
+        }
     };
+
+    useEffect(() => {
+        if (initialName && !initialPatient) {
+            executeAutoSearch(initialName);
+        }
+    }, [initialName, initialPatient]);
+
+    const handleSearch = () => executeAutoSearch(cnicSearch);
 
     const fetchPatientContext = async (patientId) => {
         try {

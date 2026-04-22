@@ -42,7 +42,9 @@ const Tip = ({ active, payload, label }) => {
 const RevenueAnalysisCard = () => {
     const navigate       = useNavigate();
     const { data: telemetry, isLoading } = useAnalyticsData();
-    const globalTelemetry = useDataStore(s => s.telemetry);
+    const filters = useDataStore(s => s.filters);
+    const activeDept = filters.department;
+    const isEmergency = activeDept === 'Emergency';
 
     const chartData = telemetry?.revenueData?.length > 0
         ? telemetry.revenueData.map((d, i) => ({
@@ -57,9 +59,9 @@ const RevenueAnalysisCard = () => {
     const netProfit = totalRev - totalExp;
 
     const stats = [
-        { label: 'Revenue',  value: `PKR ${fmt(totalRev)}`,  color: 'var(--m3-primary)',  isUp: true  },
-        { label: 'Expenses', value: `PKR ${fmt(totalExp)}`,  color: 'var(--m3-error)',    isUp: false },
-        { label: 'Net',      value: `PKR ${fmt(netProfit)}`, color: 'var(--m3-success)',  isUp: true  },
+        { label: isEmergency ? 'Direct Care' : 'Revenue',  value: `PKR ${fmt(totalRev)}`,  color: 'var(--m3-primary)',  isUp: true  },
+        { label: isEmergency ? 'Supplies' : 'Expenses', value: `PKR ${fmt(totalExp)}`,  color: 'var(--m3-error)',    isUp: false },
+        { label: isEmergency ? 'Net Pulse' : 'Net',      value: `PKR ${fmt(netProfit)}`, color: 'var(--m3-success)',  isUp: true  },
     ];
 
     return (
@@ -68,10 +70,10 @@ const RevenueAnalysisCard = () => {
             <div className="widget-header">
                 <div>
                     <div className="eyebrow">
-                        <div className="eyebrow-dot" style={{ background: 'var(--m3-warning)' }} />
-                        Financial Analytics
+                        <div className="eyebrow-dot" style={{ background: isEmergency ? 'var(--m3-error)' : 'var(--m3-warning)' }} />
+                        {isEmergency ? 'Emergency Resource Pulse' : 'Financial Analytics'}
                     </div>
-                    <div className="widget-title" style={{ marginTop: 2 }}>Revenue Overview</div>
+                    <div className="widget-title" style={{ marginTop: 2 }}>{isEmergency ? 'Emergency Revenue Stream' : 'Revenue Overview'}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{
@@ -80,7 +82,7 @@ const RevenueAnalysisCard = () => {
                         fontSize: 11, fontWeight: 700, color: 'var(--m3-success)',
                     }}>
                         <TrendingUp size={11} aria-hidden="true" />
-                        +18.2%
+                        {isEmergency ? 'Peak' : '+18.2%'}
                     </div>
                     <button className="ghost-link" onClick={() => navigate('/admin/analytics?type=finance')} aria-label="Full finance report">
                         Report →

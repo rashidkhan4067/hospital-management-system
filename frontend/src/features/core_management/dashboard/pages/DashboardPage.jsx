@@ -18,6 +18,7 @@ import BedOccupancyCard        from '../components/BedOccupancyCard';
 import PharmacyStockCard       from '../components/PharmacyStockCard';
 import OutstandingInvoicesCard from '../components/OutstandingInvoicesCard';
 import QuickActions            from '../components/QuickActions';
+import ActiveEmergencyTracker  from '../components/ActiveEmergencyTracker';
 
 /**
  * DashboardPage — Google-style compact auto-responsive grid
@@ -25,6 +26,9 @@ import QuickActions            from '../components/QuickActions';
 export default function DashboardPage() {
     const [searchParams] = useSearchParams();
     const syncFilters    = useDataStore(s => s.syncFiltersFromUrl);
+    const department     = useDataStore(s => s.filters.department);
+
+    const isEmergency = department?.toLowerCase() === 'emergency';
 
     useEffect(() => {
         if (searchParams) syncFilters?.(searchParams);
@@ -58,6 +62,13 @@ export default function DashboardPage() {
 
                 {/* ── Row 3: AI Intelligence Banner (Dynamic) ── */}
                 <ClinicalAIAlerts />
+
+                {/* ── Contextual Injection: Emergency Tracker ── */}
+                {isEmergency && (
+                    <section aria-label="Critical Emergency Monitoring">
+                        <ActiveEmergencyTracker />
+                    </section>
+                )}
 
                 {/* ── Row 4: Toolbar ── */}
                 <section aria-label="Dashboard controls"><DashboardToolbar /></section>
